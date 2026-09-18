@@ -128,12 +128,6 @@ main {
 
 }
 
-.boton:hover {
-
-    background: #1b5e20;
-
-}
-
 footer {
 
     text-align: center;
@@ -154,79 +148,69 @@ footer {
 
 <header>
 
-    <h1>🍄 Radar Níscalo</h1>
+<h1>🍄 Radar Níscalo</h1>
 
-    <p>Radar meteorológico y condiciones para la aparición de níscalos</p>
+<p>Radar meteorológico y condiciones para la aparición de níscalos</p>
 
 </header>
 
 <main>
 
-    <div class="card">
+<div class="card">
 
-        <h2>🌧️ Radar meteorológico</h2>
+<h2>🌧️ Radar meteorológico</h2>
 
-        <iframe
+<iframe
 
-            class="radar"
+class="radar"
 
-            src="https://embed.windy.com/embed2.html?lat=40.4168&lon=-3.7038&detailLat=40.4168&detailLon=-3.7038&width=650&height=450&zoom=6&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=default&metricTemp=default&metricRain=default&metricSnow=default&metricCloud=default"
+src="https://embed.windy.com/embed2.html?lat=40.4168&lon=-3.7038&detailLat=40.4168&detailLon=-3.7038&width=650&height=450&zoom=6&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=default&metricTemp=default&metricRain=default&metricSnow=default&metricCloud=default"
 
-            loading="lazy"
+allowfullscreen>
 
-            allowfullscreen>
+</iframe>
 
-        </iframe>
+</div>
 
-    </div>
+<div class="card">
 
-    <div class="card">
+<h2>🍄 Condiciones para el níscalo</h2>
 
-        <h2>🍄 Condiciones para el níscalo</h2>
+<div class="info">
 
-        <div class="info">
+<p>
 
-            <p>
+Las lluvias recientes, la humedad del suelo y las temperaturas posteriores a las precipitaciones pueden favorecer la aparición de níscalos.
 
-                Las lluvias recientes, la humedad del suelo y las temperaturas
+</p>
 
-                posteriores a las precipitaciones pueden favorecer la aparición
+<p>
 
-                de níscalos.
+Utiliza el radar y la previsión meteorológica para consultar las condiciones de las zonas que te interesen.
 
-            </p>
+</p>
 
-            <p>
+<a
 
-                Utiliza el radar y la previsión meteorológica para consultar
+class="boton"
 
-                las condiciones de las zonas que te interesen.
+href="https://www.windy.com/"
 
-            </p>
+target="_blank">
 
-            <a
+Ver Windy
 
-                class="boton"
+</a>
 
-                href="https://www.windy.com/"
+</div>
 
-                target="_blank"
-
-                rel="noopener noreferrer">
-
-                Ver Windy
-
-            </a>
-
-        </div>
-
-    </div>
+</div>
 
 </main>
 
 <footer>
 
-    Radar Níscalo · Información meteorológica
+Radar Níscalo · Información meteorológica
 
 </footer>
 
