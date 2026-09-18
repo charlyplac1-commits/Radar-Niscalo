@@ -6,137 +6,429 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
-<title>Radar Níscalo</title>
+<meta name="theme-color" content="#214b35">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<title>🍄 Radar del Níscalo</title>
+
+<link rel="stylesheet"
+
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
 <style>
 
-* {
+*{
 
-    box-sizing: border-box;
-
-}
-
-body {
-
-    margin: 0;
-
-    font-family: Arial, Helvetica, sans-serif;
-
-    background: #f2f2f2;
-
-    color: #222;
+box-sizing:border-box;
 
 }
 
-header {
+body{
 
-    background: #2e7d32;
+margin:0;
 
-    color: white;
+background:#f5f2e9;
 
-    padding: 25px 15px;
+color:#17231b;
 
-    text-align: center;
-
-}
-
-header h1 {
-
-    margin: 0;
-
-    font-size: 32px;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 
 }
 
-header p {
+header{
 
-    margin: 10px 0 0;
+background:#214b35;
 
-    font-size: 16px;
+color:white;
 
-}
+padding:20px 16px;
 
-main {
+position:sticky;
 
-    max-width: 1000px;
+top:0;
 
-    margin: 25px auto;
-
-    padding: 0 15px;
+z-index:1000;
 
 }
 
-.card {
+header b{
 
-    background: white;
-
-    border-radius: 12px;
-
-    padding: 20px;
-
-    margin-bottom: 25px;
-
-    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+font-size:24px;
 
 }
 
-.card h2 {
+header small{
 
-    margin-top: 0;
+display:block;
 
-    color: #2e7d32;
+margin-top:5px;
 
-}
-
-.radar {
-
-    width: 100%;
-
-    height: 550px;
-
-    border: 0;
-
-    border-radius: 10px;
+opacity:.85;
 
 }
 
-.info {
+main{
 
-    font-size: 16px;
+max-width:1000px;
 
-    line-height: 1.6;
+margin:auto;
 
-}
-
-.boton {
-
-    display: inline-block;
-
-    margin-top: 10px;
-
-    padding: 12px 20px;
-
-    background: #2e7d32;
-
-    color: white;
-
-    text-decoration: none;
-
-    border-radius: 8px;
+padding:12px;
 
 }
 
-footer {
+.card{
 
-    text-align: center;
+background:white;
 
-    padding: 25px;
+border:1px solid #dfe3dc;
 
-    color: #666;
+border-radius:16px;
 
-    font-size: 14px;
+padding:16px;
+
+margin:12px 0;
+
+box-shadow:0 2px 8px rgba(0,0,0,.05);
+
+}
+
+.tabs{
+
+display:flex;
+
+gap:8px;
+
+overflow-x:auto;
+
+margin-bottom:10px;
+
+}
+
+button{
+
+background:#214b35;
+
+color:white;
+
+border:0;
+
+border-radius:10px;
+
+padding:11px 14px;
+
+margin-top:10px;
+
+font-weight:700;
+
+cursor:pointer;
+
+}
+
+.tabs button{
+
+margin:0;
+
+background:#e5e9e3;
+
+color:#17231b;
+
+white-space:nowrap;
+
+}
+
+.tabs .on{
+
+background:#214b35;
+
+color:white;
+
+}
+
+button.secondary{
+
+background:#e5e9e3;
+
+color:#17231b;
+
+}
+
+button.danger{
+
+background:#9b3d35;
+
+}
+
+.score{
+
+display:flex;
+
+gap:16px;
+
+align-items:center;
+
+}
+
+.ring{
+
+width:92px;
+
+height:92px;
+
+border-radius:50%;
+
+display:grid;
+
+place-items:center;
+
+flex:none;
+
+}
+
+.ring b{
+
+background:white;
+
+border-radius:50%;
+
+width:70px;
+
+height:70px;
+
+display:grid;
+
+place-items:center;
+
+font-size:24px;
+
+}
+
+.grid{
+
+display:grid;
+
+grid-template-columns:repeat(4,1fr);
+
+gap:10px;
+
+}
+
+.k{
+
+display:grid;
+
+grid-template-columns:1fr 1fr;
+
+gap:10px;
+
+}
+
+.big{
+
+font-size:26px;
+
+font-weight:800;
+
+}
+
+.muted{
+
+color:#68736b;
+
+font-size:12px;
+
+}
+
+label{
+
+display:block;
+
+font-weight:700;
+
+font-size:13px;
+
+margin-top:12px;
+
+}
+
+input,select{
+
+width:100%;
+
+padding:10px;
+
+border:1px solid #cfd6cf;
+
+border-radius:9px;
+
+background:white;
+
+}
+
+input[type=range]{
+
+padding:0;
+
+}
+
+.row{
+
+display:grid;
+
+grid-template-columns:1fr 1fr;
+
+gap:10px;
+
+}
+
+.mapbox{
+
+height:390px;
+
+border-radius:15px;
+
+overflow:hidden;
+
+border:1px solid #dfe3dc;
+
+}
+
+#map{
+
+height:100%;
+
+}
+
+.forecast{
+
+display:flex;
+
+gap:7px;
+
+overflow-x:auto;
+
+}
+
+.day{
+
+min-width:105px;
+
+background:#f5f7f3;
+
+border-radius:12px;
+
+padding:9px;
+
+text-align:center;
+
+}
+
+.day b{
+
+display:block;
+
+}
+
+.day .ico{
+
+font-size:25px;
+
+margin:4px;
+
+}
+
+table{
+
+width:100%;
+
+border-collapse:collapse;
+
+font-size:13px;
+
+}
+
+th,td{
+
+padding:8px;
+
+border-bottom:1px solid #e2e6e1;
+
+text-align:left;
+
+}
+
+.badge{
+
+display:inline-block;
+
+padding:5px 8px;
+
+border-radius:20px;
+
+background:#edf3ed;
+
+font-size:12px;
+
+margin:2px;
+
+}
+
+.notice{
+
+background:#fff8df;
+
+border:1px solid #ead58b;
+
+padding:10px;
+
+border-radius:10px;
+
+font-size:13px;
+
+}
+
+.list div{
+
+padding:9px 0;
+
+border-top:1px solid #e1e5df;
+
+}
+
+footer{
+
+text-align:center;
+
+padding:25px;
+
+color:#68736b;
+
+font-size:12px;
+
+}
+
+@media(max-width:720px){
+
+.grid{
+
+grid-template-columns:1fr 1fr;
+
+}
+
+.row{
+
+grid-template-columns:1fr;
+
+}
+
+.mapbox{
+
+height:330px;
+
+}
 
 }
 
@@ -148,23 +440,409 @@ footer {
 
 <header>
 
-<h1>🍄 Radar Níscalo</h1>
+<b>🍄 Radar del Níscalo</b>
 
-<p>Radar meteorológico y condiciones para la aparición de níscalos</p>
+<small>
+
+Condiciones meteorológicas, suelo, altitud e histórico
+
+</small>
 
 </header>
 
 <main>
 
+<div class="tabs">
+
+<button class="on" onclick="tab('radar',this)">
+
+Radar
+
+</button>
+
+<button onclick="tab('historico',this)">
+
+Histórico
+
+</button>
+
+<button onclick="tab('hallazgos',this)">
+
+Mis hallazgos
+
+</button>
+
+</div>
+
+<!-- ================= RADAR ================= -->
+
+<section id="radar">
+
+<div class="card score">
+
+<div id="ring" class="ring">
+
+<b id="score">--</b>
+
+</div>
+
+<div>
+
+<h2 id="nivel" style="margin:0">
+
+Cargando…
+
+</h2>
+
+<div id="ventana">
+
+Calculando condiciones
+
+</div>
+
+<div class="muted" id="ubicacionTexto">
+
+Selecciona una ubicación
+
+</div>
+
+</div>
+
+</div>
+
 <div class="card">
 
-<h2>🌧️ Radar meteorológico</h2>
+<h3>📍 Ubicación</h3>
+
+<div class="row">
+
+<div>
+
+<label>Latitud</label>
+
+<input
+
+id="lat"
+
+type="number"
+
+step="0.000001"
+
+value="41.60">
+
+</div>
+
+<div>
+
+<label>Longitud</label>
+
+<input
+
+id="lon"
+
+type="number"
+
+step="0.000001"
+
+value="1.80">
+
+</div>
+
+</div>
+
+<button onclick="usarUbicacion()">
+
+📍 Usar mi ubicación
+
+</button>
+
+<button class="secondary" onclick="cargarDatos()">
+
+🔄 Actualizar datos
+
+</button>
+
+<div
+
+id="estado"
+
+class="muted"
+
+style="margin-top:8px">
+
+</div>
+
+</div>
+
+<div class="grid">
+
+<div class="card">
+
+<div class="big" id="lluvia14">
+
+--
+
+</div>
+
+<div class="muted">
+
+Lluvia · últimos 14 días
+
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="big" id="suelo">
+
+--
+
+</div>
+
+<div class="muted">
+
+Humedad del suelo
+
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="big" id="temperatura">
+
+--
+
+</div>
+
+<div class="muted">
+
+Temperatura
+
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="big" id="altitud">
+
+--
+
+</div>
+
+<div class="muted">
+
+Altitud
+
+</div>
+
+</div>
+
+</div>
+
+<div class="grid">
+
+<div class="card">
+
+<div class="big" id="humedad">
+
+--
+
+</div>
+
+<div class="muted">
+
+Humedad ambiental
+
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="big" id="probLluvia">
+
+--
+
+</div>
+
+<div class="muted">
+
+Probabilidad lluvia
+
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="big" id="rafaga">
+
+--
+
+</div>
+
+<div class="muted">
+
+Ráfaga máxima
+
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="big" id="lluvia7">
+
+--
+
+</div>
+
+<div class="muted">
+
+Lluvia próximos 7 días
+
+</div>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<h3>🌦️ Previsión</h3>
+
+<div id="prevision" class="forecast"></div>
+
+</div>
+
+<div class="card">
+
+<h3>🎚️ Condiciones</h3>
+
+<label>
+
+Lluvia 14 días:
+
+<span id="rainValue">--</span> mm
+
+</label>
+
+<input
+
+id="rainSlider"
+
+type="range"
+
+min="0"
+
+max="250"
+
+value="80">
+
+<label>
+
+Temperatura:
+
+<span id="tempValue">--</span> °C
+
+</label>
+
+<input
+
+id="tempSlider"
+
+type="range"
+
+min="2"
+
+max="30"
+
+step=".5"
+
+value="15">
+
+<label>
+
+Humedad suelo:
+
+<span id="soilValue">--</span> %
+
+</label>
+
+<input
+
+id="soilSlider"
+
+type="range"
+
+min="1"
+
+max="100"
+
+value="70">
+
+<label>
+
+Altitud:
+
+<span id="altValue">--</span> m
+
+</label>
+
+<input
+
+id="altSlider"
+
+type="range"
+
+min="0"
+
+max="2500"
+
+value="900">
+
+<button onclick="calcular()">
+
+🍄 Calcular favorabilidad
+
+</button>
+
+</div>
+
+<div class="card">
+
+<h3>🗺️ Mapa de favorabilidad</h3>
+
+<div class="mapbox">
+
+<div id="map"></div>
+
+</div>
+
+<p class="muted">
+
+La favorabilidad es orientativa y combina lluvia,
+
+temperatura, humedad del suelo y altitud.
+
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>🌧️ Radar meteorológico</h3>
 
 <iframe
 
-class="radar"
+id="windy"
 
-src="https://embed.windy.com/embed2.html?lat=40.4168&lon=-3.7038&detailLat=40.4168&detailLon=-3.7038&width=650&height=450&zoom=6&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=default&metricTemp=default&metricRain=default&metricSnow=default&metricCloud=default"
+style="width:100%;height:390px;border:0;border-radius:12px"
+
+src="https://embed.windy.com/embed2.html?lat=41.6&lon=1.8&detailLat=41.6&detailLon=1.8&width=650&height=450&zoom=7&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=default&metricTemp=default&metricRain=default&metricSnow=default&metricCloud=default"
 
 allowfullscreen>
 
@@ -172,47 +850,1647 @@ allowfullscreen>
 
 </div>
 
+</section>
+
+<!-- ================= HISTORICO ================= -->
+
+<section
+
+id="historico"
+
+style="display:none">
+
 <div class="card">
 
-<h2>🍄 Condiciones para el níscalo</h2>
-
-<div class="info">
+<h2>📅 Histórico meteorológico</h2>
 
 <p>
 
-Las lluvias recientes, la humedad del suelo y las temperaturas posteriores a las precipitaciones pueden favorecer la aparición de níscalos.
+Consulta datos históricos de la ubicación seleccionada.
 
 </p>
 
-<p>
+<div class="row">
 
-Utiliza el radar y la previsión meteorológica para consultar las condiciones de las zonas que te interesen.
+<div>
 
-</p>
+<label>Año</label>
 
-<a
+<select id="ano">
 
-class="boton"
+<option>2021</option>
 
-href="https://www.windy.com/"
+<option>2022</option>
 
-target="_blank">
+<option>2023</option>
 
-Ver Windy
+<option>2024</option>
 
-</a>
+<option selected>2025</option>
+
+</select>
+
+</div>
+
+<div>
+
+<label>&nbsp;</label>
+
+<button onclick="cargarHistorico()">
+
+📊 Cargar histórico
+
+</button>
 
 </div>
 
 </div>
+
+<div
+
+id="historicoEstado"
+
+class="muted"
+
+style="margin-top:10px">
+
+</div>
+
+<div
+
+id="tablaHistorico"
+
+style="overflow:auto;margin-top:12px">
+
+</div>
+
+</div>
+
+<div class="card">
+
+<h3>🍄 Histórico de mis recogidas</h3>
+
+<div
+
+id="estadisticas"
+
+class="notice">
+
+Todavía no hay hallazgos.
+
+</div>
+
+</div>
+
+</section>
+
+<!-- ================= HALLAZGOS ================= -->
+
+<section
+
+id="hallazgos"
+
+style="display:none">
+
+<div class="card">
+
+<h2>📍 Mis hallazgos</h2>
+
+<p class="muted">
+
+Los datos se guardan en este dispositivo.
+
+</p>
+
+<div class="row">
+
+<div>
+
+<label>Fecha</label>
+
+<input
+
+id="fechaHallazgo"
+
+type="date">
+
+</div>
+
+<div>
+
+<label>Cantidad</label>
+
+<input
+
+id="cantidadHallazgo"
+
+type="number"
+
+min="1"
+
+placeholder="Ej. 15">
+
+</div>
+
+</div>
+
+<label>
+
+Zona / municipio
+
+</label>
+
+<input
+
+id="zonaHallazgo"
+
+placeholder="Municipio, comarca o zona">
+
+<label>
+
+Notas
+
+</label>
+
+<input
+
+id="notasHallazgo"
+
+placeholder="Pinar húmedo, después de lluvia…">
+
+<button onclick="guardarHallazgo()">
+
+🍄 Guardar hallazgo
+
+</button>
+
+<button
+
+class="danger"
+
+onclick="borrarHallazgos()">
+
+Borrar todos
+
+</button>
+
+<div
+
+id="listaHallazgos"
+
+class="list"
+
+style="margin-top:15px">
+
+</div>
+
+</div>
+
+</section>
 
 </main>
 
 <footer>
 
-Radar Níscalo · Información meteorológica
+Radar del Níscalo · Aplicación experimental
 
 </footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+const $ = id => document.getElementById(id);
+
+let mapa;
+
+let marcador;
+
+/* ================= PESTAÑAS ================= */
+
+function tab(nombre,boton){
+
+["radar","historico","hallazgos"].forEach(id=>{
+
+$(id).style.display =
+
+id===nombre ? "block" : "none";
+
+});
+
+document
+
+.querySelectorAll(".tabs button")
+
+.forEach(b=>b.classList.remove("on"));
+
+boton.classList.add("on");
+
+if(nombre==="historico"){
+
+mostrarEstadisticas();
+
+}
+
+if(nombre==="hallazgos"){
+
+mostrarHallazgos();
+
+}
+
+}
+
+/* ================= MAPA ================= */
+
+function iniciarMapa(){
+
+mapa=L.map("map").setView(
+
+[41.60,1.80],
+
+8
+
+);
+
+L.tileLayer(
+
+"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+
+{
+
+maxZoom:19,
+
+attribution:"© OpenStreetMap"
+
+}
+
+).addTo(mapa);
+
+marcador=L.marker(
+
+[41.60,1.80]
+
+)
+
+.addTo(mapa)
+
+.bindPopup("Ubicación consultada");
+
+}
+
+function moverMapa(lat,lon){
+
+marcador
+
+.setLatLng([lat,lon])
+
+.bindPopup(
+
+"📍 Ubicación consultada"
+
+);
+
+mapa.setView(
+
+[lat,lon],
+
+11
+
+);
+
+}
+
+/* ================= FAVORABILIDAD ================= */
+
+function calcularPuntuacion(
+
+lluvia,
+
+temp,
+
+suelo,
+
+altitud
+
+){
+
+let lluviaFactor=
+
+Math.exp(
+
+-Math.pow(
+
+(lluvia-85)/55,
+
+2
+
+)
+
+);
+
+let tempFactor=
+
+Math.exp(
+
+-Math.pow(
+
+(temp-15)/5,
+
+2
+
+)
+
+);
+
+let sueloFactor=
+
+Math.max(
+
+0,
+
+Math.min(
+
+1,
+
+suelo/100
+
+)
+
+);
+
+let altFactor=
+
+Math.exp(
+
+-Math.pow(
+
+(altitud-1000)/850,
+
+2
+
+)
+
+);
+
+let resultado=
+
+100*(
+
+0.34*lluviaFactor+
+
+0.24*tempFactor+
+
+0.24*sueloFactor+
+
+0.18*altFactor
+
+);
+
+return Math.max(
+
+0,
+
+Math.min(
+
+100,
+
+Math.round(resultado)
+
+)
+
+);
+
+}
+
+function pintarFavorabilidad(){
+
+let lluvia=
+
+Number($("rainSlider").value);
+
+let temp=
+
+Number($("tempSlider").value);
+
+let suelo=
+
+Number($("soilSlider").value);
+
+let alt=
+
+Number($("altSlider").value);
+
+$("rainValue").textContent=lluvia;
+
+$("tempValue").textContent=temp;
+
+$("soilValue").textContent=suelo;
+
+$("altValue").textContent=alt;
+
+let resultado=
+
+calcularPuntuacion(
+
+lluvia,
+
+temp,
+
+suelo,
+
+alt
+
+);
+
+$("score").textContent=
+
+resultado;
+
+if(resultado>=80){
+
+$("nivel").textContent=
+
+"Muy favorable";
+
+$("ventana").textContent=
+
+"Ventana orientativa: 2–6 días";
+
+}else if(resultado>=60){
+
+$("nivel").textContent=
+
+"Favorable";
+
+$("ventana").textContent=
+
+"Ventana orientativa: 4–9 días";
+
+}else if(resultado>=40){
+
+$("nivel").textContent=
+
+"Posible";
+
+$("ventana").textContent=
+
+"Conviene vigilar lluvia y humedad";
+
+}else{
+
+$("nivel").textContent=
+
+"Baja";
+
+$("ventana").textContent=
+
+"Sin ventana clara";
+
+}
+
+$("ring").style.background=
+
+`conic-gradient(
+
+#3e8b58 0 ${resultado}%,
+
+#e5e9e3 ${resultado}% 100%
+
+)`;
+
+}
+
+function calcular(){
+
+pintarFavorabilidad();
+
+}
+
+/* ================= UBICACIÓN ================= */
+
+function usarUbicacion(){
+
+if(!navigator.geolocation){
+
+alert(
+
+"Tu navegador no permite obtener la ubicación."
+
+);
+
+return;
+
+}
+
+$("estado").textContent=
+
+"Obteniendo ubicación…";
+
+navigator.geolocation.getCurrentPosition(
+
+pos=>{
+
+$("lat").value=
+
+pos.coords.latitude.toFixed(6);
+
+$("lon").value=
+
+pos.coords.longitude.toFixed(6);
+
+cargarDatos();
+
+},
+
+()=>{
+
+$("estado").textContent=
+
+"No se pudo obtener la ubicación.";
+
+},
+
+{
+
+enableHighAccuracy:true,
+
+timeout:10000
+
+}
+
+);
+
+}
+
+/* ================= DATOS METEOROLÓGICOS ================= */
+
+async function cargarDatos(){
+
+let lat=
+
+parseFloat($("lat").value);
+
+let lon=
+
+parseFloat($("lon").value);
+
+if(
+
+!Number.isFinite(lat) ||
+
+!Number.isFinite(lon)
+
+){
+
+alert(
+
+"Introduce una ubicación válida."
+
+);
+
+return;
+
+}
+
+$("estado").textContent=
+
+"Cargando datos meteorológicos…";
+
+try{
+
+let url=
+
+`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&timezone=auto&past_days=14&forecast_days=7&current=temperature_2m,relative_humidity_2m,wind_gusts_10m&hourly=temperature_2m,relative_humidity_2m,precipitation,precipitation_probability,soil_moisture_0_to_7cm,wind_gusts_10m&daily=temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code`;
+
+let respuesta=
+
+await fetch(url);
+
+if(!respuesta.ok)
+
+throw new Error();
+
+let datos=
+
+await respuesta.json();
+
+/* ALTITUD */
+
+let elevacion=
+
+await fetch(
+
+`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`
+
+);
+
+let elevacionDatos=
+
+await elevacion.json();
+
+let altitud=
+
+Math.round(
+
+elevacionDatos.elevation?.[0] || 0
+
+);
+
+/* LLUVIA 14 DÍAS */
+
+let lluvia14=0;
+
+let tiempos=
+
+datos.hourly.time;
+
+let precipitacion=
+
+datos.hourly.precipitation;
+
+let limite=
+
+Date.now()-
+
+14*24*60*60*1000;
+
+for(
+
+let i=0;
+
+i<tiempos.length;
+
+i++
+
+){
+
+if(
+
+new Date(tiempos[i]).getTime()
+
+>=limite
+
+){
+
+lluvia14+=
+
+Number(
+
+precipitacion[i]||0
+
+);
+
+}
+
+}
+
+/* SUELO */
+
+let sueloDatos=
+
+datos.hourly.soil_moisture_0_to_7cm
+
+.filter(v=>v!==null);
+
+let humedadSuelo=
+
+sueloDatos.length
+
+?
+
+Math.round(
+
+sueloDatos[sueloDatos.length-1]*100
+
+)
+
+:0;
+
+/* ACTUAL */
+
+let temperatura=
+
+Number(
+
+datos.current.temperature_2m
+
+);
+
+let humedad=
+
+Number(
+
+datos.current.relative_humidity_2m
+
+);
+
+let rafaga=
+
+Number(
+
+datos.current.wind_gusts_10m
+
+);
+
+/* PRÓXIMOS 7 DÍAS */
+
+let lluvia7=
+
+datos.daily
+
+.precipitation_sum
+
+.slice(0,7)
+
+.reduce(
+
+(a,b)=>a+Number(b||0),
+
+0
+
+);
+
+let probabilidad=
+
+Math.max(
+
+...datos.daily
+
+.precipitation_probability_max
+
+.slice(0,7)
+
+.map(Number)
+
+);
+
+/* MOSTRAR */
+
+$("lluvia14").textContent=
+
+Math.round(lluvia14)+" mm";
+
+$("suelo").textContent=
+
+humedadSuelo+"%";
+
+$("temperatura").textContent=
+
+temperatura.toFixed(1)+" °C";
+
+$("altitud").textContent=
+
+altitud+" m";
+
+$("humedad").textContent=
+
+humedad+"%";
+
+$("probLluvia").textContent=
+
+probabilidad+"%";
+
+$("rafaga").textContent=
+
+Math.round(rafaga)+" km/h";
+
+$("lluvia7").textContent=
+
+lluvia7.toFixed(1)+" mm";
+
+/* CONTROLES */
+
+$("rainSlider").value=
+
+Math.min(
+
+250,
+
+Math.round(lluvia14)
+
+);
+
+$("tempSlider").value=
+
+Math.max(
+
+2,
+
+Math.min(
+
+30,
+
+temperatura
+
+)
+
+);
+
+$("soilSlider").value=
+
+humedadSuelo;
+
+$("altSlider").value=
+
+Math.max(
+
+0,
+
+Math.min(
+
+2500,
+
+altitud
+
+)
+
+);
+
+pintarFavorabilidad();
+
+/* PREVISIÓN */
+
+mostrarPrevision(
+
+datos.daily
+
+);
+
+/* MAPA */
+
+moverMapa(
+
+lat,
+
+lon
+
+);
+
+/* WINDY */
+
+$("windy").src=
+
+`https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&width=650&height=450&zoom=8&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=default&metricTemp=default&metricRain=default&metricSnow=default&metricCloud=default`;
+
+$("ubicacionTexto").textContent=
+
+`Lat ${lat.toFixed(4)} · Lon ${lon.toFixed(4)}`;
+
+$("estado").textContent=
+
+"Datos actualizados correctamente.";
+
+}
+
+catch(error){
+
+console.error(error);
+
+$("estado").textContent=
+
+"No se pudieron cargar los datos meteorológicos. Comprueba la conexión.";
+
+}
+
+}
+
+/* ================= PREVISIÓN ================= */
+
+function iconoTiempo(codigo){
+
+if(codigo===0)
+
+return "☀️";
+
+if(codigo<=2)
+
+return "🌤️";
+
+if(codigo===3)
+
+return "☁️";
+
+if(codigo<=67)
+
+return "🌧️";
+
+if(codigo<=77)
+
+return "❄️";
+
+return "⛈️";
+
+}
+
+function mostrarPrevision(diario){
+
+let caja=
+
+$("prevision");
+
+caja.innerHTML="";
+
+diario.time.forEach(
+
+(fecha,i)=>{
+
+let div=
+
+document.createElement("div");
+
+div.className="day";
+
+let fechaReal=
+
+new Date(
+
+fecha+"T12:00:00"
+
+);
+
+div.innerHTML=`
+
+<b>
+
+${fechaReal.toLocaleDateString(
+
+"es-ES",
+
+{
+
+weekday:"short",
+
+day:"2-digit",
+
+month:"2-digit"
+
+}
+
+)}
+
+</b>
+
+<div class="ico">
+
+${iconoTiempo(
+
+Number(diario.weather_code?.[i]||0)
+
+)}
+
+</div>
+
+<strong>
+
+${Math.round(
+
+diario.temperature_2m_mean[i]
+
+)} °C
+
+</strong>
+
+<div>
+
+🌧️
+
+${Number(
+
+diario.precipitation_sum[i]||0
+
+).toFixed(1)} mm
+
+</div>
+
+<div>
+
+💧
+
+${Number(
+
+diario.precipitation_probability_max[i]||0
+
+)}%
+
+</div>
+
+`;
+
+caja.appendChild(div);
+
+}
+
+);
+
+/* ================= HISTÓRICO ================= */
+
+async function cargarHistorico(){
+
+let lat=
+
+parseFloat($("lat").value);
+
+let lon=
+
+parseFloat($("lon").value);
+
+let ano=
+
+$("ano").value;
+
+$("historicoEstado").textContent=
+
+"Cargando histórico…";
+
+$("tablaHistorico").innerHTML="";
+
+try{
+
+let url=
+
+`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${ano}-01-01&end_date=${ano}-12-31&timezone=auto&daily=temperature_2m_mean,precipitation_sum`;
+
+let respuesta=
+
+await fetch(url);
+
+if(!respuesta.ok)
+
+throw new Error();
+
+let datos=
+
+await respuesta.json();
+
+let totalLluvia=
+
+datos.daily
+
+.precipitation_sum
+
+.reduce(
+
+(a,b)=>a+Number(b||0),
+
+0
+
+);
+
+let temperaturas=
+
+datos.daily
+
+.temperature_2m_mean
+
+.filter(v=>v!==null);
+
+let media=
+
+temperaturas.reduce(
+
+(a,b)=>a+Number(b),
+
+0
+
+)/
+
+temperaturas.length;
+
+let filas=[];
+
+for(let mes=0;mes<12;mes++){
+
+let lluvia=0;
+
+let temps=[];
+
+datos.daily.time.forEach(
+
+(fecha,i)=>{
+
+let fechaReal=
+
+new Date(
+
+fecha+"T12:00:00"
+
+);
+
+if(
+
+fechaReal.getMonth()===mes
+
+){
+
+lluvia+=
+
+Number(
+
+datos.daily
+
+.precipitation_sum[i]||0
+
+);
+
+if(
+
+datos.daily
+
+.temperature_2m_mean[i]!==null
+
+){
+
+temps.push(
+
+Number(
+
+datos.daily
+
+.temperature_2m_mean[i]
+
+)
+
+);
+
+}
+
+}
+
+});
+
+let tempMedia=
+
+temps.length
+
+?
+
+(
+
+temps.reduce(
+
+(a,b)=>a+b,
+
+0
+
+)/temps.length
+
+).toFixed(1)
+
+:"--";
+
+filas.push(`
+
+<tr>
+
+<td>
+
+${new Date(
+
+2020,
+
+mes,
+
+1
+
+).toLocaleDateString(
+
+"es-ES",
+
+{month:"long"}
+
+)}
+
+</td>
+
+<td>
+
+${lluvia.toFixed(1)} mm
+
+</td>
+
+<td>
+
+${tempMedia} °C
+
+</td>
+
+</tr>
+
+`);
+
+}
+
+$("historicoEstado").textContent=
+
+`${ano}: ${totalLluvia.toFixed(0)} mm de lluvia · ${media.toFixed(1)} °C de temperatura media`;
+
+$("tablaHistorico").innerHTML=`
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Mes</th>
+
+<th>Lluvia</th>
+
+<th>Temp. media</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+${filas.join("")}
+
+</tbody>
+
+</table>
+
+`;
+
+}
+
+catch(error){
+
+$("historicoEstado").textContent=
+
+"No se pudo cargar el histórico.";
+
+}
+
+}
+
+/* ================= HALLAZGOS ================= */
+
+function obtenerHallazgos(){
+
+try{
+
+return JSON.parse(
+
+localStorage.getItem(
+
+"radar_niscalo_hallazgos"
+
+)||"[]"
+
+);
+
+}
+
+catch{
+
+return [];
+
+}
+
+}
+
+function guardarHallazgo(){
+
+let fecha=
+
+$("fechaHallazgo").value;
+
+let zona=
+
+$("zonaHallazgo").value.trim();
+
+let cantidad=
+
+parseInt(
+
+$("cantidadHallazgo").value,
+
+10
+
+);
+
+let notas=
+
+$("notasHallazgo").value.trim();
+
+if(
+
+!fecha ||
+
+!zona ||
+
+!Number.isFinite(cantidad) ||
+
+cantidad<1
+
+){
+
+alert(
+
+"Completa fecha, zona y cantidad."
+
+);
+
+return;
+
+}
+
+let hallazgos=
+
+obtenerHallazgos();
+
+hallazgos.unshift({
+
+fecha:fecha,
+
+zona:zona,
+
+cantidad:cantidad,
+
+notas:notas,
+
+lat:$("lat").value,
+
+lon:$("lon").value
+
+});
+
+localStorage.setItem(
+
+"radar_niscalo_hallazgos",
+
+JSON.stringify(hallazgos)
+
+);
+
+$("zonaHallazgo").value="";
+
+$("cantidadHallazgo").value="";
+
+$("notasHallazgo").value="";
+
+mostrarHallazgos();
+
+mostrarEstadisticas();
+
+}
+
+function mostrarHallazgos(){
+
+let hallazgos=
+
+obtenerHallazgos();
+
+let caja=
+
+$("listaHallazgos");
+
+if(!hallazgos.length){
+
+caja.innerHTML=
+
+'<span class="muted">Aún no hay hallazgos guardados.</span>';
+
+return;
+
+}
+
+caja.innerHTML=
+
+hallazgos
+
+.map(h=>`
+
+<div>
+
+🍄 <b>
+
+${escapar(h.zona)}
+
+</b>
+
+· ${escapar(h.fecha)}
+
+· <b>
+
+${h.cantidad}
+
+</b>
+
+ejemplares
+
+${h.notas
+
+?
+
+" · "+escapar(h.notas)
+
+:""}
+
+</div>
+
+`)
+
+.join("");
+
+}
+
+function mostrarEstadisticas(){
+
+let hallazgos=
+
+obtenerHallazgos();
+
+if(!hallazgos.length){
+
+$("estadisticas").textContent=
+
+"Todavía no hay hallazgos guardados.";
+
+return;
+
+}
+
+let total=
+
+hallazgos.reduce(
+
+(s,h)=>
+
+s+Number(h.cantidad||0),
+
+0
+
+);
+
+let zonas=
+
+new Set(
+
+hallazgos.map(h=>h.zona)
+
+).size;
+
+let porAno={};
+
+hallazgos.forEach(h=>{
+
+let ano=
+
+h.fecha.substring(0,4);
+
+porAno[ano]=
+
+(porAno[ano]||0)+
+
+Number(h.cantidad||0);
+
+});
+
+$("estadisticas").innerHTML=
+
+`<b>
+
+${hallazgos.length}
+
+</b> registros ·
+
+<b>
+
+${total}
+
+</b> ejemplares ·
+
+<b>
+
+${zonas}
+
+</b> zonas
+
+<br><br>
+
+`+
+
+Object.entries(porAno)
+
+.sort(
+
+(a,b)=>b[0].localeCompare(a[0])
+
+)
+
+.map(
+
+([ano,cantidad])=>
+
+`<span class="badge">
+
+${ano}: ${cantidad} ejemplares
+
+</span>`
+
+)
+
+.join("");
+
+}
+
+function borrarHallazgos(){
+
+if(
+
+confirm(
+
+"¿Seguro que quieres borrar todos tus hallazgos?"
+
+)
+
+){
+
+localStorage.removeItem(
+
+"radar_niscalo_hallazgos"
+
+);
+
+mostrarHallazgos();
+
+mostrarEstadisticas();
+
+}
+
+}
+
+function escapar(texto){
+
+return String(texto)
+
+.replace(
+
+/[&<>"']/g,
+
+caracter=>({
+
+"&":"&amp;",
+
+"<":"&lt;",
+
+">":"&gt;",
+
+'"':"&quot;",
+
+"'":"&#039;"
+
+}[caracter])
+
+);
+
+}
+
+/* ================= INICIO ================= */
+
+$("fechaHallazgo").value=
+
+new Date()
+
+.toISOString()
+
+.slice(0,10);
+
+[
+
+"rainSlider",
+
+"tempSlider",
+
+"soilSlider",
+
+"altSlider"
+
+].forEach(id=>{
+
+$(id).addEventListener(
+
+"input",
+
+pintarFavorabilidad
+
+);
+
+});
+
+iniciarMapa();
+
+mostrarHallazgos();
+
+mostrarEstadisticas();
+
+pintarFavorabilidad();
+
+cargarDatos();
+
+</script>
 
 </body>
 
