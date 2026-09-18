@@ -408,16 +408,6 @@ button{
 
   </button>
 
-  <div
-
-    id="geoStatus"
-
-    class="muted"
-
-    style="margin-top:10px"
-
-  ></div>
-
 </div>
 
 <div class="card">
@@ -426,13 +416,7 @@ button{
 
   <div class="map">
 
-    <svg
-
-      id="mapSvg"
-
-      viewBox="0 0 1000 560"
-
-    >
+    <svg viewBox="0 0 1000 560">
 
       <path
 
@@ -471,66 +455,6 @@ button{
       />
 
       <g id="pts"></g>
-
-      <g id="userPoint" style="display:none">
-
-        <circle
-
-          id="userHalo"
-
-          cx="500"
-
-          cy="280"
-
-          r="25"
-
-          fill="#2d7ff9"
-
-          opacity=".20"
-
-        />
-
-        <circle
-
-          id="userDot"
-
-          cx="500"
-
-          cy="280"
-
-          r="11"
-
-          fill="#2d7ff9"
-
-          stroke="white"
-
-          stroke-width="5"
-
-        />
-
-        <text
-
-          id="userLabel"
-
-          x="500"
-
-          y="250"
-
-          text-anchor="middle"
-
-          font-size="18"
-
-          font-weight="700"
-
-          fill="#1859b0"
-
-        >
-
-          Tú estás aquí
-
-        </text>
-
-      </g>
 
       <text
 
@@ -572,9 +496,7 @@ button{
 
   <p class="muted">
 
-    Los puntos verdes, amarillos y naranjas representan
-
-    zonas de favorabilidad de demostración.
+    Demostración. La siguiente fase sustituirá estas zonas por datos reales.
 
   </p>
 
@@ -614,13 +536,7 @@ button{
 
     <label>Fecha</label>
 
-    <input
-
-      id="hf"
-
-      type="date"
-
-    >
+    <input id="hf" type="date">
 
     <label>Zona</label>
 
@@ -836,6 +752,8 @@ function upd() {
 
     '% 100%)';
 
+  /* PUNTOS DEL MAPA */
+
   $('pts').innerHTML = '';
 
   const puntos = [
@@ -1022,201 +940,41 @@ function tab(x, b) {
 
 function geo() {
 
-  const status = $('geoStatus');
-
   if (!navigator.geolocation) {
 
-    status.textContent =
+    alert(
 
-      'Este navegador no permite obtener la ubicación.';
+      'Ubicación no disponible.'
+
+    );
 
     return;
 
   }
 
-  status.textContent =
-
-    '📍 Buscando tu ubicación…';
-
   navigator.geolocation.getCurrentPosition(
 
-    function(position) {
+    function() {
 
-      const lat =
+      alert(
 
-        position.coords.latitude;
+        'Ubicación recibida.\n' +
 
-      const lon =
+        'En la versión actual el mapa es una demostración.'
 
-        position.coords.longitude;
-
-      status.textContent =
-
-        '📍 Ubicación encontrada: ' +
-
-        lat.toFixed(5) +
-
-        ', ' +
-
-        lon.toFixed(5);
-
-      mostrarUbicacionEnMapa(lat, lon);
+      );
 
     },
 
-    function(error) {
+    function() {
 
-      let mensaje;
+      alert(
 
-      if (error.code === 1) {
+        'No se pudo obtener la ubicación.'
 
-        mensaje =
-
-          'El permiso de ubicación está bloqueado. Activa la ubicación para este sitio en los ajustes del navegador.';
-
-      } else if (error.code === 2) {
-
-        mensaje =
-
-          'El dispositivo no ha podido determinar tu ubicación. Comprueba que tengas activada la ubicación.';
-
-      } else if (error.code === 3) {
-
-        mensaje =
-
-          'La búsqueda de ubicación ha tardado demasiado. Vuelve a intentarlo.';
-
-      } else {
-
-        mensaje =
-
-          'No se ha podido obtener la ubicación.';
-
-      }
-
-      status.textContent =
-
-        '⚠️ ' + mensaje;
-
-    },
-
-    {
-
-      enableHighAccuracy:true,
-
-      timeout:20000,
-
-      maximumAge:60000
+      );
 
     }
-
-  );
-
-}
-
-/* =========================
-
-   MOSTRAR UBICACIÓN EN MAPA
-
-   ========================= */
-
-function mostrarUbicacionEnMapa(lat, lon) {
-
-  /*
-
-    El dibujo es una representación de Cataluña.
-
-    Convertimos las coordenadas geográficas
-
-    en una posición aproximada dentro del SVG.
-
-  */
-
-  const minLon = 0.0;
-
-  const maxLon = 3.4;
-
-  const minLat = 40.4;
-
-  const maxLat = 42.9;
-
-  let x =
-
-    ((lon - minLon) /
-
-    (maxLon - minLon)) * 800 + 100;
-
-  let y =
-
-    ((maxLat - lat) /
-
-    (maxLat - minLat)) * 400 + 80;
-
-  x = Math.max(
-
-    120,
-
-    Math.min(880, x)
-
-  );
-
-  y = Math.max(
-
-    80,
-
-    Math.min(480, y)
-
-  );
-
-  $('userPoint').style.display =
-
-    'block';
-
-  $('userDot').setAttribute(
-
-    'cx',
-
-    x
-
-  );
-
-  $('userDot').setAttribute(
-
-    'cy',
-
-    y
-
-  );
-
-  $('userHalo').setAttribute(
-
-    'cx',
-
-    x
-
-  );
-
-  $('userHalo').setAttribute(
-
-    'cy',
-
-    y
-
-  );
-
-  $('userLabel').setAttribute(
-
-    'x',
-
-    x
-
-  );
-
-  $('userLabel').setAttribute(
-
-    'y',
-
-    y - 25
 
   );
 
