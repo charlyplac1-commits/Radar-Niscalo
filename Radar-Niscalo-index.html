@@ -1,31 +1,91 @@
-<!doctype html>
+<!DOCTYPE html>
 
 <html lang="es">
 
 <head>
 
-<meta charset="utf-8">
+<meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta name="theme-color" content="#214b35">
-
-<meta name="apple-mobile-web-app-capable" content="yes">
-
-<title>🍄 Radar del Níscalo</title>
+<title>Radar Níscalo</title>
 
 <style>
 
-body{
+*{box-sizing:border-box}
 
-  margin:0;
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f2f2f2;color:#222}
 
-  background:#f5f2e9;
+header{background:#2e7d32;color:white;padding:20px;text-align:center}
 
-  color:#17231b;
+header h1{margin:0;font-size:28px}
 
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
+header p{margin:8px 0 0;font-size:15px}
 
-}
+main{max-width:900px;margin:20px auto;padding:0 15px}
 
-header{
+.card{background:white;border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+
+.card h2{margin-top:0;color:#2e7d32}
+
+.radar{width:100%;height:500px;border:0;border-radius:10px}
+
+.info{line-height:1.6}
+
+.boton{display:inline-block;background:#2e7d32;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;margin-top:10px}
+
+.boton:hover{background:#1b5e20}
+
+footer{text-align:center;padding:25px;color:#666;font-size:13px}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<h1>🍄 Radar Níscalo</h1>
+
+<p>Información meteorológica para localizar zonas favorables para los níscalos</p>
+
+</header>
+
+<main>
+
+<div class="card">
+
+<h2>🌧️ Radar meteorológico</h2>
+
+<iframe class="radar" src="https://embed.windy.com/embed2.html?lat=40.4168&lon=-3.7038&detailLat=40.4168&detailLon=-3.7038&width=650&height=450&zoom=6&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=default&metricTemp=default&metricRain=default&metricSnow=default&metricCloud=default" allowfullscreen></iframe>
+
+</div>
+
+<div class="card">
+
+<h2>🍄 Condiciones para el níscalo</h2>
+
+<div class="info">
+
+<p>Las lluvias recientes, la humedad del suelo y las temperaturas posteriores a las precipitaciones son algunos de los factores que pueden favorecer la aparición de níscalos.</p>
+
+<p>Consulta el radar y la previsión meteorológica antes de salir al monte.</p>
+
+<a class="boton" href="https://www.windy.com/" target="_blank">Ver Windy</a>
+
+</div>
+
+</div>
+
+</main>
+
+<footer>
+
+Radar Níscalo · Información meteorológica
+
+</footer>
+
+</body>
+
+</html>
