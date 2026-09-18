@@ -12,31 +12,139 @@
 
 <style>
 
-*{box-sizing:border-box}
+* {
 
-body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f2f2f2;color:#222}
+    box-sizing: border-box;
 
-header{background:#2e7d32;color:white;padding:20px;text-align:center}
+}
 
-header h1{margin:0;font-size:28px}
+body {
 
-header p{margin:8px 0 0;font-size:15px}
+    margin: 0;
 
-main{max-width:900px;margin:20px auto;padding:0 15px}
+    font-family: Arial, Helvetica, sans-serif;
 
-.card{background:white;border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+    background: #f2f2f2;
 
-.card h2{margin-top:0;color:#2e7d32}
+    color: #222;
 
-.radar{width:100%;height:500px;border:0;border-radius:10px}
+}
 
-.info{line-height:1.6}
+header {
 
-.boton{display:inline-block;background:#2e7d32;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;margin-top:10px}
+    background: #2e7d32;
 
-.boton:hover{background:#1b5e20}
+    color: white;
 
-footer{text-align:center;padding:25px;color:#666;font-size:13px}
+    padding: 25px 15px;
+
+    text-align: center;
+
+}
+
+header h1 {
+
+    margin: 0;
+
+    font-size: 32px;
+
+}
+
+header p {
+
+    margin: 10px 0 0;
+
+    font-size: 16px;
+
+}
+
+main {
+
+    max-width: 1000px;
+
+    margin: 25px auto;
+
+    padding: 0 15px;
+
+}
+
+.card {
+
+    background: white;
+
+    border-radius: 12px;
+
+    padding: 20px;
+
+    margin-bottom: 25px;
+
+    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+
+}
+
+.card h2 {
+
+    margin-top: 0;
+
+    color: #2e7d32;
+
+}
+
+.radar {
+
+    width: 100%;
+
+    height: 550px;
+
+    border: 0;
+
+    border-radius: 10px;
+
+}
+
+.info {
+
+    font-size: 16px;
+
+    line-height: 1.6;
+
+}
+
+.boton {
+
+    display: inline-block;
+
+    margin-top: 10px;
+
+    padding: 12px 20px;
+
+    background: #2e7d32;
+
+    color: white;
+
+    text-decoration: none;
+
+    border-radius: 8px;
+
+}
+
+.boton:hover {
+
+    background: #1b5e20;
+
+}
+
+footer {
+
+    text-align: center;
+
+    padding: 25px;
+
+    color: #666;
+
+    font-size: 14px;
+
+}
 
 </style>
 
@@ -46,43 +154,79 @@ footer{text-align:center;padding:25px;color:#666;font-size:13px}
 
 <header>
 
-<h1>🍄 Radar Níscalo</h1>
+    <h1>🍄 Radar Níscalo</h1>
 
-<p>Información meteorológica para localizar zonas favorables para los níscalos</p>
+    <p>Radar meteorológico y condiciones para la aparición de níscalos</p>
 
 </header>
 
 <main>
 
-<div class="card">
+    <div class="card">
 
-<h2>🌧️ Radar meteorológico</h2>
+        <h2>🌧️ Radar meteorológico</h2>
 
-<iframe class="radar" src="https://embed.windy.com/embed2.html?lat=40.4168&lon=-3.7038&detailLat=40.4168&detailLon=-3.7038&width=650&height=450&zoom=6&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=default&metricTemp=default&metricRain=default&metricSnow=default&metricCloud=default" allowfullscreen></iframe>
+        <iframe
 
-</div>
+            class="radar"
 
-<div class="card">
+            src="https://embed.windy.com/embed2.html?lat=40.4168&lon=-3.7038&detailLat=40.4168&detailLon=-3.7038&width=650&height=450&zoom=6&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=default&metricTemp=default&metricRain=default&metricSnow=default&metricCloud=default"
 
-<h2>🍄 Condiciones para el níscalo</h2>
+            loading="lazy"
 
-<div class="info">
+            allowfullscreen>
 
-<p>Las lluvias recientes, la humedad del suelo y las temperaturas posteriores a las precipitaciones son algunos de los factores que pueden favorecer la aparición de níscalos.</p>
+        </iframe>
 
-<p>Consulta el radar y la previsión meteorológica antes de salir al monte.</p>
+    </div>
 
-<a class="boton" href="https://www.windy.com/" target="_blank">Ver Windy</a>
+    <div class="card">
 
-</div>
+        <h2>🍄 Condiciones para el níscalo</h2>
 
-</div>
+        <div class="info">
+
+            <p>
+
+                Las lluvias recientes, la humedad del suelo y las temperaturas
+
+                posteriores a las precipitaciones pueden favorecer la aparición
+
+                de níscalos.
+
+            </p>
+
+            <p>
+
+                Utiliza el radar y la previsión meteorológica para consultar
+
+                las condiciones de las zonas que te interesen.
+
+            </p>
+
+            <a
+
+                class="boton"
+
+                href="https://www.windy.com/"
+
+                target="_blank"
+
+                rel="noopener noreferrer">
+
+                Ver Windy
+
+            </a>
+
+        </div>
+
+    </div>
 
 </main>
 
 <footer>
 
-Radar Níscalo · Información meteorológica
+    Radar Níscalo · Información meteorológica
 
 </footer>
 
