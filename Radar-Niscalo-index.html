@@ -20,11 +20,7 @@ href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
 <style>
 
-*{
-
-box-sizing:border-box;
-
-}
+*{box-sizing:border-box}
 
 body{
 
@@ -54,11 +50,7 @@ z-index:1000;
 
 }
 
-header b{
-
-font-size:24px;
-
-}
+header b{font-size:24px}
 
 header small{
 
@@ -186,6 +178,8 @@ place-items:center;
 
 flex:none;
 
+background:conic-gradient(#3e8b58 0 0%,#e5e9e3 0 100%);
+
 }
 
 .ring b{
@@ -211,16 +205,6 @@ font-size:24px;
 display:grid;
 
 grid-template-columns:repeat(4,1fr);
-
-gap:10px;
-
-}
-
-.k{
-
-display:grid;
-
-grid-template-columns:1fr 1fr;
 
 gap:10px;
 
@@ -299,6 +283,8 @@ border:1px solid #dfe3dc;
 #map{
 
 height:100%;
+
+width:100%;
 
 }
 
@@ -454,27 +440,13 @@ Condiciones meteorológicas, suelo, altitud e histórico
 
 <div class="tabs">
 
-<button class="on" onclick="tab('radar',this)">
+<button class="on" onclick="tab('radar',this)">Radar</button>
 
-Radar
+<button onclick="tab('historico',this)">Histórico</button>
 
-</button>
-
-<button onclick="tab('historico',this)">
-
-Histórico
-
-</button>
-
-<button onclick="tab('hallazgos',this)">
-
-Mis hallazgos
-
-</button>
+<button onclick="tab('hallazgos',this)">Mis hallazgos</button>
 
 </div>
-
-<!-- ================= RADAR ================= -->
 
 <section id="radar">
 
@@ -488,17 +460,9 @@ Mis hallazgos
 
 <div>
 
-<h2 id="nivel" style="margin:0">
+<h2 id="nivel" style="margin:0">Cargando…</h2>
 
-Cargando…
-
-</h2>
-
-<div id="ventana">
-
-Calculando condiciones
-
-</div>
+<div id="ventana">Calculando condiciones</div>
 
 <div class="muted" id="ubicacionTexto">
 
@@ -520,15 +484,7 @@ Selecciona una ubicación
 
 <label>Latitud</label>
 
-<input
-
-id="lat"
-
-type="number"
-
-step="0.000001"
-
-value="41.60">
+<input id="lat" type="number" step="0.000001" value="41.60">
 
 </div>
 
@@ -536,15 +492,7 @@ value="41.60">
 
 <label>Longitud</label>
 
-<input
-
-id="lon"
-
-type="number"
-
-step="0.000001"
-
-value="1.80">
+<input id="lon" type="number" step="0.000001" value="1.80">
 
 </div>
 
@@ -562,13 +510,41 @@ value="1.80">
 
 </button>
 
-<div
+<div id="estado" class="muted" style="margin-top:8px"></div>
 
-id="estado"
+</div>
 
-class="muted"
+<div class="grid">
 
-style="margin-top:8px">
+<div class="card">
+
+<div class="big" id="lluvia14">--</div>
+
+<div class="muted">Lluvia · últimos 14 días</div>
+
+</div>
+
+<div class="card">
+
+<div class="big" id="suelo">--</div>
+
+<div class="muted">Humedad del suelo</div>
+
+</div>
+
+<div class="card">
+
+<div class="big" id="temperatura">--</div>
+
+<div class="muted">Temperatura</div>
+
+</div>
+
+<div class="card">
+
+<div class="big" id="altitud">--</div>
+
+<div class="muted">Altitud</div>
 
 </div>
 
@@ -578,133 +554,33 @@ style="margin-top:8px">
 
 <div class="card">
 
-<div class="big" id="lluvia14">
+<div class="big" id="humedad">--</div>
 
---
-
-</div>
-
-<div class="muted">
-
-Lluvia · últimos 14 días
-
-</div>
+<div class="muted">Humedad ambiental</div>
 
 </div>
 
 <div class="card">
 
-<div class="big" id="suelo">
+<div class="big" id="probLluvia">--</div>
 
---
-
-</div>
-
-<div class="muted">
-
-Humedad del suelo
-
-</div>
+<div class="muted">Probabilidad lluvia</div>
 
 </div>
 
 <div class="card">
 
-<div class="big" id="temperatura">
+<div class="big" id="rafaga">--</div>
 
---
-
-</div>
-
-<div class="muted">
-
-Temperatura
-
-</div>
+<div class="muted">Ráfaga máxima</div>
 
 </div>
 
 <div class="card">
 
-<div class="big" id="altitud">
+<div class="big" id="lluvia7">--</div>
 
---
-
-</div>
-
-<div class="muted">
-
-Altitud
-
-</div>
-
-</div>
-
-</div>
-
-<div class="grid">
-
-<div class="card">
-
-<div class="big" id="humedad">
-
---
-
-</div>
-
-<div class="muted">
-
-Humedad ambiental
-
-</div>
-
-</div>
-
-<div class="card">
-
-<div class="big" id="probLluvia">
-
---
-
-</div>
-
-<div class="muted">
-
-Probabilidad lluvia
-
-</div>
-
-</div>
-
-<div class="card">
-
-<div class="big" id="rafaga">
-
---
-
-</div>
-
-<div class="muted">
-
-Ráfaga máxima
-
-</div>
-
-</div>
-
-<div class="card">
-
-<div class="big" id="lluvia7">
-
---
-
-</div>
-
-<div class="muted">
-
-Lluvia próximos 7 días
-
-</div>
+<div class="muted">Lluvia próximos 7 días</div>
 
 </div>
 
@@ -852,13 +728,7 @@ allowfullscreen>
 
 </section>
 
-<!-- ================= HISTORICO ================= -->
-
-<section
-
-id="historico"
-
-style="display:none">
+<section id="historico" style="display:none">
 
 <div class="card">
 
@@ -906,9 +776,7 @@ Consulta datos históricos de la ubicación seleccionada.
 
 </div>
 
-<div
-
-id="historicoEstado"
+<div id="historicoEstado"
 
 class="muted"
 
@@ -916,9 +784,7 @@ style="margin-top:10px">
 
 </div>
 
-<div
-
-id="tablaHistorico"
+<div id="tablaHistorico"
 
 style="overflow:auto;margin-top:12px">
 
@@ -930,11 +796,7 @@ style="overflow:auto;margin-top:12px">
 
 <h3>🍄 Histórico de mis recogidas</h3>
 
-<div
-
-id="estadisticas"
-
-class="notice">
+<div id="estadisticas" class="notice">
 
 Todavía no hay hallazgos.
 
@@ -944,13 +806,7 @@ Todavía no hay hallazgos.
 
 </section>
 
-<!-- ================= HALLAZGOS ================= -->
-
-<section
-
-id="hallazgos"
-
-style="display:none">
+<section id="hallazgos" style="display:none">
 
 <div class="card">
 
@@ -1024,11 +880,7 @@ placeholder="Pinar húmedo, después de lluvia…">
 
 </button>
 
-<button
-
-class="danger"
-
-onclick="borrarHallazgos()">
+<button class="danger" onclick="borrarHallazgos()">
 
 Borrar todos
 
@@ -1062,9 +914,9 @@ Radar del Níscalo · Aplicación experimental
 
 const $ = id => document.getElementById(id);
 
-let mapa;
+let mapa = null;
 
-let marcador;
+let marcador = null;
 
 /* ================= PESTAÑAS ================= */
 
@@ -1074,7 +926,7 @@ function tab(nombre,boton){
 
 $(id).style.display =
 
-id===nombre ? "block" : "none";
+id === nombre ? "block" : "none";
 
 });
 
@@ -1098,13 +950,31 @@ mostrarHallazgos();
 
 }
 
+if(nombre==="radar" && mapa){
+
+setTimeout(()=>{
+
+mapa.invalidateSize();
+
+},100);
+
+}
+
 }
 
 /* ================= MAPA ================= */
 
 function iniciarMapa(){
 
-mapa=L.map("map").setView(
+if(typeof L === "undefined"){
+
+console.error("Leaflet no se ha cargado.");
+
+return;
+
+}
+
+mapa = L.map("map").setView(
 
 [41.60,1.80],
 
@@ -1126,29 +996,31 @@ attribution:"© OpenStreetMap"
 
 ).addTo(mapa);
 
-marcador=L.marker(
+marcador = L.marker(
 
 [41.60,1.80]
 
-)
+).addTo(mapa);
 
-.addTo(mapa)
-
-.bindPopup("Ubicación consultada");
-
-}
-
-function moverMapa(lat,lon){
-
-marcador
-
-.setLatLng([lat,lon])
-
-.bindPopup(
+marcador.bindPopup(
 
 "📍 Ubicación consultada"
 
 );
+
+}
+
+/* ================= MOVER MAPA ================= */
+
+function moverMapa(lat,lon){
+
+if(!mapa || !marcador){
+
+return;
+
+}
+
+marcador.setLatLng([lat,lon]);
 
 mapa.setView(
 
@@ -1174,7 +1046,7 @@ altitud
 
 ){
 
-let lluviaFactor=
+let lluviaFactor =
 
 Math.exp(
 
@@ -1188,7 +1060,7 @@ Math.exp(
 
 );
 
-let tempFactor=
+let tempFactor =
 
 Math.exp(
 
@@ -1202,7 +1074,7 @@ Math.exp(
 
 );
 
-let sueloFactor=
+let sueloFactor =
 
 Math.max(
 
@@ -1218,7 +1090,7 @@ suelo/100
 
 );
 
-let altFactor=
+let altFactor =
 
 Math.exp(
 
@@ -1232,15 +1104,15 @@ Math.exp(
 
 );
 
-let resultado=
+let resultado =
 
-100*(
+100 * (
 
-0.34*lluviaFactor+
+0.34*lluviaFactor +
 
-0.24*tempFactor+
+0.24*tempFactor +
 
-0.24*sueloFactor+
+0.24*sueloFactor +
 
 0.18*altFactor
 
@@ -1264,31 +1136,39 @@ Math.round(resultado)
 
 function pintarFavorabilidad(){
 
-let lluvia=
+let lluvia =
 
 Number($("rainSlider").value);
 
-let temp=
+let temp =
 
 Number($("tempSlider").value);
 
-let suelo=
+let suelo =
 
 Number($("soilSlider").value);
 
-let alt=
+let alt =
 
 Number($("altSlider").value);
 
-$("rainValue").textContent=lluvia;
+$("rainValue").textContent =
 
-$("tempValue").textContent=temp;
+lluvia;
 
-$("soilValue").textContent=suelo;
+$("tempValue").textContent =
 
-$("altValue").textContent=alt;
+temp;
 
-let resultado=
+$("soilValue").textContent =
+
+suelo;
+
+$("altValue").textContent =
+
+alt;
+
+let resultado =
 
 calcularPuntuacion(
 
@@ -1302,61 +1182,69 @@ alt
 
 );
 
-$("score").textContent=
+$("score").textContent =
 
 resultado;
 
-if(resultado>=80){
+if(resultado >= 80){
 
-$("nivel").textContent=
+$("nivel").textContent =
 
 "Muy favorable";
 
-$("ventana").textContent=
+$("ventana").textContent =
 
 "Ventana orientativa: 2–6 días";
 
-}else if(resultado>=60){
+}
 
-$("nivel").textContent=
+else if(resultado >= 60){
+
+$("nivel").textContent =
 
 "Favorable";
 
-$("ventana").textContent=
+$("ventana").textContent =
 
 "Ventana orientativa: 4–9 días";
 
-}else if(resultado>=40){
+}
 
-$("nivel").textContent=
+else if(resultado >= 40){
+
+$("nivel").textContent =
 
 "Posible";
 
-$("ventana").textContent=
+$("ventana").textContent =
 
 "Conviene vigilar lluvia y humedad";
 
-}else{
+}
 
-$("nivel").textContent=
+else{
+
+$("nivel").textContent =
 
 "Baja";
 
-$("ventana").textContent=
+$("ventana").textContent =
 
 "Sin ventana clara";
 
 }
 
-$("ring").style.background=
+$("ring").style.background =
 
-`conic-gradient(
+"conic-gradient(#3e8b58 0 " +
 
-#3e8b58 0 ${resultado}%,
+resultado +
 
-#e5e9e3 ${resultado}% 100%
+"%,#e5e9e3 " +
 
-)`;
+resultado +
+
+"% 100%)";
 
 }
 
@@ -1382,7 +1270,7 @@ return;
 
 }
 
-$("estado").textContent=
+$("estado").textContent =
 
 "Obteniendo ubicación…";
 
@@ -1390,21 +1278,31 @@ navigator.geolocation.getCurrentPosition(
 
 pos=>{
 
-$("lat").value=
+let lat =
 
-pos.coords.latitude.toFixed(6);
+pos.coords.latitude;
 
-$("lon").value=
+let lon =
 
-pos.coords.longitude.toFixed(6);
+pos.coords.longitude;
+
+$("lat").value =
+
+lat.toFixed(6);
+
+$("lon").value =
+
+lon.toFixed(6);
 
 cargarDatos();
 
 },
 
-()=>{
+error=>{
 
-$("estado").textContent=
+console.log(error);
+
+$("estado").textContent =
 
 "No se pudo obtener la ubicación.";
 
@@ -1414,7 +1312,9 @@ $("estado").textContent=
 
 enableHighAccuracy:true,
 
-timeout:10000
+timeout:15000,
+
+maximumAge:60000
 
 }
 
@@ -1426,11 +1326,11 @@ timeout:10000
 
 async function cargarDatos(){
 
-let lat=
+let lat =
 
 parseFloat($("lat").value);
 
-let lon=
+let lon =
 
 parseFloat($("lon").value);
 
@@ -1452,65 +1352,121 @@ return;
 
 }
 
-$("estado").textContent=
+$("estado").textContent =
 
 "Cargando datos meteorológicos…";
 
 try{
 
-let url=
+let url =
 
-`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&timezone=auto&past_days=14&forecast_days=7&current=temperature_2m,relative_humidity_2m,wind_gusts_10m&hourly=temperature_2m,relative_humidity_2m,precipitation,precipitation_probability,soil_moisture_0_to_7cm,wind_gusts_10m&daily=temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code`;
+"https://api.open-meteo.com/v1/forecast" +
 
-let respuesta=
+"?latitude=" + lat +
+
+"&longitude=" + lon +
+
+"&timezone=auto" +
+
+"&past_days=14" +
+
+"&forecast_days=7" +
+
+"&current=temperature_2m,relative_humidity_2m,wind_gusts_10m" +
+
+"&hourly=temperature_2m,relative_humidity_2m,precipitation,precipitation_probability,soil_moisture_0_to_7cm,wind_gusts_10m" +
+
+"&daily=temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code";
+
+let respuesta =
 
 await fetch(url);
 
-if(!respuesta.ok)
+if(!respuesta.ok){
 
-throw new Error();
+throw new Error("Error Open-Meteo");
 
-let datos=
+}
+
+let datos =
 
 await respuesta.json();
 
 /* ALTITUD */
 
-let elevacion=
+let altitud = 0;
+
+try{
+
+let elevacion =
 
 await fetch(
 
-`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`
+"https://api.open-meteo.com/v1/elevation?latitude=" +
+
+lat +
+
+"&longitude=" +
+
+lon
 
 );
 
-let elevacionDatos=
+if(elevacion.ok){
+
+let elevacionDatos =
 
 await elevacion.json();
 
-let altitud=
+altitud =
 
 Math.round(
 
-elevacionDatos.elevation?.[0] || 0
+elevacionDatos.elevation &&
+
+elevacionDatos.elevation.length
+
+?
+
+elevacionDatos.elevation[0]
+
+:
+
+0
 
 );
 
+}
+
+}
+
+catch(e){
+
+console.log(
+
+"No se pudo obtener la altitud",
+
+e
+
+);
+
+}
+
 /* LLUVIA 14 DÍAS */
 
-let lluvia14=0;
+let lluvia14 = 0;
 
-let tiempos=
+let tiempos =
 
 datos.hourly.time;
 
-let precipitacion=
+let precipitacion =
 
 datos.hourly.precipitation;
 
-let limite=
+let limite =
 
-Date.now()-
+Date.now() -
 
 14*24*60*60*1000;
 
@@ -1524,19 +1480,17 @@ i++
 
 ){
 
-if(
+let fecha =
 
-new Date(tiempos[i]).getTime()
+new Date(tiempos[i]).getTime();
 
->=limite
+if(fecha >= limite){
 
-){
-
-lluvia14+=
+lluvia14 +=
 
 Number(
 
-precipitacion[i]||0
+precipitacion[i] || 0
 
 );
 
@@ -1546,29 +1500,37 @@ precipitacion[i]||0
 
 /* SUELO */
 
-let sueloDatos=
+let sueloDatos =
 
-datos.hourly.soil_moisture_0_to_7cm
+(datos.hourly.soil_moisture_0_to_7cm || [])
 
-.filter(v=>v!==null);
+.filter(
 
-let humedadSuelo=
+v => v !== null && Number.isFinite(Number(v))
 
-sueloDatos.length
+);
 
-?
+let humedadSuelo = 0;
+
+if(sueloDatos.length){
+
+humedadSuelo =
 
 Math.round(
 
-sueloDatos[sueloDatos.length-1]*100
+Number(
 
-)
+sueloDatos[sueloDatos.length-1]
 
-:0;
+) * 100
+
+);
+
+}
 
 /* ACTUAL */
 
-let temperatura=
+let temperatura =
 
 Number(
 
@@ -1576,7 +1538,7 @@ datos.current.temperature_2m
 
 );
 
-let humedad=
+let humedad =
 
 Number(
 
@@ -1584,7 +1546,7 @@ datos.current.relative_humidity_2m
 
 );
 
-let rafaga=
+let rafaga =
 
 Number(
 
@@ -1594,83 +1556,115 @@ datos.current.wind_gusts_10m
 
 /* PRÓXIMOS 7 DÍAS */
 
-let lluvia7=
+let lluvia7 =
 
-datos.daily
-
-.precipitation_sum
+(datos.daily.precipitation_sum || [])
 
 .slice(0,7)
 
 .reduce(
 
-(a,b)=>a+Number(b||0),
+(a,b)=>a+Number(b || 0),
 
 0
 
 );
 
-let probabilidad=
+let probabilidades =
 
-Math.max(
-
-...datos.daily
-
-.precipitation_probability_max
+(datos.daily.precipitation_probability_max || [])
 
 .slice(0,7)
 
 .map(Number)
 
+.filter(
+
+v=>Number.isFinite(v)
+
 );
 
-/* MOSTRAR */
+let probabilidad =
 
-$("lluvia14").textContent=
+probabilidades.length
 
-Math.round(lluvia14)+" mm";
+?
 
-$("suelo").textContent=
+Math.max(...probabilidades)
 
-humedadSuelo+"%";
+:
 
-$("temperatura").textContent=
+0;
 
-temperatura.toFixed(1)+" °C";
+/* MOSTRAR DATOS */
 
-$("altitud").textContent=
+$("lluvia14").textContent =
 
-altitud+" m";
+Math.round(lluvia14) +
 
-$("humedad").textContent=
+" mm";
 
-humedad+"%";
+$("suelo").textContent =
 
-$("probLluvia").textContent=
+humedadSuelo +
 
-probabilidad+"%";
+"%";
 
-$("rafaga").textContent=
+$("temperatura").textContent =
 
-Math.round(rafaga)+" km/h";
+temperatura.toFixed(1) +
 
-$("lluvia7").textContent=
+" °C";
 
-lluvia7.toFixed(1)+" mm";
+$("altitud").textContent =
+
+altitud +
+
+" m";
+
+$("humedad").textContent =
+
+humedad +
+
+"%";
+
+$("probLluvia").textContent =
+
+probabilidad +
+
+"%";
+
+$("rafaga").textContent =
+
+Math.round(rafaga) +
+
+" km/h";
+
+$("lluvia7").textContent =
+
+lluvia7.toFixed(1) +
+
+" mm";
 
 /* CONTROLES */
 
-$("rainSlider").value=
+$("rainSlider").value =
 
 Math.min(
 
 250,
 
+Math.max(
+
+0,
+
 Math.round(lluvia14)
+
+)
 
 );
 
-$("tempSlider").value=
+$("tempSlider").value =
 
 Math.max(
 
@@ -1686,11 +1680,23 @@ temperatura
 
 );
 
-$("soilSlider").value=
+$("soilSlider").value =
 
-humedadSuelo;
+Math.max(
 
-$("altSlider").value=
+1,
+
+Math.min(
+
+100,
+
+humedadSuelo
+
+)
+
+);
+
+$("altSlider").value =
 
 Math.max(
 
@@ -1728,15 +1734,69 @@ lon
 
 /* WINDY */
 
-$("windy").src=
+$("windy").src =
 
-`https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&width=650&height=450&zoom=8&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=default&metricTemp=default&metricRain=default&metricSnow=default&metricCloud=default`;
+"https://embed.windy.com/embed2.html" +
 
-$("ubicacionTexto").textContent=
+"?lat=" + lat +
 
-`Lat ${lat.toFixed(4)} · Lon ${lon.toFixed(4)}`;
+"&lon=" + lon +
 
-$("estado").textContent=
+"&detailLat=" + lat +
+
+"&detailLon=" + lon +
+
+"&width=650" +
+
+"&height=450" +
+
+"&zoom=8" +
+
+"&level=surface" +
+
+"&overlay=rain" +
+
+"&product=ecmwf" +
+
+"&menu=" +
+
+"&message=true" +
+
+"&marker=true" +
+
+"&calendar=now" +
+
+"&pressure=true" +
+
+"&type=map" +
+
+"&location=coordinates" +
+
+"&detail=true" +
+
+"&metricWind=default" +
+
+"&metricTemp=default" +
+
+"&metricRain=default" +
+
+"&metricSnow=default" +
+
+"&metricCloud=default";
+
+/* UBICACIÓN */
+
+$("ubicacionTexto").textContent =
+
+"Lat " +
+
+lat.toFixed(4) +
+
+" · Lon " +
+
+lon.toFixed(4);
+
+$("estado").textContent =
 
 "Datos actualizados correctamente.";
 
@@ -1744,9 +1804,15 @@ $("estado").textContent=
 
 catch(error){
 
-console.error(error);
+console.error(
 
-$("estado").textContent=
+"ERROR CARGANDO DATOS:",
+
+error
+
+);
+
+$("estado").textContent =
 
 "No se pudieron cargar los datos meteorológicos. Comprueba la conexión.";
 
@@ -1758,23 +1824,23 @@ $("estado").textContent=
 
 function iconoTiempo(codigo){
 
-if(codigo===0)
+if(codigo === 0)
 
 return "☀️";
 
-if(codigo<=2)
+if(codigo <= 2)
 
 return "🌤️";
 
-if(codigo===3)
+if(codigo === 3)
 
 return "☁️";
 
-if(codigo<=67)
+if(codigo <= 67)
 
 return "🌧️";
 
-if(codigo<=77)
+if(codigo <= 77)
 
 return "❄️";
 
@@ -1784,35 +1850,81 @@ return "⛈️";
 
 function mostrarPrevision(diario){
 
-let caja=
+let caja =
 
 $("prevision");
 
-caja.innerHTML="";
+caja.innerHTML = "";
+
+if(
+
+!diario ||
+
+!diario.time
+
+){
+
+return;
+
+}
 
 diario.time.forEach(
 
 (fecha,i)=>{
 
-let div=
+let div =
 
 document.createElement("div");
 
-div.className="day";
+div.className =
 
-let fechaReal=
+"day";
+
+let fechaReal =
 
 new Date(
 
-fecha+"T12:00:00"
+fecha + "T12:00:00"
 
 );
 
-div.innerHTML=`
+let temperatura =
 
-<b>
+Number(
 
-${fechaReal.toLocaleDateString(
+diario.temperature_2m_mean?.[i] || 0
+
+);
+
+let lluvia =
+
+Number(
+
+diario.precipitation_sum?.[i] || 0
+
+);
+
+let prob =
+
+Number(
+
+diario.precipitation_probability_max?.[i] || 0
+
+);
+
+let codigo =
+
+Number(
+
+diario.weather_code?.[i] || 0
+
+);
+
+div.innerHTML =
+
+"<b>" +
+
+fechaReal.toLocaleDateString(
 
 "es-ES",
 
@@ -1826,55 +1938,35 @@ month:"2-digit"
 
 }
 
-)}
+) +
 
-</b>
+"</b>" +
 
-<div class="ico">
+"<div class='ico'>" +
 
-${iconoTiempo(
+iconoTiempo(codigo) +
 
-Number(diario.weather_code?.[i]||0)
+"</div>" +
 
-)}
+"<strong>" +
 
-</div>
+Math.round(temperatura) +
 
-<strong>
+" °C" +
 
-${Math.round(
+"</strong>" +
 
-diario.temperature_2m_mean[i]
+"<div>🌧️ " +
 
-)} °C
+lluvia.toFixed(1) +
 
-</strong>
+" mm</div>" +
 
-<div>
+"<div>💧 " +
 
-🌧️
+prob +
 
-${Number(
-
-diario.precipitation_sum[i]||0
-
-).toFixed(1)} mm
-
-</div>
-
-<div>
-
-💧
-
-${Number(
-
-diario.precipitation_probability_max[i]||0
-
-)}%
-
-</div>
-
-`;
+"%</div>";
 
 caja.appendChild(div);
 
@@ -1882,69 +1974,91 @@ caja.appendChild(div);
 
 );
 
+}
+
 /* ================= HISTÓRICO ================= */
 
 async function cargarHistorico(){
 
-let lat=
+let lat =
 
 parseFloat($("lat").value);
 
-let lon=
+let lon =
 
 parseFloat($("lon").value);
 
-let ano=
+let ano =
 
 $("ano").value;
 
-$("historicoEstado").textContent=
+$("historicoEstado").textContent =
 
 "Cargando histórico…";
 
-$("tablaHistorico").innerHTML="";
+$("tablaHistorico").innerHTML =
+
+"";
 
 try{
 
-let url=
+let url =
 
-`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${ano}-01-01&end_date=${ano}-12-31&timezone=auto&daily=temperature_2m_mean,precipitation_sum`;
+"https://archive-api.open-meteo.com/v1/archive" +
 
-let respuesta=
+"?latitude=" + lat +
+
+"&longitude=" + lon +
+
+"&start_date=" + ano + "-01-01" +
+
+"&end_date=" + ano + "-12-31" +
+
+"&timezone=auto" +
+
+"&daily=temperature_2m_mean,precipitation_sum";
+
+let respuesta =
 
 await fetch(url);
 
-if(!respuesta.ok)
+if(!respuesta.ok){
 
-throw new Error();
+throw new Error("Error histórico");
 
-let datos=
+}
+
+let datos =
 
 await respuesta.json();
 
-let totalLluvia=
+let totalLluvia =
 
-datos.daily
-
-.precipitation_sum
+(datos.daily.precipitation_sum || [])
 
 .reduce(
 
-(a,b)=>a+Number(b||0),
+(a,b)=>a+Number(b || 0),
 
 0
 
 );
 
-let temperaturas=
+let temperaturas =
 
-datos.daily
+(datos.daily.temperature_2m_mean || [])
 
-.temperature_2m_mean
+.filter(
 
-.filter(v=>v!==null);
+v=>v !== null
 
-let media=
+);
+
+let media =
+
+temperaturas.length
+
+?
 
 temperaturas.reduce(
 
@@ -1952,51 +2066,59 @@ temperaturas.reduce(
 
 0
 
-)/
+) /
 
-temperaturas.length;
+temperaturas.length
 
-let filas=[];
+:
 
-for(let mes=0;mes<12;mes++){
+0;
 
-let lluvia=0;
+let filas = [];
 
-let temps=[];
+for(
+
+let mes=0;
+
+mes<12;
+
+mes++
+
+){
+
+let lluvia = 0;
+
+let temps = [];
 
 datos.daily.time.forEach(
 
 (fecha,i)=>{
 
-let fechaReal=
+let fechaReal =
 
 new Date(
 
-fecha+"T12:00:00"
+fecha + "T12:00:00"
 
 );
 
 if(
 
-fechaReal.getMonth()===mes
+fechaReal.getMonth() === mes
 
 ){
 
-lluvia+=
+lluvia +=
 
 Number(
 
-datos.daily
-
-.precipitation_sum[i]||0
+datos.daily.precipitation_sum[i] || 0
 
 );
 
 if(
 
-datos.daily
-
-.temperature_2m_mean[i]!==null
+datos.daily.temperature_2m_mean[i] !== null
 
 ){
 
@@ -2004,9 +2126,7 @@ temps.push(
 
 Number(
 
-datos.daily
-
-.temperature_2m_mean[i]
+datos.daily.temperature_2m_mean[i]
 
 )
 
@@ -2018,7 +2138,7 @@ datos.daily
 
 });
 
-let tempMedia=
+let tempMedia =
 
 temps.length
 
@@ -2032,19 +2152,23 @@ temps.reduce(
 
 0
 
-)/temps.length
+) /
+
+temps.length
 
 ).toFixed(1)
 
-:"--";
+:
 
-filas.push(`
+"--";
 
-<tr>
+filas.push(
 
-<td>
+"<tr>" +
 
-${new Date(
+"<td>" +
+
+new Date(
 
 2020,
 
@@ -2058,65 +2182,75 @@ mes,
 
 {month:"long"}
 
-)}
+) +
 
-</td>
+"</td>" +
 
-<td>
+"<td>" +
 
-${lluvia.toFixed(1)} mm
+lluvia.toFixed(1) +
 
-</td>
+" mm</td>" +
 
-<td>
+"<td>" +
 
-${tempMedia} °C
+tempMedia +
 
-</td>
+" °C</td>" +
 
-</tr>
+"</tr>"
 
-`);
+);
 
 }
 
-$("historicoEstado").textContent=
+$("historicoEstado").textContent =
 
-`${ano}: ${totalLluvia.toFixed(0)} mm de lluvia · ${media.toFixed(1)} °C de temperatura media`;
+ano +
 
-$("tablaHistorico").innerHTML=`
+": " +
 
-<table>
+totalLluvia.toFixed(0) +
 
-<thead>
+" mm de lluvia · " +
 
-<tr>
+media.toFixed(1) +
 
-<th>Mes</th>
+" °C de temperatura media";
 
-<th>Lluvia</th>
+$("tablaHistorico").innerHTML =
 
-<th>Temp. media</th>
+"<table>" +
 
-</tr>
+"<thead>" +
 
-</thead>
+"<tr>" +
 
-<tbody>
+"<th>Mes</th>" +
 
-${filas.join("")}
+"<th>Lluvia</th>" +
 
-</tbody>
+"<th>Temp. media</th>" +
 
-</table>
+"</tr>" +
 
-`;
+"</thead>" +
+
+"<tbody>" +
+
+filas.join("") +
+
+"</tbody>" +
+
+"</table>";
 
 }
 
 catch(error){
 
-$("historicoEstado").textContent=
+console.error(error);
+
+$("historicoEstado").textContent =
 
 "No se pudo cargar el histórico.";
 
@@ -2136,13 +2270,13 @@ localStorage.getItem(
 
 "radar_niscalo_hallazgos"
 
-)||"[]"
+) || "[]"
 
 );
 
 }
 
-catch{
+catch(error){
 
 return [];
 
@@ -2152,15 +2286,19 @@ return [];
 
 function guardarHallazgo(){
 
-let fecha=
+let fecha =
 
 $("fechaHallazgo").value;
 
-let zona=
+let zona =
 
-$("zonaHallazgo").value.trim();
+$("zonaHallazgo")
 
-let cantidad=
+.value
+
+.trim();
+
+let cantidad =
 
 parseInt(
 
@@ -2170,9 +2308,13 @@ $("cantidadHallazgo").value,
 
 );
 
-let notas=
+let notas =
 
-$("notasHallazgo").value.trim();
+$("notasHallazgo")
+
+.value
+
+.trim();
 
 if(
 
@@ -2182,7 +2324,7 @@ if(
 
 !Number.isFinite(cantidad) ||
 
-cantidad<1
+cantidad < 1
 
 ){
 
@@ -2196,7 +2338,7 @@ return;
 
 }
 
-let hallazgos=
+let hallazgos =
 
 obtenerHallazgos();
 
@@ -2224,11 +2366,17 @@ JSON.stringify(hallazgos)
 
 );
 
-$("zonaHallazgo").value="";
+$("zonaHallazgo").value =
 
-$("cantidadHallazgo").value="";
+"";
 
-$("notasHallazgo").value="";
+$("cantidadHallazgo").value =
+
+"";
+
+$("notasHallazgo").value =
+
+"";
 
 mostrarHallazgos();
 
@@ -2238,17 +2386,17 @@ mostrarEstadisticas();
 
 function mostrarHallazgos(){
 
-let hallazgos=
+let hallazgos =
 
 obtenerHallazgos();
 
-let caja=
+let caja =
 
 $("listaHallazgos");
 
 if(!hallazgos.length){
 
-caja.innerHTML=
+caja.innerHTML =
 
 '<span class="muted">Aún no hay hallazgos guardados.</span>';
 
@@ -2256,41 +2404,51 @@ return;
 
 }
 
-caja.innerHTML=
+caja.innerHTML =
 
 hallazgos
 
-.map(h=>`
+.map(
 
-<div>
+h=>
 
-🍄 <b>
+"<div>" +
 
-${escapar(h.zona)}
+"🍄 <b>" +
 
-</b>
+escapar(h.zona) +
 
-· ${escapar(h.fecha)}
+"</b>" +
 
-· <b>
+" · " +
 
-${h.cantidad}
+escapar(h.fecha) +
 
-</b>
+" · <b>" +
 
-ejemplares
+Number(h.cantidad) +
 
-${h.notas
+"</b> ejemplares" +
+
+(
+
+h.notas
 
 ?
 
-" · "+escapar(h.notas)
+" · " +
 
-:""}
+escapar(h.notas)
 
-</div>
+:
 
-`)
+""
+
+) +
+
+"</div>"
+
+)
 
 .join("");
 
@@ -2298,13 +2456,13 @@ ${h.notas
 
 function mostrarEstadisticas(){
 
-let hallazgos=
+let hallazgos =
 
 obtenerHallazgos();
 
 if(!hallazgos.length){
 
-$("estadisticas").textContent=
+$("estadisticas").textContent =
 
 "Todavía no hay hallazgos guardados.";
 
@@ -2312,71 +2470,83 @@ return;
 
 }
 
-let total=
+let total =
 
 hallazgos.reduce(
 
 (s,h)=>
 
-s+Number(h.cantidad||0),
+s +
+
+Number(h.cantidad || 0),
 
 0
 
 );
 
-let zonas=
+let zonas =
 
 new Set(
 
-hallazgos.map(h=>h.zona)
+hallazgos.map(
+
+h=>h.zona
+
+)
 
 ).size;
 
-let porAno={};
+let porAno = {};
 
-hallazgos.forEach(h=>{
+hallazgos.forEach(
 
-let ano=
+h=>{
 
-h.fecha.substring(0,4);
+let ano =
 
-porAno[ano]=
+String(h.fecha)
 
-(porAno[ano]||0)+
+.substring(0,4);
 
-Number(h.cantidad||0);
+porAno[ano] =
 
-});
+(porAno[ano] || 0) +
 
-$("estadisticas").innerHTML=
+Number(h.cantidad || 0);
 
-`<b>
+}
 
-${hallazgos.length}
+);
 
-</b> registros ·
+$("estadisticas").innerHTML =
 
-<b>
+"<b>" +
 
-${total}
+hallazgos.length +
 
-</b> ejemplares ·
+"</b> registros · " +
 
-<b>
+"<b>" +
 
-${zonas}
+total +
 
-</b> zonas
+"</b> ejemplares · " +
 
-<br><br>
+"<b>" +
 
-`+
+zonas +
+
+"</b> zonas" +
+
+"<br><br>" +
 
 Object.entries(porAno)
 
 .sort(
 
-(a,b)=>b[0].localeCompare(a[0])
+(a,b)=>
+
+b[0].localeCompare(a[0])
 
 )
 
@@ -2384,11 +2554,17 @@ Object.entries(porAno)
 
 ([ano,cantidad])=>
 
-`<span class="badge">
+"<span class='badge'>" +
 
-${ano}: ${cantidad} ejemplares
+ano +
 
-</span>`
+": " +
+
+cantidad +
+
+" ejemplares" +
+
+"</span>"
 
 )
 
@@ -2422,6 +2598,8 @@ mostrarEstadisticas();
 
 }
 
+/* ================= SEGURIDAD ================= */
+
 function escapar(texto){
 
 return String(texto)
@@ -2450,7 +2628,13 @@ caracter=>({
 
 /* ================= INICIO ================= */
 
-$("fechaHallazgo").value=
+document.addEventListener(
+
+"DOMContentLoaded",
+
+function(){
+
+$("fechaHallazgo").value =
 
 new Date()
 
@@ -2468,7 +2652,9 @@ new Date()
 
 "altSlider"
 
-].forEach(id=>{
+].forEach(
+
+id=>{
 
 $(id).addEventListener(
 
@@ -2480,15 +2666,19 @@ pintarFavorabilidad
 
 });
 
+pintarFavorabilidad();
+
 iniciarMapa();
 
 mostrarHallazgos();
 
 mostrarEstadisticas();
 
-pintarFavorabilidad();
-
 cargarDatos();
+
+}
+
+);
 
 </script>
 
