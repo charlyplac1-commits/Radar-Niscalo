@@ -1453,8 +1453,8 @@ Radar del Níscalo · Aplicación experimental
     emergencyHide();
     setTimeout(()=>{active=false;try{renderer.dispose()}catch(e){}},900);
   };
-  addEventListener("load",()=>setTimeout(hide,3000),{once:true});
-  setTimeout(hide,3600);
+  addEventListener("load",()=>setTimeout(hide,4500),{once:true});
+  setTimeout(hide,5200);
   }catch(e){
     clearTimeout(emergencyTimer);
     console.warn("Portada 3D no disponible:",e);
@@ -4415,11 +4415,11 @@ new Date()
   iniciarSeguro("datos meteorológicos",()=>cargarDatos());
 
   if(document.readyState==="complete"){
-    setTimeout(hide,900);
+    setTimeout(hide,4500);
   }else{
-    window.addEventListener("load",()=>setTimeout(hide,900),{once:true});
+    window.addEventListener("load",()=>setTimeout(hide,4500),{once:true});
   }
-  setTimeout(hide,3500);
+  setTimeout(hide,6000);
 })();
 
 </script>
