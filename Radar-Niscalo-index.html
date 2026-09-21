@@ -439,6 +439,29 @@ height:330px;
 
 .livebox{min-height:280px}
 /* ===== ESTILO APP ===== */
+/* ===== RADAR APP · VISTA PRINCIPAL ===== */
+#radar>.card.score{position:relative;z-index:2;margin-top:8px;padding:13px 14px}
+#radar>.card.score h2{font-size:18px}
+#radar>.card.score #ventana{font-size:13px;margin-top:3px}
+#radar>.card:nth-of-type(2){padding:10px 12px}
+#radar>.card:nth-of-type(2) h3{display:none}
+#radar>.card:nth-of-type(2) label{margin-top:4px}
+#radar>.card:nth-of-type(2) .row{display:none}
+#radar>.card:nth-of-type(2) .muted{font-size:11px}
+#radar>.card:nth-of-type(2) button{padding:9px 11px;margin-top:7px}
+#motorDecisionCard{border:2px solid #dbe8dc;background:linear-gradient(180deg,#fff,#f7faf6)}
+#motorDecisionCard h3{margin:0 0 8px}
+#decisionRadar{font-size:14px;font-weight:700}
+#radar>.card:has(.mapbox){padding:10px}
+#radar>.card:has(.mapbox) h3{margin:2px 2px 9px;font-size:15px}
+@media(max-width:720px){
+ #radar>.card.score{margin-top:4px}
+ #radar>.card:has(.mapbox){margin-top:9px}
+ #radar>.card:has(.mapbox) .muted{font-size:10px}
+ details.compact{margin:7px 0;border-radius:15px}
+ details.compact>summary{padding:11px 2px;font-size:13px}
+}
+
 body{background:#eef1ec;padding-bottom:0}
 header{
   background:linear-gradient(135deg,#183b29,#2b6545);
