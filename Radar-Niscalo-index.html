@@ -658,6 +658,80 @@ header.app-header .brand,header.app-header .header-status{position:relative;z-in
 #radar>.card:has(.mapbox){position:relative}
 #radar>.card:has(.mapbox) h3:after{content:" · EN VIVO";font-size:9px;letter-spacing:.7px;color:#e56f32;font-weight:900;vertical-align:middle}
 @media(max-width:720px){.splash-title{font-size:27px}.splash-mush{font-size:64px}.scan-hud{top:9px;left:9px;right:9px}.scan-hud span{font-size:8px}}
+
+/* ===== SPLASH FOTOGRÁFICO REAL =====
+   Fondo: fotografía de pinar bajo licencia Unsplash.
+   Níscalo: fotografía USFWS en dominio público.
+*/
+#appSplash{
+  background:#08130c !important;
+  overflow:hidden;
+}
+.splash-photo-scene{
+  position:relative;width:100%;height:100%;overflow:hidden;background:#08130c;
+}
+.splash-photo-forest{
+  position:absolute;inset:-3%;
+  background-image:url("https://images.unsplash.com/photo-1768674153387-9644416eebd9?auto=format&fit=crop&fm=jpg&q=82&w=1600");
+  background-size:cover;background-position:center;
+  transform:scale(1.035);
+  animation:splashForestDrift 12s ease-in-out infinite alternate;
+}
+.splash-photo-mush{
+  position:absolute;
+  left:50%;bottom:17%;
+  width:min(74vw,560px);height:min(54vw,420px);
+  transform:translateX(-50%);
+  background-image:url("https://www.fws.gov/sites/default/files/styles/max_1300x1300/public/images/2005-07/30060.jpg?itok=wp-hsZ7U");
+  background-size:cover;background-position:center;
+  border-radius:50%;
+  opacity:.94;
+  filter:saturate(1.12) contrast(1.05) drop-shadow(0 18px 28px rgba(0,0,0,.42));
+  -webkit-mask-image:radial-gradient(ellipse at center,black 0 48%,rgba(0,0,0,.82) 63%,transparent 82%);
+  mask-image:radial-gradient(ellipse at center,black 0 48%,rgba(0,0,0,.82) 63%,transparent 82%);
+  animation:splashMushroomFloat 4.5s ease-in-out infinite;
+}
+.splash-photo-light{
+  position:absolute;inset:-20%;
+  background:
+    linear-gradient(68deg,transparent 37%,rgba(255,244,190,.16) 46%,transparent 55%),
+    linear-gradient(112deg,transparent 43%,rgba(255,241,183,.13) 50%,transparent 58%);
+  mix-blend-mode:screen;
+  animation:splashLightMove 7s ease-in-out infinite alternate;
+  pointer-events:none;
+}
+.splash-photo-vignette{
+  position:absolute;inset:0;
+  background:
+    linear-gradient(to bottom,rgba(4,16,9,.28),transparent 32%,rgba(3,11,7,.12) 55%,rgba(2,9,5,.82) 100%),
+    radial-gradient(circle at 50% 52%,transparent 24%,rgba(1,7,4,.55) 100%);
+}
+.splash-photo-spores{position:absolute;inset:0;pointer-events:none}
+.splash-photo-spores i{
+  position:absolute;width:4px;height:4px;border-radius:50%;
+  background:#f6e6bb;box-shadow:0 0 9px rgba(246,230,187,.75);
+  opacity:.2;animation:splashSpore 5s ease-in-out infinite;
+}
+.splash-photo-spores i:nth-child(1){left:18%;top:43%;animation-delay:-1s}
+.splash-photo-spores i:nth-child(2){left:31%;top:34%;animation-delay:-3s}
+.splash-photo-spores i:nth-child(3){left:46%;top:39%;animation-delay:-2s}
+.splash-photo-spores i:nth-child(4){left:58%;top:30%;animation-delay:-4s}
+.splash-photo-spores i:nth-child(5){left:72%;top:44%;animation-delay:-1.7s}
+.splash-photo-spores i:nth-child(6){left:82%;top:36%;animation-delay:-2.6s}
+.splash-photo-spores i:nth-child(7){left:39%;top:49%;animation-delay:-.4s}
+.splash-photo-spores i:nth-child(8){left:64%;top:52%;animation-delay:-3.4s}
+.splash-photo-spores i:nth-child(9){left:25%;top:56%;animation-delay:-2.2s}
+.splash-photo-spores i:nth-child(10){left:76%;top:58%;animation-delay:-4.2s}
+@keyframes splashForestDrift{from{transform:scale(1.035) translate3d(-.5%,0,0)}to{transform:scale(1.075) translate3d(.5%,-.5%,0)}}
+@keyframes splashMushroomFloat{0%,100%{transform:translateX(-50%) translateY(0) scale(1)}50%{transform:translateX(-50%) translateY(-5px) scale(1.012)}}
+@keyframes splashLightMove{from{transform:translateX(-4%)}to{transform:translateX(4%)}}
+@keyframes splashSpore{0%,100%{transform:translate3d(0,12px,0);opacity:.12}45%{opacity:.75}70%{transform:translate3d(18px,-34px,0);opacity:.45}}
+@media(max-width:720px){
+  .splash-photo-mush{width:92vw;height:62vw;bottom:19%}
+  .splash-photo-forest{background-position:center}
+  .splash-copy{bottom:8%}
+}
+
 </style>
 
 <script>
@@ -669,68 +743,14 @@ if("serviceWorker" in navigator){
 
 <body>
 <div id="appSplash" aria-hidden="true">
-  <div class="splash-scene">
-    <svg class="splash-forest" viewBox="0 0 900 1500" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <defs>
-        <linearGradient id="sfSky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#102d20"/><stop offset=".55" stop-color="#183d29"/><stop offset="1" stop-color="#07150e"/>
-        </linearGradient>
-        <radialGradient id="sfGlow" cx=".5" cy=".32" r=".62">
-          <stop offset="0" stop-color="#d9d39c" stop-opacity=".34"/><stop offset=".5" stop-color="#9eb77d" stop-opacity=".10"/><stop offset="1" stop-color="#07150e" stop-opacity="0"/>
-        </radialGradient>
-        <linearGradient id="sfGround" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#33482d"/><stop offset="1" stop-color="#0b1b11"/>
-        </linearGradient>
-        <filter id="sfBlur"><feGaussianBlur stdDeviation="7"/></filter>
-        <filter id="sfGlowFx"><feGaussianBlur stdDeviation="2.5"/></filter>
-      </defs>
-      <rect width="900" height="1500" fill="url(#sfSky)"/>
-      <rect width="900" height="1500" fill="url(#sfGlow)"/>
-      <g opacity=".18" filter="url(#sfBlur)">
-        <path d="M120 0 L310 900 L225 900 Z" fill="#f5edbf"/>
-        <path d="M690 0 L530 900 L610 900 Z" fill="#efe7b1"/>
-        <path d="M430 0 L450 850 L490 850 Z" fill="#fff4c7"/>
-      </g>
-      <g fill="#0a2014" opacity=".96">
-        <path d="M70 0h95l-18 330 58 0-80 155-80-155 55 0z"/>
-        <path d="M210 0h75l-12 410 52 0-65 120-65-120 42 0z"/>
-        <path d="M650 0h95l-20 350 62 0-80 155-78-155 54 0z"/>
-        <path d="M790 0h60l-10 420 45 0-55 100-55-100 35 0z"/>
-      </g>
-      <g fill="#173a25">
-        <path d="M0 560 Q170 450 330 570 T620 555 T900 540 V1500 H0Z"/>
-        <path d="M0 760 Q180 640 360 760 T700 740 T900 700 V1500 H0Z" fill="#112e1e"/>
-      </g>
-      <path d="M0 930 Q180 820 360 930 T700 910 T900 880 V1500 H0Z" fill="url(#sfGround)"/>
-      <g opacity=".9">
-        <path d="M130 1070 q70-65 140 0" stroke="#7f633d" stroke-width="14" fill="none"/>
-        <path d="M550 1160 q90-70 180 0" stroke="#735735" stroke-width="15" fill="none"/>
-        <g transform="translate(300 1030)">
-          <path d="M0 92 Q40 15 80 92Z" fill="#d76d2f"/><path d="M39 92v58" stroke="#e2c28c" stroke-width="9"/>
-          <path d="M18 74 Q40 57 62 74" stroke="#f1a15a" stroke-width="4" fill="none"/>
-          <path d="M105 110 Q145 28 185 110Z" fill="#c85d28"/><path d="M145 110v58" stroke="#d9bd88" stroke-width="9"/>
-        </g>
-        <g transform="translate(650 1010) scale(.72)">
-          <path d="M0 92 Q40 15 80 92Z" fill="#db7130"/><path d="M39 92v58" stroke="#e2c28c" stroke-width="9"/>
-          <path d="M105 110 Q145 28 185 110Z" fill="#c65b27"/><path d="M145 110v58" stroke="#d9bd88" stroke-width="9"/>
-        </g>
-      </g>
-      <g class="splash-spores" fill="#f3dca5">
-        <circle cx="170" cy="640" r="3"/><circle cx="250" cy="720" r="2.5"/><circle cx="350" cy="610" r="3"/>
-        <circle cx="470" cy="700" r="2"/><circle cx="575" cy="620" r="3"/><circle cx="730" cy="730" r="2.5"/>
-        <circle cx="110" cy="820" r="2"/><circle cx="420" cy="850" r="2.5"/><circle cx="790" cy="820" r="3"/>
-        <circle cx="290" cy="930" r="2"/><circle cx="620" cy="900" r="2"/>
-      </g>
-      <g class="splash-radar" transform="translate(450 650)">
-        <circle r="190" fill="none" stroke="#e9a34b" stroke-opacity=".13" stroke-width="2"/>
-        <circle r="125" fill="none" stroke="#e9a34b" stroke-opacity=".16" stroke-width="2"/>
-        <circle r="60" fill="none" stroke="#e9a34b" stroke-opacity=".20" stroke-width="2"/>
-        <path d="M0 0 L0 -190 A190 190 0 0 1 134 -134 Z" fill="#e9a34b" fill-opacity=".12"/>
-        <line x1="0" y1="0" x2="0" y2="-190" stroke="#f4bf73" stroke-width="3" stroke-linecap="round"/>
-        <circle r="5" fill="#ffd28b" filter="url(#sfGlowFx)"/>
-      </g>
-    </svg>
-    <div class="splash-vignette"></div>
+  <div class="splash-photo-scene">
+    <div class="splash-photo-forest"></div>
+    <div class="splash-photo-light"></div>
+    <div class="splash-photo-mush"></div>
+    <div class="splash-photo-vignette"></div>
+    <div class="splash-photo-spores" aria-hidden="true">
+      <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+    </div>
     <div class="splash-copy">
       <div class="splash-brand">🍄 <span>RADAR NÍSCALO</span></div>
       <div class="splash-title">Preparando el radar del monte…</div>
@@ -739,7 +759,6 @@ if("serviceWorker" in navigator){
     </div>
   </div>
 </div>
-
 
 <header class="app-header">
   <div class="brand">
