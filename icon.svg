@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<rect width="512" height="512" rx="112" fill="#214b35"/>
+<circle cx="256" cy="285" r="105" fill="#c96b2c"/>
+<path d="M151 282c20-91 190-120 210 0H151Z" fill="#e9a04f"/>
+<path d="M232 280h48v118c0 18-11 30-24 30s-24-12-24-30V280Z" fill="#f1d4a4"/>
+<circle cx="205" cy="244" r="12" fill="#fff1d6"/><circle cx="265" cy="220" r="10" fill="#fff1d6"/><circle cx="310" cy="250" r="13" fill="#fff1d6"/>
+<text x="256" y="470" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="white">NÍSCALO</text>
+</svg>
