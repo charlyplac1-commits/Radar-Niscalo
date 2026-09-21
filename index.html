@@ -4277,15 +4277,47 @@ if(!e.target.closest("#buscadorZona")&&!e.target.closest("#resultadosZona")) $("
 });
 
 function enfocarRadar(){
-  const lat=Number($("lat").value),lon=Number($("lon").value)
-<script>
+  const lat=Number($("lat").value),lon=Number($("lon").value);
+  const mapEl=document.getElementById("map");
+  if(mapEl) mapEl.scrollIntoView({behavior:"smooth",block:"center"});
+  if(Number.isFinite(lat)&&Number.isFinite(lon)){
+    setTimeout(()=>{ if(mapa) mapa.setView([lat,lon],13,{animate:true}); pintarMapaZonas(lat,lon); },350);
+  }
+}
+
+/* ================= INICIO ================= */
+
+$("fechaHallazgo").value=
+new Date()
+.toISOString()
+.slice(0,10);
+
+[
+"rainSlider",
+"tempSlider",
+"soilSlider",
+"altSlider"
+].forEach(id=>{
+  $(id).addEventListener("input",pintarFavorabilidad);
+});
+
+/* ================= OCULTAR PORTADA ================= */
+
 (function(){
   const s=document.getElementById("appSplash");
   if(!s) return;
-  const hide=()=>{s.classList.add("hide");setTimeout(()=>{s.style.display="none";},800);};
-  if(document.readyState==="complete") setTimeout(hide,2600);
-  else window.addEventListener("load",()=>setTimeout(hide,2600),{once:true});
+  const hide=()=>{
+    s.classList.add("hide");
+    setTimeout(()=>{s.style.display="none"},800);
+  };
+  if(document.readyState==="complete"){
+    setTimeout(hide,2600);
+  }else{
+    window.addEventListener("load",()=>setTimeout(hide,2600),{once:true});
+  }
   setTimeout(hide,5000);
 })();
+
 </script>
-;
+</body>
+</html>
