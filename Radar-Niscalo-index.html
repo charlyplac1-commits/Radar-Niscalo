@@ -511,6 +511,88 @@ button{border-radius:12px}
 }
 
 #liveOverlay{touch-action:none}
+
+/* ===== IDENTIDAD VISUAL · RADAR NÍSCALO ===== */
+:root{
+  --verde-oscuro:#173d29;
+  --verde:#2f6b46;
+  --verde-suave:#e9f1e9;
+  --crema:#f6f3ea;
+  --tierra:#8a5a3b;
+  --naranja:#e56f32;
+  --texto:#17231b;
+}
+body{background:var(--crema)}
+.app-header{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:linear-gradient(135deg,var(--verde-oscuro),#34734d);
+  padding:11px 15px 12px;border-radius:0 0 18px 18px;
+}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand-icon{
+  width:42px;height:42px;border-radius:13px;display:grid;place-items:center;
+  background:rgba(255,255,255,.14);font-size:25px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);
+}
+.app-header b{font-size:20px;line-height:1.05;display:block}
+.app-header small{font-size:11px;margin-top:3px;white-space:nowrap}
+.header-status{
+  font-size:10px;font-weight:700;white-space:nowrap;opacity:.9;
+  border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:6px 8px;
+}
+.header-status span{display:inline-block;width:7px;height:7px;border-radius:50%;background:#8fd19e;margin-right:5px}
+.app-nav{
+  gap:5px;padding:6px;background:rgba(246,243,234,.94);
+  border:1px solid #dfe4dc;border-radius:16px;
+}
+.app-nav button{
+  display:flex;justify-content:center;align-items:center;gap:4px;
+  border:1px solid transparent;font-size:12px;font-weight:800;
+}
+.app-nav button.on{box-shadow:0 2px 8px rgba(23,61,41,.16)}
+#radar>.card.score{
+  padding:14px;border-radius:20px;
+  background:linear-gradient(135deg,#fff,#eef5ee);
+  border:1px solid #dce7dd;
+}
+#radar>.card.score h2{font-size:19px}
+#radar>.card.score #score{font-size:23px}
+#radar>.card.score .ring{
+  width:86px;height:86px;
+  box-shadow:0 4px 14px rgba(23,61,41,.12);
+}
+#radar>.card.score .ring b{width:65px;height:65px}
+.card h2,.card h3{letter-spacing:-.2px}
+.metric{background:#f8faf7;border-radius:14px;padding:10px 7px}
+.metric .big{font-size:19px}
+.metric .muted{font-size:10px}
+#radar>.card:has(.mapbox){
+  padding:11px;border-radius:20px;
+  background:#fff;
+}
+#radar>.card:has(.mapbox) h3{
+  font-size:16px;margin:2px 3px 10px;
+}
+.mapbox{border-radius:16px}
+button{transition:transform .12s ease,box-shadow .12s ease}
+button:active{transform:scale(.98)}
+details.compact{background:#fff}
+details.compact>summary{font-size:13px}
+.notice{border-radius:13px}
+@media(max-width:720px){
+  .app-header{padding:10px 12px 11px}
+  .brand-icon{width:38px;height:38px;font-size:22px;border-radius:12px}
+  .app-header b{font-size:18px}
+  .header-status{display:none}
+  .app-nav{left:7px;right:7px;bottom:7px;border-radius:18px;padding:6px}
+  .app-nav button{min-height:43px;font-size:11px;flex-direction:column;gap:1px}
+  .app-nav button:first-letter{font-size:17px}
+  .app-nav button span{font-size:10px}
+  #radar>.card.score{padding:12px}
+  #radar>.card.score .ring{width:78px;height:78px}
+  #radar>.card.score .ring b{width:59px;height:59px}
+  .metric-strip{gap:6px}
+}
 </style>
 
 <script>
@@ -522,34 +604,28 @@ if("serviceWorker" in navigator){
 
 <body>
 
-<header>
-<b>🍄 Radar del Níscalo</b>
-<small>Tu brújula para buscar rebollones</small>
+<header class="app-header">
+  <div class="brand">
+    <div class="brand-icon">🍄</div>
+    <div>
+      <b>Radar Níscalo</b>
+      <small>Tu brújula para buscar rebollones</small>
+    </div>
+  </div>
+  <div class="header-status"><span></span> Radar activo</div>
 </header>
 
 <main>
 
 <div class="tabs app-nav">
 
-<button class="on" onclick="tab('radar',this)">
+<button class="on" onclick="tab('radar',this)">🧭<span> Radar</span></button>
 
-Radar
-
-</button>
-
-<button onclick="tab('historico',this)">
-
-Histórico
-
-</button>
+<button onclick="tab('historico',this)">📊<span> Histórico</span></button>
 
 
 
-<button onclick="tab('escanner',this)">
-
-📷 Escáner
-
-</button>
+<button onclick="tab('escanner',this)">📷<span> Escáner</span></button>
 
 </div>
 
