@@ -822,6 +822,12 @@ value="900">
 
 
 <div class="card">
+<h3>🌲 Hábitat del bosque</h3>
+<div id="habitatActual">Analizando cobertura forestal…</div>
+<div class="muted" style="margin-top:8px">Se consulta cartografía forestal pública de Catalunya. El hábitat modifica la favorabilidad, pero no sustituye a la meteorología.</div>
+</div>
+
+<div class="card">
 <h3>🍄 Evidencia pública reciente</h3>
 <div id="evidenciaPublica">Consultando observaciones públicas…</div>
 <div class="muted" style="margin-top:8px">
@@ -1274,6 +1280,18 @@ let suelo=sueloReciente.length
 
 let alt=Number(elevaciones[i]||0);
 
+let habitatScore=0.5;
+try{
+let hurl=
+`https://maps.icgc.cat/vector03/rest/services/RTT/Referencial_Topogr%C3%A0fic_Territorial/MapServer/4/query?where=1%3D1&geometry=${encodeURIComponent(JSON.stringify({x:Number(longitudes[i]),y:Number(latitudes[i]),spatialReference:{wkid:4326}}))}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=tipus&returnGeometry=false&f=json`;
+let hr=await fetch(hurl);
+let hd=await hr.json();
+let ht=String(hd.features?.[0]?.attributes?.tipus||"").toLowerCase();
+if(/pi|pinar|conífer|bosque|bosc|forest|arbrat/.test(ht)) habitatScore=/pi|pinar/.test(ht)?0.95:0.75;
+else if(/matorral|matollar|arbust/.test(ht)) habitatScore=0.35;
+else if(/cultiu|agr|conreu|agrícola|agricola|urb|edific|industrial|carretera|vial|urban|aigua|riu|llac|embass/.test(ht)) habitatScore=0.05;
+else if(ht) habitatScore=0.20;
+}catch(e){}
 let score=calcularPuntuacion(
 lluvia7,
 lluvia14,
@@ -1283,7 +1301,8 @@ tempMedia7,
 suelo,
 alt,
 new Date().getMonth()+1,
-0
+0,
+habitatScore
 );
 
 let y=Math.floor(i/columnas)-2;
@@ -1327,6 +1346,7 @@ rect.bindPopup(
 "<br>🌡️ Temp. actual: "+tempActual.toFixed(1)+" °C"+
 "<br>🌡️ Media 7 días: "+tempMedia7.toFixed(1)+" °C"+
 "<br>💧 Suelo: "+Math.round(suelo)+"%"+
+"<br>🌲 Hábitat: "+Math.round(habitatScore*100)+"/100"+
 "<br>⛰️ Altitud: "+Math.round(alt)+" m"
 );
 
@@ -1418,13 +1438,14 @@ tempMedia7,
 suelo,
 altitud,
 mes,
-evidencia=0
+evidencia=0,
+habitat=0
 ){
 /*
-  Modelo automático provisional.
-  La meteorología es la base. La evidencia pública reciente actúa
-  como una señal adicional y limitada para no dominar al tiempo.
-  «Mis hallazgos» nunca entran en este cálculo.
+  Modelo automático provisional:
+  meteorología + estacionalidad + hábitat + evidencia pública.
+  El hábitat se limita a una corrección para evitar que una buena
+  predicción meteorológica convierta una zona no forestal en «muy buena».
 */
 let lluvia7Factor=factorCampana(lluvia7,35,30);
 let lluvia14Factor=factorCampana(lluvia14,60,50);
@@ -1446,22 +1467,26 @@ let sueloFactor=Math.max(0,Math.min(1,suelo/100));
 let altFactor=factorCampana(altitud,850,750);
 let temporadaFactor=factorTemporada(mes);
 
-/* Base meteorológica */
+/* Base ambiental */
 let base=100*(
-0.38*lluviaFactor+
-0.22*temperaturaFactor+
-0.25*sueloFactor+
-0.10*altFactor+
-0.05*temporadaFactor
+0.34*lluviaFactor+
+0.20*temperaturaFactor+
+0.22*sueloFactor+
+0.08*altFactor+
+0.06*temporadaFactor+
+0.10*Math.max(0,Math.min(1,habitat))
 );
 
-/* La evidencia pública puede mover el resultado, pero como máximo ±10 puntos. */
-let ajusteEvidencia=Math.max(-10,Math.min(10,evidencia));
+/* Evidencia pública: máximo ±8 puntos */
+let ajusteEvidencia=Math.max(-8,Math.min(8,evidencia));
 
-return Math.max(0,Math.min(100,Math.round(base+ajusteEvidencia)));
+/* Si sabemos que es una cobertura claramente no forestal, penalizamos. */
+let penalizacionHabitat=(habitat<0.20)?-12:0;
+
+return Math.max(0,Math.min(100,Math.round(base+ajusteEvidencia+penalizacionHabitat)));
 }
 
-function puntuacionActualSimple(lluvia,temp,suelo,alt,evidencia=0){
+function puntuacionActualSimple(lluvia,temp,suelo,alt,evidencia=0,habitat=0){
 return calcularPuntuacion(
 lluvia*0.35,
 lluvia,
@@ -1471,7 +1496,8 @@ temp,
 suelo,
 alt,
 new Date().getMonth()+1,
-evidencia
+evidencia,
+habitat
 );
 }
 
@@ -1487,7 +1513,8 @@ $("soilValue").textContent=suelo;
 $("altValue").textContent=alt;
 
 let evidencia=Number(window.evidenciaPublicaScore||0);
-let resultado=puntuacionActualSimple(lluvia,temp,suelo,alt,evidencia);
+let habitat=Number(window.habitatActualScore||0);
+let resultado=puntuacionActualSimple(lluvia,temp,suelo,alt,evidencia,habitat);
 
 $("score").textContent=resultado;
 
@@ -1888,6 +1915,9 @@ lon
 
 pintarMapaZonas(lat,lon);
 
+/* HÁBITAT FORESTAL */
+consultarHabitat(lat,lon);
+
 /* EVIDENCIA PÚBLICA */
 cargarEvidenciaPublica(lat,lon);
 
@@ -1917,6 +1947,79 @@ $("estado").textContent=
 
 }
 
+}
+
+/* ================= HÁBITAT FORESTAL AUTOMÁTICO ================= */
+
+window.habitatActualScore=0;
+window.habitatActualTexto="Sin datos de hábitat";
+
+async function consultarHabitat(lat,lon){
+try{
+/*
+  ICGC Referencial Topogràfic Territorial:
+  capa 040_cobertes-sol_p, consulta puntual vía ArcGIS REST.
+  La cartografía oficial permite distinguir coberturas del suelo.
+*/
+let url=
+`https://maps.icgc.cat/vector03/rest/services/RTT/Referencial_Topogr%C3%A0fic_Territorial/MapServer/4/query?where=1%3D1&geometry=${encodeURIComponent(JSON.stringify({x:lon,y:lat,spatialReference:{wkid:4326}}))}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=tipus&returnGeometry=false&f=json`;
+
+let respuesta=await fetch(url);
+if(!respuesta.ok) throw new Error("ICGC");
+
+let datos=await respuesta.json();
+let tipo=String(datos.features?.[0]?.attributes?.tipus||"").toLowerCase();
+
+let score=0;
+let texto="Cobertura no identificada";
+
+if(/pi|pinar|conífer|bosque|bosc|forest|arbrat/.test(tipo)){
+score=/pi|pinar/.test(tipo)?0.95:0.75;
+texto="Cobertura forestal compatible";
+}else if(/matorral|matollar|arbust/.test(tipo)){
+score=0.35;
+texto="Matorral / vegetación arbustiva";
+}else if(/cultiu|agr|conreu|agrícola|agricola/.test(tipo)){
+score=0.05;
+texto="Zona agrícola";
+}else if(/urb|edific|industrial|carretera|vial|urban/.test(tipo)){
+score=0;
+texto="Zona urbanizada o infraestructura";
+}else if(/aigua|riu|llac|embass/.test(tipo)){
+score=0;
+texto="Agua";
+}else if(tipo){
+score=0.20;
+texto=tipo;
+}else{
+score=0.25;
+texto="Sin clasificación puntual";
+}
+
+window.habitatActualScore=score;
+window.habitatActualTexto=texto;
+
+let caja=$("habitatActual");
+if(caja){
+caja.innerHTML=`<b>${texto}</b><br><span class="muted">Índice de hábitat: ${Math.round(score*100)}/100</span>`;
+}
+
+pintarFavorabilidad();
+return score;
+
+}catch(error){
+console.warn("Hábitat ICGC:",error);
+window.habitatActualScore=0.5;
+window.habitatActualTexto="Cartografía forestal no disponible ahora";
+let caja=$("habitatActual");
+if(caja) caja.innerHTML="<b>Cartografía forestal no disponible ahora</b><br><span class='muted'>El Radar continúa con meteorología.</span>";
+pintarFavorabilidad();
+return 0.5;
+}
+}
+
+async function cargarHabitatMapa(latitudes,longitudes){
+return Promise.all(latitudes.map((la,i)=>consultarHabitat(Number(la),Number(longitudes[i]))));
 }
 
 /* ================= EVIDENCIA PÚBLICA AUTOMÁTICA ================= */
