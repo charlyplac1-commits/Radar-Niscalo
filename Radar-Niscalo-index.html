@@ -764,6 +764,799 @@ if("serviceWorker" in navigator){
 
 <body>
 <div id="appSplash" aria-hidden="true">
+  <div class="splash-3d">
+    <canvas id="splash3D" aria-hidden="true"></canvas>
+    <div class="splash3d-depth"></div>
+    <div class="splash3d-copy">
+      <div class="splash-brand">🍄 RADAR NÍSCALO</div>
+      <div class="splash-title">Preparando el radar del rebollón…</div>
+      <div class="splash-sub"><i>Lactarius deliciosus</i> · bosque · suelo · lluvia · IA</div>
+      <div class="splash-scan"><i></i></div>
+    </div>
+  </div>
+</div>
+
+YPE html>
+
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<meta name="theme-color" content="#214b35">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<title>🍄 Radar del Níscalo</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+
+<link rel="stylesheet"
+
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<style>
+
+*{
+
+box-sizing:border-box;
+
+}
+
+body{
+
+margin:0;
+
+background:#f5f2e9;
+
+color:#17231b;
+
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+
+}
+
+header{
+
+background:#214b35;
+
+color:white;
+
+padding:20px 16px;
+
+position:sticky;
+
+top:0;
+
+z-index:1000;
+
+}
+
+header b{
+
+font-size:24px;
+
+}
+
+header small{
+
+display:block;
+
+margin-top:5px;
+
+opacity:.85;
+
+}
+
+main{max-width:1000px;margin:auto;padding:8px}
+details.compact{background:white;border:1px solid #dfe3dc;border-radius:14px;padding:0 12px;margin:8px 0;box-shadow:0 1px 5px rgba(0,0,0,.04)}
+details.compact>summary{cursor:pointer;font-weight:800;padding:12px 2px;list-style:none}
+details.compact>summary::-webkit-details-marker{display:none}
+details.compact>summary:after{content:"＋";float:right;font-size:18px;color:#68736b}
+details.compact[open]>summary:after{content:"−"}
+details.compact .inside{padding:0 0 10px}
+.metric-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:8px 0}
+.metric{background:#f5f7f3;border-radius:12px;padding:9px;text-align:center}
+.metric .big{font-size:20px}
+@media(max-width:720px){.metric-strip{grid-template-columns:repeat(2,1fr)}}
+
+.card{
+
+background:white;
+
+border:1px solid #dfe3dc;
+
+border-radius:16px;
+
+padding:16px;
+
+margin:12px 0;
+
+box-shadow:0 2px 8px rgba(0,0,0,.05);
+
+}
+
+.tabs{
+
+display:flex;
+
+gap:8px;
+
+overflow-x:auto;
+
+margin-bottom:10px;
+
+}
+
+button{
+
+background:#214b35;
+
+color:white;
+
+border:0;
+
+border-radius:10px;
+
+padding:11px 14px;
+
+margin-top:10px;
+
+font-weight:700;
+
+cursor:pointer;
+
+}
+
+.tabs button{
+
+margin:0;
+
+background:#e5e9e3;
+
+color:#17231b;
+
+white-space:nowrap;
+
+}
+
+.tabs .on{
+
+background:#214b35;
+
+color:white;
+
+}
+
+button.secondary{
+
+background:#e5e9e3;
+
+color:#17231b;
+
+}
+
+button.danger{
+
+background:#9b3d35;
+
+}
+
+.score{
+
+display:flex;
+
+gap:16px;
+
+align-items:center;
+
+}
+
+.ring{
+
+width:92px;
+
+height:92px;
+
+border-radius:50%;
+
+display:grid;
+
+place-items:center;
+
+flex:none;
+
+background:conic-gradient(#3e8b58 0 0%,#e5e9e3 0% 100%);
+
+}
+
+.ring b{
+
+background:white;
+
+border-radius:50%;
+
+width:70px;
+
+height:70px;
+
+display:grid;
+
+place-items:center;
+
+font-size:24px;
+
+}
+
+.grid{
+
+display:grid;
+
+grid-template-columns:repeat(4,1fr);
+
+gap:10px;
+
+}
+
+.k{
+
+display:grid;
+
+grid-template-columns:1fr 1fr;
+
+gap:10px;
+
+}
+
+.big{
+
+font-size:26px;
+
+font-weight:800;
+
+}
+
+.muted{
+
+color:#68736b;
+
+font-size:12px;
+
+}
+
+label{
+
+display:block;
+
+font-weight:700;
+
+font-size:13px;
+
+margin-top:12px;
+
+}
+
+input,select{
+
+width:100%;
+
+padding:10px;
+
+border:1px solid #cfd6cf;
+
+border-radius:9px;
+
+background:white;
+
+}
+
+input[type=range]{
+
+padding:0;
+
+}
+
+.row{
+
+display:grid;
+
+grid-template-columns:1fr 1fr;
+
+gap:10px;
+
+}
+
+.mapbox{
+
+height:390px;
+
+border-radius:15px;
+
+overflow:hidden;
+
+border:1px solid #dfe3dc;
+
+}
+
+#map{
+
+height:100%;
+
+}
+
+.forecast{
+
+display:flex;
+
+gap:7px;
+
+overflow-x:auto;
+
+}
+
+.day{
+
+min-width:105px;
+
+background:#f5f7f3;
+
+border-radius:12px;
+
+padding:9px;
+
+text-align:center;
+
+}
+
+.day b{
+
+display:block;
+
+}
+
+.day .ico{
+
+font-size:25px;
+
+margin:4px;
+
+}
+
+table{
+
+width:100%;
+
+border-collapse:collapse;
+
+font-size:13px;
+
+}
+
+th,td{
+
+padding:8px;
+
+border-bottom:1px solid #e2e6e1;
+
+text-align:left;
+
+}
+
+.badge{
+
+display:inline-block;
+
+padding:5px 8px;
+
+border-radius:20px;
+
+background:#edf3ed;
+
+font-size:12px;
+
+margin:2px;
+
+}
+
+.notice{
+
+background:#fff8df;
+
+border:1px solid #ead58b;
+
+padding:10px;
+
+border-radius:10px;
+
+font-size:13px;
+
+}
+
+.list div{
+
+padding:9px 0;
+
+border-top:1px solid #e1e5df;
+
+}
+
+footer{
+
+text-align:center;
+
+padding:25px;
+
+color:#68736b;
+
+font-size:12px;
+
+}
+
+@media(max-width:720px){
+
+.grid{
+
+grid-template-columns:1fr 1fr;
+
+}
+
+.row{
+
+grid-template-columns:1fr;
+
+}
+
+.mapbox{
+
+height:330px;
+
+}
+
+}
+
+
+.livebox{min-height:280px}
+/* ===== ESTILO APP ===== */
+/* ===== RADAR APP · VISTA PRINCIPAL ===== */
+#radar>.card.score{position:relative;z-index:2;margin-top:8px;padding:13px 14px}
+#radar>.card.score h2{font-size:18px}
+#radar>.card.score #ventana{font-size:13px;margin-top:3px}
+#radar>.card:nth-of-type(2){padding:10px 12px}
+#radar>.card:nth-of-type(2) h3{display:none}
+#radar>.card:nth-of-type(2) label{margin-top:4px}
+#radar>.card:nth-of-type(2) .row{display:none}
+#radar>.card:nth-of-type(2) .muted{font-size:11px}
+#radar>.card:nth-of-type(2) button{padding:9px 11px;margin-top:7px}
+#motorDecisionCard{border:2px solid #dbe8dc;background:linear-gradient(180deg,#fff,#f7faf6)}
+#motorDecisionCard h3{margin:0 0 8px}
+#decisionRadar{font-size:14px;font-weight:700}
+#radar>.card:has(.mapbox){padding:10px}
+#radar>.card:has(.mapbox) h3{margin:2px 2px 9px;font-size:15px}
+@media(max-width:720px){
+ #radar>.card.score{margin-top:4px}
+ #radar>.card:has(.mapbox){margin-top:9px}
+ #radar>.card:has(.mapbox) .muted{font-size:10px}
+ details.compact{margin:7px 0;border-radius:15px}
+ details.compact>summary{padding:11px 2px;font-size:13px}
+}
+
+body{background:#eef1ec;padding-bottom:0}
+header{
+  background:linear-gradient(135deg,#183b29,#2b6545);
+  padding:12px 16px 14px;
+  box-shadow:0 3px 14px rgba(0,0,0,.16);
+}
+header b{font-size:20px;letter-spacing:-.2px}
+header small{font-size:11px;margin-top:2px}
+main{max-width:1100px;padding:10px 10px 24px}
+.app-nav{
+  position:sticky;top:0;z-index:1100;
+  padding:7px;
+  background:rgba(238,241,236,.94);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid #d9ded8;
+  border-radius:0 0 14px 14px;
+}
+.app-nav button{
+  flex:1;border-radius:12px;padding:10px 8px;
+  font-size:13px;min-height:40px;
+}
+#radar>.card:first-child{
+  border:0;
+  background:linear-gradient(135deg,#ffffff,#f3f7f1);
+  box-shadow:0 3px 14px rgba(25,59,41,.10);
+}
+#radar>.card:first-child .ring{width:82px;height:82px}
+#radar>.card:first-child .ring b{width:62px;height:62px}
+.card{border-radius:18px;box-shadow:0 2px 10px rgba(20,40,25,.055)}
+.mapbox{height:min(52vh,470px);min-height:330px;border-radius:18px}
+button{border-radius:12px}
+.metric{border:1px solid #e3e8e1}
+@media(max-width:720px){
+  body{padding-bottom:72px}
+  main{padding:7px 8px 18px}
+  .app-nav{
+    position:fixed;left:8px;right:8px;bottom:8px;top:auto;
+    border:1px solid #d5dbd4;border-radius:18px;
+    box-shadow:0 8px 28px rgba(0,0,0,.18);
+    background:rgba(255,255,255,.94);
+  }
+  .app-nav button{padding:9px 5px;font-size:12px}
+  .mapbox{height:46vh;min-height:300px}
+}
+
+#liveOverlay{touch-action:none}
+
+/* ===== IDENTIDAD VISUAL · RADAR NÍSCALO ===== */
+:root{
+  --verde-oscuro:#173d29;
+  --verde:#2f6b46;
+  --verde-suave:#e9f1e9;
+  --crema:#f6f3ea;
+  --tierra:#8a5a3b;
+  --naranja:#e56f32;
+  --texto:#17231b;
+}
+body{background:var(--crema)}
+.app-header{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:linear-gradient(135deg,var(--verde-oscuro),#34734d);
+  padding:11px 15px 12px;border-radius:0 0 18px 18px;
+}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand-icon{
+  width:42px;height:42px;border-radius:13px;display:grid;place-items:center;
+  background:rgba(255,255,255,.14);font-size:25px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);
+}
+.app-header b{font-size:20px;line-height:1.05;display:block}
+.app-header small{font-size:11px;margin-top:3px;white-space:nowrap}
+.header-status{
+  font-size:10px;font-weight:700;white-space:nowrap;opacity:.9;
+  border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:6px 8px;
+}
+.header-status span{display:inline-block;width:7px;height:7px;border-radius:50%;background:#8fd19e;margin-right:5px}
+.app-nav{
+  gap:5px;padding:6px;background:rgba(246,243,234,.94);
+  border:1px solid #dfe4dc;border-radius:16px;
+}
+.app-nav button{
+  display:flex;justify-content:center;align-items:center;gap:4px;
+  border:1px solid transparent;font-size:12px;font-weight:800;
+}
+.app-nav button.on{box-shadow:0 2px 8px rgba(23,61,41,.16)}
+#radar>.card.score{
+  padding:14px;border-radius:20px;
+  background:linear-gradient(135deg,#fff,#eef5ee);
+  border:1px solid #dce7dd;
+}
+#radar>.card.score h2{font-size:19px}
+#radar>.card.score #score{font-size:23px}
+#radar>.card.score .ring{
+  width:86px;height:86px;
+  box-shadow:0 4px 14px rgba(23,61,41,.12);
+}
+#radar>.card.score .ring b{width:65px;height:65px}
+.card h2,.card h3{letter-spacing:-.2px}
+.metric{background:#f8faf7;border-radius:14px;padding:10px 7px}
+.metric .big{font-size:19px}
+.metric .muted{font-size:10px}
+#radar>.card:has(.mapbox){
+  padding:11px;border-radius:20px;
+  background:#fff;
+}
+#radar>.card:has(.mapbox) h3{
+  font-size:16px;margin:2px 3px 10px;
+}
+.mapbox{border-radius:16px}
+button{transition:transform .12s ease,box-shadow .12s ease}
+button:active{transform:scale(.98)}
+details.compact{background:#fff}
+details.compact>summary{font-size:13px}
+.notice{border-radius:13px}
+@media(max-width:720px){
+  .app-header{padding:10px 12px 11px}
+  .brand-icon{width:38px;height:38px;font-size:22px;border-radius:12px}
+  .app-header b{font-size:18px}
+  .header-status{display:none}
+  .app-nav{left:7px;right:7px;bottom:7px;border-radius:18px;padding:6px}
+  .app-nav button{min-height:43px;font-size:11px;flex-direction:column;gap:1px}
+  .app-nav button:first-letter{font-size:17px}
+  .app-nav button span{font-size:10px}
+  #radar>.card.score{padding:12px}
+  #radar>.card.score .ring{width:78px;height:78px}
+  #radar>.card.score .ring b{width:59px;height:59px}
+  .metric-strip{gap:6px}
+}
+.radar-heat-zone{filter:blur(2px);transition:opacity .25s ease,fill-opacity .25s ease}
+.radar-heat-center{filter:blur(.8px)}
+
+/* ===== SPLASH BOSQUE ANIMADO ===== */
+#appSplash{background:#07150e}
+.splash-scene{position:relative;width:100%;height:100%;overflow:hidden;background:#07150e}
+.splash-forest{position:absolute;inset:0;width:100%;height:100%;display:block}
+.splash-vignette{position:absolute;inset:0;background:radial-gradient(circle at 50% 43%,transparent 22%,rgba(3,12,7,.08) 48%,rgba(2,9,5,.72) 100%)}
+.splash-copy{position:absolute;left:0;right:0;bottom:12%;text-align:center;color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.8);padding:0 20px}
+.splash-brand{font-size:12px;font-weight:900;letter-spacing:2.4px;opacity:.92}
+.splash-title{font-size:25px;font-weight:900;margin-top:9px;letter-spacing:-.4px}
+.splash-sub{font-size:11px;opacity:.75;margin-top:6px;letter-spacing:1px}
+.splash-copy .splash-scan{margin:20px auto 0;width:170px;height:3px;background:rgba(255,255,255,.18);border-radius:10px;overflow:hidden}
+.splash-copy .splash-scan i{display:block;width:40%;height:100%;background:#e9a34b;box-shadow:0 0 14px #e9a34b;animation:splashScan 1.1s ease-in-out infinite}
+.splash-spores circle{animation:sporeFloat 5s ease-in-out infinite}
+.splash-spores circle:nth-child(2n){animation-delay:-1.4s}.splash-spores circle:nth-child(3n){animation-delay:-3s}
+.splash-radar{transform-origin:450px 650px;animation:radarSweep 4s linear infinite}
+@keyframes radarSweep{to{transform:translate(450px,650px) rotate(360deg) translate(-450px,-650px)}}
+@keyframes sporeFloat{0%,100%{transform:translate(0,0);opacity:.25}50%{transform:translate(18px,-32px);opacity:.8}}
+@media(max-width:720px){.splash-copy{bottom:10%}.splash-title{font-size:23px}.splash-brand{font-size:11px}.splash-sub{font-size:10px}}
+
+/* ===== EXPERIENCIA APP · BOSQUE / INSTRUMENTO DE CAMPO ===== */
+#appSplash{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:radial-gradient(circle at 50% 35%,#315f43 0,#183b29 42%,#0d2418 100%);color:#fff;transition:opacity .55s ease,visibility .55s ease}
+#appSplash.hide{opacity:0;visibility:hidden;pointer-events:none}
+.splash-inner{text-align:center;transform:translateY(-8px);animation:splashIn .7s ease both}
+.splash-mush{font-size:72px;filter:drop-shadow(0 8px 18px rgba(0,0,0,.28));animation:splashPulse 1.8s ease-in-out infinite}
+.splash-title{font-size:30px;font-weight:900;letter-spacing:-.8px;margin-top:8px}
+.splash-sub{font-size:12px;opacity:.78;margin-top:5px;letter-spacing:.3px}
+.splash-scan{width:150px;height:3px;border-radius:5px;background:rgba(255,255,255,.16);overflow:hidden;margin:22px auto 0}
+.splash-scan i{display:block;width:42%;height:100%;background:#e9a34b;box-shadow:0 0 12px #e9a34b;animation:splashScan 1.05s ease-in-out infinite}
+@keyframes splashIn{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes splashPulse{50%{transform:translateY(-3px) scale(1.035)}}
+@keyframes splashScan{0%{transform:translateX(-110%)}100%{transform:translateX(360%)}}
+header.app-header{position:relative;overflow:hidden}
+header.app-header:after{content:"";position:absolute;inset:-60% -20%;background:linear-gradient(110deg,transparent 42%,rgba(255,255,255,.10) 50%,transparent 58%);transform:translateX(-70%);animation:headerShimmer 8s ease-in-out infinite;pointer-events:none}
+header.app-header .brand,header.app-header .header-status{position:relative;z-index:2}
+@keyframes headerShimmer{0%,55%{transform:translateX(-70%)}75%,100%{transform:translateX(70%)}}
+.header-status{position:relative;z-index:1}
+.header-status span{animation:statusPulse 2s ease-in-out infinite}
+@keyframes statusPulse{50%{box-shadow:0 0 0 5px rgba(143,209,158,.08)}}
+#radar>.card.score{overflow:hidden}
+#radar>.card.score:before{content:"";position:absolute;width:170px;height:170px;border-radius:50%;right:-90px;top:-85px;background:radial-gradient(circle,rgba(47,107,70,.16),transparent 68%);pointer-events:none}
+#radar>.card.score .ring{position:relative;isolation:isolate}
+#radar>.card.score .ring:after{content:"";position:absolute;inset:-7px;border-radius:50%;border:2px solid rgba(229,163,75,.42);box-shadow:0 0 0 0 rgba(229,163,75,.24);animation:ringPulse 2.2s ease-out infinite;pointer-events:none}
+#radar>.card.score .ring:after{content:"";position:absolute;inset:-7px;border-radius:50%;border:1px solid rgba(47,107,70,.18);animation:ringPulse 2.8s ease-out infinite;z-index:-1}
+@keyframes ringPulse{0%{transform:scale(.94);opacity:.7}100%{transform:scale(1.18);opacity:0}}
+#motorDecisionCard{position:relative;overflow:hidden}
+#motorDecisionCard:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(#2f6b46,#e56f32);border-radius:4px}
+#decisionRadar{transition:transform .25s ease,box-shadow .25s ease}
+#decisionRadar.flash{transform:scale(1.012);box-shadow:0 0 0 3px rgba(47,107,70,.08)}
+.instrument-label{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:900;letter-spacing:.7px;text-transform:uppercase;color:#637066;margin-bottom:5px}
+.instrument-label i{width:6px;height:6px;border-radius:50%;background:#e56f32;box-shadow:0 0 8px rgba(229,111,50,.65)}
+#scannerLive{position:relative}
+#scannerLive:after{content:"";position:absolute;left:5%;right:5%;top:50%;height:1px;background:linear-gradient(90deg,transparent,rgba(229,163,75,.8),transparent);opacity:0;pointer-events:none}
+#scannerLive.scanning:after{opacity:1;animation:scanLine 2.2s linear infinite}
+@keyframes scanLine{0%{transform:translateY(-105px);opacity:0}15%{opacity:.8}85%{opacity:.8}100%{transform:translateY(105px);opacity:0}}
+#scannerLive.scanning #liveOverlay{box-shadow:inset 0 0 0 1px rgba(229,163,75,.55),inset 0 0 35px rgba(229,163,75,.08)}
+.scan-hud{position:absolute;left:12px;right:12px;top:12px;display:flex;justify-content:space-between;gap:8px;pointer-events:none;z-index:4}
+.scan-hud span{font-size:9px;font-weight:900;letter-spacing:.6px;color:#fff;background:rgba(8,20,13,.62);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(6px);padding:5px 7px;border-radius:8px}
+.scan-hud .live-dot:before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#e56f32;margin-right:5px;box-shadow:0 0 8px #e56f32}
+#btnLiveStart{box-shadow:0 5px 18px rgba(33,75,53,.2)}
+#btnLiveAnalyze{box-shadow:0 5px 18px rgba(229,111,50,.18)}
+#radar>.card:has(.mapbox){position:relative}
+#radar>.card:has(.mapbox) h3:after{content:" · EN VIVO";font-size:9px;letter-spacing:.7px;color:#e56f32;font-weight:900;vertical-align:middle}
+@media(max-width:720px){.splash-title{font-size:27px}.splash-mush{font-size:64px}.scan-hud{top:9px;left:9px;right:9px}.scan-hud span{font-size:8px}}
+
+/* ===== SPLASH FOTOGRÁFICO REAL =====
+   Fondo: fotografía de pinar bajo licencia Unsplash.
+   Níscalo: fotografía USFWS en dominio público.
+*/
+#appSplash{
+  background:#08130c !important;
+  overflow:hidden;
+}
+.splash-photo-scene{
+  position:relative;width:100%;height:100%;overflow:hidden;background:#08130c;
+}
+.splash-photo-forest{
+  position:absolute;inset:-3%;
+  background-image:url("https://images.unsplash.com/photo-1768674153387-9644416eebd9?auto=format&fit=crop&fm=jpg&q=82&w=1600");
+  background-size:cover;background-position:center;
+  transform:scale(1.035);
+  animation:splashForestDrift 12s ease-in-out infinite alternate;
+}
+.splash-photo-mush{
+  position:absolute;
+  left:50%;bottom:17%;
+  width:min(74vw,560px);height:min(54vw,420px);
+  transform:translateX(-50%);
+  background-image:url("https://www.fws.gov/sites/default/files/styles/max_1300x1300/public/images/2005-07/30060.jpg?itok=wp-hsZ7U");
+  background-size:cover;background-position:center;
+  border-radius:50%;
+  opacity:.94;
+  filter:saturate(1.12) contrast(1.05) drop-shadow(0 18px 28px rgba(0,0,0,.42));
+  -webkit-mask-image:radial-gradient(ellipse at center,black 0 48%,rgba(0,0,0,.82) 63%,transparent 82%);
+  mask-image:radial-gradient(ellipse at center,black 0 48%,rgba(0,0,0,.82) 63%,transparent 82%);
+  animation:splashMushroomFloat 4.5s ease-in-out infinite;
+}
+.splash-photo-light{
+  position:absolute;inset:-20%;
+  background:
+    linear-gradient(68deg,transparent 37%,rgba(255,244,190,.16) 46%,transparent 55%),
+    linear-gradient(112deg,transparent 43%,rgba(255,241,183,.13) 50%,transparent 58%);
+  mix-blend-mode:screen;
+  animation:splashLightMove 7s ease-in-out infinite alternate;
+  pointer-events:none;
+}
+.splash-photo-vignette{
+  position:absolute;inset:0;
+  background:
+    linear-gradient(to bottom,rgba(4,16,9,.28),transparent 32%,rgba(3,11,7,.12) 55%,rgba(2,9,5,.82) 100%),
+    radial-gradient(circle at 50% 52%,transparent 24%,rgba(1,7,4,.55) 100%);
+}
+.splash-photo-spores{position:absolute;inset:0;pointer-events:none}
+.splash-photo-spores i{
+  position:absolute;width:4px;height:4px;border-radius:50%;
+  background:#f6e6bb;box-shadow:0 0 9px rgba(246,230,187,.75);
+  opacity:.2;animation:splashSpore 5s ease-in-out infinite;
+}
+.splash-photo-spores i:nth-child(1){left:18%;top:43%;animation-delay:-1s}
+.splash-photo-spores i:nth-child(2){left:31%;top:34%;animation-delay:-3s}
+.splash-photo-spores i:nth-child(3){left:46%;top:39%;animation-delay:-2s}
+.splash-photo-spores i:nth-child(4){left:58%;top:30%;animation-delay:-4s}
+.splash-photo-spores i:nth-child(5){left:72%;top:44%;animation-delay:-1.7s}
+.splash-photo-spores i:nth-child(6){left:82%;top:36%;animation-delay:-2.6s}
+.splash-photo-spores i:nth-child(7){left:39%;top:49%;animation-delay:-.4s}
+.splash-photo-spores i:nth-child(8){left:64%;top:52%;animation-delay:-3.4s}
+.splash-photo-spores i:nth-child(9){left:25%;top:56%;animation-delay:-2.2s}
+.splash-photo-spores i:nth-child(10){left:76%;top:58%;animation-delay:-4.2s}
+@keyframes splashForestDrift{from{transform:scale(1.035) translate3d(-.5%,0,0)}to{transform:scale(1.075) translate3d(.5%,-.5%,0)}}
+@keyframes splashMushroomFloat{0%,100%{transform:translateX(-50%) translateY(0) scale(1)}50%{transform:translateX(-50%) translateY(-5px) scale(1.012)}}
+@keyframes splashLightMove{from{transform:translateX(-4%)}to{transform:translateX(4%)}}
+@keyframes splashSpore{0%,100%{transform:translate3d(0,12px,0);opacity:.12}45%{opacity:.75}70%{transform:translate3d(18px,-34px,0);opacity:.45}}
+@media(max-width:720px){
+  .splash-photo-mush{width:92vw;height:62vw;bottom:19%}
+  .splash-photo-forest{background-position:center}
+  .splash-copy{bottom:8%}
+}
+
+
+
+/* ===== SPLASH PROFESIONAL PROCEDURAL · BOSQUE + MANCHA NATURAL DE REBOLLONES ===== */
+#appSplash{background:#11140f!important}
+.splash-pro-scene{position:relative;width:100%;height:100%;overflow:hidden;background:#151b14}
+.splash-pro-art{position:absolute;inset:0;width:100%;height:100%;display:block;transform:scale(1.015);animation:splashProDrift 16s ease-in-out infinite alternate}
+.splash-pro-vignette{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(4,10,6,.25),transparent 30%,rgba(3,7,4,.12) 55%,rgba(2,5,3,.78) 100%),radial-gradient(ellipse at 50% 55%,transparent 28%,rgba(0,0,0,.48) 100%);pointer-events:none}
+.splash-pro-grain{position:absolute;inset:0;opacity:.075;mix-blend-mode:soft-light;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.32'/%3E%3C/svg%3E")}
+.splash-pro-spores{position:absolute;inset:0;pointer-events:none}
+.splash-pro-spores i{position:absolute;width:3px;height:3px;border-radius:50%;background:#f4e7bf;box-shadow:0 0 9px rgba(244,231,191,.7);opacity:.15;animation:proSpore 6s ease-in-out infinite}
+.splash-pro-spores i:nth-child(1){left:18%;top:42%;animation-delay:-1s}.splash-pro-spores i:nth-child(2){left:28%;top:31%;animation-delay:-3s}.splash-pro-spores i:nth-child(3){left:39%;top:45%;animation-delay:-2s}.splash-pro-spores i:nth-child(4){left:52%;top:29%;animation-delay:-4s}.splash-pro-spores i:nth-child(5){left:64%;top:40%;animation-delay:-1.5s}.splash-pro-spores i:nth-child(6){left:75%;top:32%;animation-delay:-3.5s}.splash-pro-spores i:nth-child(7){left:84%;top:49%;animation-delay:-2.5s}.splash-pro-spores i:nth-child(8){left:47%;top:53%;animation-delay:-4.5s}
+.splash-pro-copy{position:absolute;left:0;right:0;bottom:9%;text-align:center;color:#fff;padding:0 22px;text-shadow:0 2px 18px rgba(0,0,0,.9);z-index:3}
+.splash-pro-copy .splash-brand{font-size:11px;font-weight:950;letter-spacing:3px;opacity:.94}
+.splash-pro-copy .splash-title{font-size:26px;font-weight:900;letter-spacing:-.5px;margin-top:9px}
+.splash-pro-copy .splash-sub{font-size:11px;opacity:.82;margin-top:6px;letter-spacing:.8px}
+.splash-pro-copy .splash-scan{width:170px;height:3px;margin:19px auto 0;border-radius:10px;overflow:hidden;background:rgba(255,255,255,.17)}
+.splash-pro-copy .splash-scan i{display:block;width:38%;height:100%;background:#e8a65b;box-shadow:0 0 14px #e8a65b;animation:splashScan 1.15s ease-in-out infinite}
+@keyframes splashProDrift{0%{transform:scale(1.015) translate3d(0,0,0)}100%{transform:scale(1.045) translate3d(-.6%,-.35%,0)}}
+@keyframes proSpore{0%,100%{transform:translate3d(0,0,0);opacity:.08}45%{opacity:.48}60%{transform:translate3d(15px,-34px,0);opacity:.32}}
+@media(max-width:720px){.splash-pro-copy{bottom:8%}.splash-pro-copy .splash-title{font-size:24px}.splash-pro-copy .splash-sub{font-size:10px}.splash-pro-copy .splash-brand{font-size:10px;letter-spacing:2.5px}}
+
+
+/* ===== PORTADA 3D FOTORREALISTA · PINAR + MANCHA DE REBOLLONES ===== */
+#appSplash{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:#07100b;overflow:hidden;opacity:1;visibility:visible;transition:opacity .65s ease,visibility .65s ease}
+#appSplash.hide{opacity:0;visibility:hidden;pointer-events:none}
+.splash-3d{position:relative;width:100%;height:100%;overflow:hidden;background:#10170f}
+#splash3D{position:absolute;inset:0;width:100%;height:100%;display:block}
+.splash3d-depth{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 48%,transparent 18%,rgba(0,0,0,.08) 48%,rgba(0,0,0,.72) 100%),linear-gradient(to bottom,rgba(2,8,4,.25),transparent 35%,rgba(2,7,4,.04) 62%,rgba(0,0,0,.78) 100%)}
+.splash3d-copy{position:absolute;left:0;right:0;bottom:8%;text-align:center;color:#fff;padding:0 20px;z-index:4;text-shadow:0 3px 22px rgba(0,0,0,.95)}
+.splash3d-copy .splash-brand{font-size:11px;font-weight:900;letter-spacing:3px}
+.splash3d-copy .splash-title{font-size:26px;font-weight:900;margin-top:9px;letter-spacing:-.5px}
+.splash3d-copy .splash-sub{font-size:11px;opacity:.82;margin-top:6px;letter-spacing:.7px}
+.splash3d-copy .splash-scan{width:170px;height:3px;margin:18px auto 0;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.16)}
+.splash3d-copy .splash-scan i{display:block;width:38%;height:100%;background:#e8a65b;box-shadow:0 0 14px #e8a65b;animation:splashScan 1.1s ease-in-out infinite}
+@media(max-width:720px){.splash3d-copy{bottom:8%}.splash3d-copy .splash-title{font-size:24px}.splash3d-copy .splash-sub{font-size:10px}}
+
+</style>
+
+<script>
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=4").catch(()=>{}));
+}
+</script>
+</head>
+
+<body>
+<div id="appSplash" aria-hidden="true">
   <div class="splash-pro-scene">
     <svg class="splash-pro-art" viewBox="0 0 900 1600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <defs>
@@ -1375,6 +2168,142 @@ style="overflow:auto;margin-top:12px">
 Radar del Níscalo · Aplicación experimental
 
 </footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script>
+/* ===== MOTOR 3D DE PORTADA =====
+   Escena procedural: pinar, suelo, pinocha, luz volumétrica y grupo natural
+   de rebollones. No es una ilustración plana: todo se renderiza en perspectiva.
+*/
+(function(){
+  const canvas=document.getElementById("splash3D");
+  if(!canvas || typeof THREE==="undefined") return;
+  const scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x0d1710);
+  scene.fog=new THREE.FogExp2(0x152018,.035);
+
+  const camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,80);
+  camera.position.set(0,2.15,8.8);
+  camera.lookAt(0,1.55,0);
+
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:"high-performance"});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
+  renderer.setSize(innerWidth,innerHeight,false);
+  renderer.outputColorSpace=THREE.SRGBColorSpace;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.05;
+
+  scene.add(new THREE.HemisphereLight(0x9caf91,0x1b140d,1.35));
+  const sun=new THREE.DirectionalLight(0xffe7ad,3.0);
+  sun.position.set(-4,8,5); scene.add(sun);
+  const fill=new THREE.PointLight(0xd9e8bb,1.5,14);
+  fill.position.set(2,3,2); scene.add(fill);
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const group=new THREE.Group(); scene.add(group);
+
+  // suelo irregular
+  const soilGeo=new THREE.PlaneGeometry(22,22,80,80);
+  const p=soilGeo.attributes.position;
+  for(let i=0;i<p.count;i++){
+    const x=p.getX(i),y=p.getY(i);
+    p.setZ(i,Math.sin(x*.65)*.10+Math.cos(y*.52)*.12+Math.sin((x+y)*1.8)*.035+rand(-.018,.018));
+  }
+  soilGeo.rotateX(-Math.PI/2);
+  const soilMat=new THREE.MeshStandardMaterial({color:0x30291d,roughness:1,metalness:0});
+  const soil=new THREE.Mesh(soilGeo,soilMat); soil.position.y=-.12; group.add(soil);
+
+  // pinocha / ramitas: miles de pequeñas geometrías
+  const needleGeo=new THREE.ConeGeometry(.012,.22,4);
+  const needleMat=new THREE.MeshStandardMaterial({color:0x655238,roughness:1});
+  const needles=new THREE.InstancedMesh(needleGeo,needleMat,900);
+  const dummy=new THREE.Object3D();
+  for(let i=0;i<900;i++){
+    const x=rand(-7,7),z=rand(-5,7),y=rand(-.02,.10);
+    dummy.position.set(x,y,z); dummy.rotation.set(rand(-.35,.35),rand(0,Math.PI),rand(-.4,.4)); dummy.scale.set(rand(.7,1.4),1,rand(.7,1.4)); dummy.updateMatrix(); needles.setMatrixAt(i,dummy.matrix);
+  }
+  group.add(needles);
+
+  // troncos de pino en varios planos para profundidad
+  function pine(x,z,h,r,far){
+    const g=new THREE.Group();
+    const bark=new THREE.Mesh(new THREE.CylinderGeometry(r*.72,r,h,10),new THREE.MeshStandardMaterial({color:far?0x25271e:0x3b3325,roughness:1}));
+    bark.position.y=h/2; g.add(bark);
+    const crownMat=new THREE.MeshStandardMaterial({color:far?0x263b29:0x1b3021,roughness:1});
+    for(let i=0;i<5;i++){
+      const cone=new THREE.Mesh(new THREE.ConeGeometry(r*(5-i*.55),h*.24,9),crownMat);
+      cone.position.y=h*.60+i*h*.075; g.add(cone);
+    }
+    g.position.set(x,0,z); g.rotation.z=rand(-.035,.035); group.add(g);
+  }
+  pine(-5.7,-.5,8.5,.42,false); pine(5.4,.1,8.8,.45,false);
+  pine(-3.9,-2.4,7.1,.30,true); pine(3.6,-2.2,7.5,.34,true);
+  pine(-1.7,-4.0,8.0,.32,true); pine(1.8,-4.3,8.5,.35,true);
+  pine(-6.8,2.8,10,.48,true); pine(6.7,2.5,10,.5,true);
+
+  // arbustos y hierba baja
+  const grassGeo=new THREE.ConeGeometry(.035,.5,4);
+  const grassMat=new THREE.MeshStandardMaterial({color:0x4b5635,roughness:1});
+  const grass=new THREE.InstancedMesh(grassGeo,grassMat,450);
+  for(let i=0;i<450;i++){
+    const x=rand(-7,7),z=rand(-3.8,6),y=rand(0,.04);
+    dummy.position.set(x,y,z); dummy.rotation.z=rand(-.7,.7); dummy.rotation.y=rand(0,Math.PI); dummy.scale.set(rand(.5,1.5),rand(.45,1.3),1); dummy.updateMatrix(); grass.setMatrixAt(i,dummy.matrix);
+  }
+  group.add(grass);
+
+  // rebollón procedural: cap con depresión central, láminas y pie
+  function mushroom(x,z,s,rot){
+    const m=new THREE.Group();
+    const stem=new THREE.Mesh(new THREE.CylinderGeometry(.055*s,.075*s,.28*s,12),new THREE.MeshStandardMaterial({color:0xc6b28f,roughness:.9}));
+    stem.position.y=.14*s; m.add(stem);
+    const capMat=new THREE.MeshStandardMaterial({color:0xb95827,roughness:.72,metalness:0});
+    const cap=new THREE.Mesh(new THREE.SphereGeometry(.23*s,24,12,0,Math.PI*2,0,Math.PI*.48),capMat);
+    cap.scale.y=.48; cap.position.y=.29*s; m.add(cap);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(.12*s,.012*s,7,24),new THREE.MeshStandardMaterial({color:0x7f341f,roughness:.9}));
+    ring.rotation.x=Math.PI/2; ring.position.y=.286*s; m.add(ring);
+    m.position.set(x,.015,z); m.rotation.y=rot; group.add(m);
+  }
+  // mancha natural: agrupada, irregular, sin círculo perfecto
+  mushroom(-.55,-.05,1.25,.3);
+  mushroom(.05,-.28,.92,2.1);
+  mushroom(.62,.02,.72,4.5);
+  mushroom(-.02,.48,.58,5.7);
+  mushroom(-.92,.36,.55,1.7);
+  mushroom(1.0,.40,.46,3.1);
+  mushroom(.42,.75,.34,5.0);
+
+  // partículas ambientales / polvo
+  const dustGeo=new THREE.BufferGeometry(),dust=[];
+  for(let i=0;i<180;i++) dust.push(rand(-6,6),rand(.2,6),rand(-3,5));
+  dustGeo.setAttribute("position",new THREE.Float32BufferAttribute(dust,3));
+  const dustMat=new THREE.PointsMaterial({color:0xd9d2ac,size:.025,transparent:true,opacity:.28});
+  scene.add(new THREE.Points(dustGeo,dustMat));
+
+  let t=0,active=true;
+  function resize(){
+    camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth,innerHeight,false);
+  }
+  addEventListener("resize",resize,{passive:true});
+
+  function animate(){
+    if(!active)return;
+    requestAnimationFrame(animate); t+=.004;
+    camera.position.x=Math.sin(t*.55)*.16;
+    camera.position.y=2.15+Math.sin(t*.7)*.025;
+    camera.lookAt(.05,1.42,0);
+    group.rotation.y=Math.sin(t*.25)*.012;
+    renderer.render(scene,camera);
+  }
+  animate();
+
+  const splash=document.getElementById("appSplash");
+  const hide=()=>{splash&&splash.classList.add("hide");setTimeout(()=>{active=false;renderer.dispose()},900)};
+  addEventListener("load",()=>setTimeout(hide,3600),{once:true});
+  setTimeout(hide,5200);
+})();
+</script>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
