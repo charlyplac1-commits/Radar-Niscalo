@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Radar Níscalo">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a2215"/>
+      <stop offset="1" stop-color="#235b3a"/>
+    </linearGradient>
+    <radialGradient id="screen" cx=".5" cy=".5" r=".7">
+      <stop offset="0" stop-color="#285f43"/>
+      <stop offset=".72" stop-color="#163c2a"/>
+      <stop offset="1" stop-color="#0b2518"/>
+    </radialGradient>
+    <radialGradient id="cap" cx=".36" cy=".24" r=".86">
+      <stop offset="0" stop-color="#f8b466"/>
+      <stop offset=".38" stop-color="#e18139"/>
+      <stop offset=".78" stop-color="#b85327"/>
+      <stop offset="1" stop-color="#78331f"/>
+    </radialGradient>
+    <linearGradient id="stem" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f4e9cf"/>
+      <stop offset=".55" stop-color="#d1c19a"/>
+      <stop offset="1" stop-color="#8c7958"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="7" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="7"/>
+      <feOffset dy="7"/>
+      <feComponentTransfer><feFuncA type="linear" slope=".42"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- Radar de vuelo -->
+  <circle cx="256" cy="224" r="152" fill="url(#screen)" stroke="#6ca67f" stroke-opacity=".32" stroke-width="3"/>
+  <circle cx="256" cy="224" r="108" fill="none" stroke="#8cc49d" stroke-opacity=".26" stroke-width="2"/>
+  <circle cx="256" cy="224" r="58" fill="none" stroke="#8cc49d" stroke-opacity=".24" stroke-width="2"/>
+  <path d="M104 224h304M256 72v304" stroke="#8cc49d" stroke-opacity=".18" stroke-width="2"/>
+  <path d="M148 116a152 152 0 0 1 108-44" fill="none" stroke="#9bd3aa" stroke-opacity=".28" stroke-width="4"/>
+  <path d="M256 224L372 132" stroke="#dcefd9" stroke-opacity=".9" stroke-width="5" stroke-linecap="round" filter="url(#glow)"/>
+  <path d="M256 224L372 132" stroke="#e9a34f" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="325" cy="170" r="8" fill="#e9a34f" filter="url(#glow)"/>
+  <circle cx="185" cy="286" r="5" fill="#9de0aa"/>
+  <circle cx="305" cy="286" r="5" fill="#9de0aa"/>
+
+  <!-- Rebollón -->
+  <g filter="url(#shadow)">
+    <ellipse cx="256" cy="401" rx="91" ry="20" fill="#06140b" opacity=".68"/>
+    <path d="M220 342h72l-2 75c0 17-13 29-34 29s-34-12-34-29z" fill="url(#stem)"/>
+    <path d="M155 336c8-72 60-117 101-117s93 45 101 117c-31 25-60 35-101 35s-70-10-101-35z" fill="url(#cap)"/>
+    <path d="M169 328c36 18 138 18 174 0" fill="none" stroke="#ffd19a" stroke-opacity=".52" stroke-width="4"/>
+    <path d="M191 255c28-22 102-30 135 5" fill="none" stroke="#f8c58b" stroke-opacity=".46" stroke-width="7" stroke-linecap="round"/>
+    <path d="M190 295c28 13 102 16 132 0" fill="none" stroke="#8c3e22" stroke-opacity=".5" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="215" cy="282" r="7" fill="#ffe1b2"/>
+    <circle cx="266" cy="256" r="8" fill="#ffe1b2"/>
+    <circle cx="314" cy="293" r="6" fill="#ffe1b2"/>
+  </g>
+</svg>
