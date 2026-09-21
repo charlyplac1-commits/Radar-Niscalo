@@ -1550,7 +1550,14 @@ resultado=Math.max(0,Math.min(100,Math.round(
  + ((Number(window.densidadArbolScore||0.5)-0.5)*3)
  + ((Number(window.ndviScore||0.5)-0.5)*2)
 )));
+resultado=calibracionEmpirica(resultado,evidencia);
 registrarTendenciaRadar(resultado);
+const conf=confianzaRadar();
+const cajaConf=$("tendenciaRadar");
+if(cajaConf){
+ const actual=cajaConf.innerHTML;
+ cajaConf.innerHTML=actual+`<br><b>🎯 Confianza:</b> ${conf}`;
+}
 
 $("score").textContent=resultado;
 
@@ -1956,6 +1963,7 @@ consultarHabitat(lat,lon);
 /* TERRENO: MDT oficial ICGC */
 consultarTerreno(lat,lon);
 consultarSueloGeologia(lat,lon);
+window.ultimaLat=lat; window.ultimaLon=lon;
 consultarEstructuraArbolado(lat,lon);
 consultarEstructuraAvanzada(lat,lon);
 consultarNDVI(lat,lon);
@@ -2061,6 +2069,48 @@ try{
  window.coberturaArbolTexto="Recubrimiento arbóreo no disponible ahora";
 }
 pintarFavorabilidad();
+}
+
+function calibracionEmpirica(score,evidencia){
+  /*
+   Calibración adaptativa conservadora:
+   usa únicamente observaciones públicas positivas y repetidas del propio radar.
+   No interpreta la ausencia de observaciones como ausencia de níscalos.
+   Se limita a +/-4 puntos para que no domine meteorología/hábitat.
+  */
+  try{
+    const lat=Number(window.ultimaLat), lon=Number(window.ultimaLon);
+    if(!Number.isFinite(lat)||!Number.isFinite(lon)) return score;
+    const key=`${lat.toFixed(2)},${lon.toFixed(2)}`;
+    let datos=JSON.parse(localStorage.getItem("radar_niscalo_calibracion")||"{}");
+    if(!datos[key]) datos[key]=[];
+    datos[key].push({score:Number(score)||0,e:Number(evidencia)||0,t:Date.now()});
+    datos[key]=datos[key].filter(x=>Date.now()-x.t<90*24*60*60*1000).slice(-30);
+    localStorage.setItem("radar_niscalo_calibracion",JSON.stringify(datos));
+    const muestras=datos[key];
+    if(muestras.length<8) return score;
+    const positivas=muestras.filter(x=>x.e>0);
+    if(!positivas.length) return score;
+    const mediaScore=positivas.reduce((a,x)=>a+x.score,0)/positivas.length;
+    const mediaE=positivas.reduce((a,x)=>a+x.e,0)/positivas.length;
+    let ajuste=0;
+    if(mediaE>=5 && mediaScore<55) ajuste=Math.min(4,(55-mediaScore)*0.15);
+    if(mediaE<=2 && mediaScore>75) ajuste=-Math.min(4,(mediaScore-75)*0.12);
+    return Math.max(0,Math.min(100,Math.round(score+ajuste)));
+  }catch(e){ return score; }
+}
+
+function confianzaRadar(){
+  let n=0;
+  if(Number.isFinite(Number(window.lluviaActual))) n++;
+  if(Number.isFinite(Number(window.tempActual))) n++;
+  if(Number.isFinite(Number(window.humedadSueloActual))) n++;
+  if(Number.isFinite(Number(window.altitudActual))) n++;
+  if(Number(window.habitatActualScore||0)>=0) n++;
+  if(Number(window.sueloActualScore||0)>=0) n++;
+  if(Number(window.coberturaArbolScore||0)>=0) n++;
+  if(Number(window.ndviScore||0)>=0) n++;
+  return n>=7?"Alta":n>=5?"Media":"Baja";
 }
 
 function registrarTendenciaRadar(puntuacion){
