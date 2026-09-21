@@ -4305,17 +4305,34 @@ new Date()
 
 (function(){
   const s=document.getElementById("appSplash");
-  if(!s) return;
   const hide=()=>{
+    if(!s) return;
     s.classList.add("hide");
     setTimeout(()=>{s.style.display="none"},800);
   };
-  if(document.readyState==="complete"){
-    setTimeout(hide,2600);
-  }else{
-    window.addEventListener("load",()=>setTimeout(hide,2600),{once:true});
+
+  /* ================= ARRANQUE DE LA APLICACIÓN =================
+     Esta inicialización es imprescindible: sin ella el contenedor del mapa
+     existe, pero Leaflet no se crea y tampoco se cargan los datos iniciales.
+     Se mantiene aislada para que un servicio externo caído no deje la portada
+     bloqueando toda la aplicación.
+  */
+  try{
+    iniciarMapa();
+    mostrarHallazgos();
+    mostrarEstadisticas();
+    mostrarEscaneos();
+    cargarDatos().catch(error=>console.error("Carga inicial del Radar:",error));
+  }catch(error){
+    console.error("Error al iniciar Radar Níscalo:",error);
   }
-  setTimeout(hide,5000);
+
+  if(document.readyState==="complete"){
+    setTimeout(hide,900);
+  }else{
+    window.addEventListener("load",()=>setTimeout(hide,900),{once:true});
+  }
+  setTimeout(hide,3500);
 })();
 
 </script>
