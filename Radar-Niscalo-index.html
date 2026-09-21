@@ -810,8 +810,12 @@ header.app-header .brand,header.app-header .header-status{position:relative;z-in
 </style>
 
 <script>
+/* Actualización estable: esta versión no registra Service Worker. */
 if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=8").catch(()=>{}));
+  navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});
+  if("caches" in window){
+    caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("radar-niscalo-")).map(k=>caches.delete(k)))).catch(()=>{});
+  }
 }
 </script>
 </head>
