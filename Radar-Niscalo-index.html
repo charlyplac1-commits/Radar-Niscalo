@@ -438,6 +438,52 @@ height:330px;
 
 
 .livebox{min-height:280px}
+/* ===== ESTILO APP ===== */
+body{background:#eef1ec;padding-bottom:0}
+header{
+  background:linear-gradient(135deg,#183b29,#2b6545);
+  padding:12px 16px 14px;
+  box-shadow:0 3px 14px rgba(0,0,0,.16);
+}
+header b{font-size:20px;letter-spacing:-.2px}
+header small{font-size:11px;margin-top:2px}
+main{max-width:1100px;padding:10px 10px 24px}
+.app-nav{
+  position:sticky;top:0;z-index:1100;
+  padding:7px;
+  background:rgba(238,241,236,.94);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid #d9ded8;
+  border-radius:0 0 14px 14px;
+}
+.app-nav button{
+  flex:1;border-radius:12px;padding:10px 8px;
+  font-size:13px;min-height:40px;
+}
+#radar>.card:first-child{
+  border:0;
+  background:linear-gradient(135deg,#ffffff,#f3f7f1);
+  box-shadow:0 3px 14px rgba(25,59,41,.10);
+}
+#radar>.card:first-child .ring{width:82px;height:82px}
+#radar>.card:first-child .ring b{width:62px;height:62px}
+.card{border-radius:18px;box-shadow:0 2px 10px rgba(20,40,25,.055)}
+.mapbox{height:min(52vh,470px);min-height:330px;border-radius:18px}
+button{border-radius:12px}
+.metric{border:1px solid #e3e8e1}
+@media(max-width:720px){
+  body{padding-bottom:72px}
+  main{padding:7px 8px 18px}
+  .app-nav{
+    position:fixed;left:8px;right:8px;bottom:8px;top:auto;
+    border:1px solid #d5dbd4;border-radius:18px;
+    box-shadow:0 8px 28px rgba(0,0,0,.18);
+    background:rgba(255,255,255,.94);
+  }
+  .app-nav button{padding:9px 5px;font-size:12px}
+  .mapbox{height:46vh;min-height:300px}
+}
+
 #liveOverlay{touch-action:none}
 </style>
 
@@ -446,20 +492,13 @@ height:330px;
 <body>
 
 <header>
-
 <b>🍄 Radar del Níscalo</b>
-
-<small>
-
-Meteorología automática + evidencia pública + condiciones del hábitat
-
-</small>
-
+<small>Tu brújula para buscar rebollones</small>
 </header>
 
 <main>
 
-<div class="tabs">
+<div class="tabs app-nav">
 
 <button class="on" onclick="tab('radar',this)">
 
