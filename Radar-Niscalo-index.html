@@ -608,8 +608,9 @@ details.compact>summary{font-size:13px}
 @keyframes splashIn{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
 @keyframes splashPulse{50%{transform:translateY(-3px) scale(1.035)}}
 @keyframes splashScan{0%{transform:translateX(-110%)}100%{transform:translateX(360%)}}
-.app-header{position:relative;overflow:hidden}
-.app-header:after{content:"";position:absolute;inset:-60% -20%;background:linear-gradient(110deg,transparent 42%,rgba(255,255,255,.10) 50%,transparent 58%);transform:translateX(-70%);animation:headerShimmer 8s ease-in-out infinite;pointer-events:none}
+header.app-header{position:relative;overflow:hidden}
+header.app-header:after{content:"";position:absolute;inset:-60% -20%;background:linear-gradient(110deg,transparent 42%,rgba(255,255,255,.10) 50%,transparent 58%);transform:translateX(-70%);animation:headerShimmer 8s ease-in-out infinite;pointer-events:none}
+header.app-header .brand,header.app-header .header-status{position:relative;z-index:2}
 @keyframes headerShimmer{0%,55%{transform:translateX(-70%)}75%,100%{transform:translateX(70%)}}
 .header-status{position:relative;z-index:1}
 .header-status span{animation:statusPulse 2s ease-in-out infinite}
@@ -617,6 +618,7 @@ details.compact>summary{font-size:13px}
 #radar>.card.score{overflow:hidden}
 #radar>.card.score:before{content:"";position:absolute;width:170px;height:170px;border-radius:50%;right:-90px;top:-85px;background:radial-gradient(circle,rgba(47,107,70,.16),transparent 68%);pointer-events:none}
 #radar>.card.score .ring{position:relative;isolation:isolate}
+#radar>.card.score .ring:after{content:"";position:absolute;inset:-7px;border-radius:50%;border:2px solid rgba(229,163,75,.42);box-shadow:0 0 0 0 rgba(229,163,75,.24);animation:ringPulse 2.2s ease-out infinite;pointer-events:none}
 #radar>.card.score .ring:after{content:"";position:absolute;inset:-7px;border-radius:50%;border:1px solid rgba(47,107,70,.18);animation:ringPulse 2.8s ease-out infinite;z-index:-1}
 @keyframes ringPulse{0%{transform:scale(.94);opacity:.7}100%{transform:scale(1.18);opacity:0}}
 #motorDecisionCard{position:relative;overflow:hidden}
@@ -4024,8 +4026,8 @@ setInterval(()=>cargarDatos(),30*60*1000);
 /* ===== DETALLES DE EXPERIENCIA APP ===== */
 (function(){
   const splash=document.getElementById("appSplash");
-  window.addEventListener("load",()=>setTimeout(()=>splash&&splash.classList.add("hide"),1500));
-  setTimeout(()=>splash&&splash.classList.add("hide"),2200);
+  window.addEventListener("load",()=>setTimeout(()=>splash&&splash.classList.add("hide"),1900));
+  setTimeout(()=>splash&&splash.classList.add("hide"),3000);
   const decision=document.getElementById("decisionRadar");
   if(decision){
     const obs=new MutationObserver(()=>{decision.classList.remove("flash");void decision.offsetWidth;decision.classList.add("flash");});
