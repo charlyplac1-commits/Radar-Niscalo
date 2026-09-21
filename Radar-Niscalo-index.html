@@ -1551,6 +1551,7 @@ resultado=Math.max(0,Math.min(100,Math.round(
  + ((Number(window.ndviScore||0.5)-0.5)*2)
 )));
 resultado=actualizarModeloHistorico(resultado,evidencia);
+resultado=aplicarModeloHistorico(resultado);
 resultado=Math.max(0,Math.min(100,Math.round(resultado + Number(window.historialBiologicoScore||0))));
 registrarTendenciaRadar(resultado);
 const conf=calcularFiabilidadDatos().nivel;
@@ -1972,6 +1973,7 @@ consultarNDVI(lat,lon);
 /* EVIDENCIA PÚBLICA */
 cargarEvidenciaPublica(lat,lon);
 cargarHistorialBiologico(lat,lon);
+construirModeloHistorico(lat,lon);
 
 /* WINDY */
 
@@ -2071,6 +2073,79 @@ try{
  window.coberturaArbolTexto="Recubrimiento arbóreo no disponible ahora";
 }
 pintarFavorabilidad();
+}
+
+async function construirModeloHistorico(lat,lon){
+ try{
+  const cacheKey=`radar_modelo_${lat.toFixed(1)}_${lon.toFixed(1)}`;
+  const cache=JSON.parse(localStorage.getItem(cacheKey)||"null");
+  if(cache && Date.now()-cache.t<7*24*60*60*1000){
+   window.modeloHistorico=cache.modelo;
+   return;
+  }
+
+  const obs=[];
+  const ahora=new Date();
+  for(let y=ahora.getFullYear()-4;y<=ahora.getFullYear();y++){
+   const ini=`${y}-01-01`;
+   const fin=y===ahora.getFullYear()?ahora.toISOString().slice(0,10):`${y}-12-31`;
+   const u=`https://api.inaturalist.org/v1/observations?taxon_name=Lactarius%20deliciosus&lat=${lat}&lng=${lon}&radius=50&per_page=50&order_by=observed_on&order=desc&observed_on=${ini},${fin}`;
+   const rr=await fetch(u);
+   if(rr.ok){const d=await rr.json();obs.push(...(d.results||[]));}
+  }
+  const muestra=obs.filter(o=>o.observed_on).slice(0,60);
+  if(muestra.length<12){window.modeloHistorico=null;return;}
+
+  /*
+   Modelo estadístico experimental:
+   aprende qué combinación de lluvia/temperatura/mes aparece en los eventos
+   observados. No afirma causalidad y se limita a una corrección pequeña.
+  */
+  const filas=[];
+  for(const o of muestra.slice(0,24)){
+   const f=o.observed_on;
+   const la=Number(o.geojson?.coordinates?.[1]??o.location?.split(",")?.[0]);
+   const lo=Number(o.geojson?.coordinates?.[0]??o.location?.split(",")?.[1]);
+   if(!Number.isFinite(la)||!Number.isFinite(lo)) continue;
+   try{
+    const uu=`https://archive-api.open-meteo.com/v1/archive?latitude=${la}&longitude=${lo}&start_date=${f}&end_date=${f}&hourly=temperature_2m,precipitation&timezone=auto`;
+    const wr=await fetch(uu); if(!wr.ok) continue;
+    const wd=await wr.json();
+    const rain=(wd.hourly?.precipitation||[]).reduce((a,b)=>a+Number(b||0),0);
+    const temps=(wd.hourly?.temperature_2m||[]).filter(Number.isFinite).map(Number);
+    if(!temps.length) continue;
+    const temp=temps.reduce((a,b)=>a+b,0)/temps.length;
+    const mes=new Date(f).getMonth()+1;
+    filas.push({rain,temp,mes});
+   }catch(e){}
+  }
+  if(filas.length<8){window.modeloHistorico=null;return;}
+
+  const mediaRain=filas.reduce((a,x)=>a+x.rain,0)/filas.length;
+  const mediaTemp=filas.reduce((a,x)=>a+x.temp,0)/filas.length;
+  const mediaMes=filas.reduce((a,x)=>a+x.mes,0)/filas.length;
+  window.modeloHistorico={
+   n:filas.length,
+   rain:mediaRain,
+   temp:mediaTemp,
+   mes:mediaMes,
+   t:Date.now()
+  };
+  localStorage.setItem(cacheKey,JSON.stringify({t:Date.now(),modelo:window.modeloHistorico}));
+ }catch(e){window.modeloHistorico=null;}
+}
+
+function aplicarModeloHistorico(score){
+ const m=window.modeloHistorico;
+ if(!m || !Number.isFinite(m.n) || m.n<8) return score;
+ const lluvia=Number(window.lluviaActual||0);
+ const temp=Number(window.tempActual||m.temp);
+ const mes=new Date().getMonth()+1;
+ const fr=Math.max(-1,Math.min(1,(lluvia-m.rain)/Math.max(10,m.rain+10)));
+ const ft=Math.max(-1,Math.min(1,(temp-m.temp)/8));
+ const fm=Math.max(-1,Math.min(1,(mes-m.mes)/4));
+ const ajuste=Math.max(-5,Math.min(5,fr*2.0-ft*1.2-fm*0.6));
+ return Math.max(0,Math.min(100,Math.round(score+ajuste)));
 }
 
 function actualizarModeloHistorico(score,evidencia){
