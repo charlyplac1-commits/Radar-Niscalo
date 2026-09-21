@@ -2873,6 +2873,7 @@ async function iniciarRadarVisual(){
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error("Cámara no disponible");
     detenerRadarVisual();
     estado.innerHTML="Solicitando permiso para usar la cámara…";
+    activarHUDScanner(true);
     streamLive=await navigator.mediaDevices.getUserMedia({
       audio:false,
       video:{
@@ -2903,6 +2904,7 @@ async function iniciarRadarVisual(){
 }
 
 function detenerRadarVisual(){
+  activarHUDScanner(false);
   if(liveAnim){cancelAnimationFrame(liveAnim);liveAnim=null;}
   if(streamLive){streamLive.getTracks().forEach(t=>t.stop());streamLive=null;}
   const video=$("liveVideo"),overlay=$("liveOverlay");
