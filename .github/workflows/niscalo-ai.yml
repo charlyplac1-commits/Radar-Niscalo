@@ -30,7 +30,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-          pip install onnx pillow
+          pip install onnx onnxscript pillow
 
       - name: Recopilar dataset con licencias compatibles
         run: python ai/collect_dataset.py
