@@ -3168,6 +3168,13 @@ function cambiarModoScanner(modo,boton){
   if(modo==="fotos") detenerRadarVisual();
 }
 
+function activarHUDScanner(activo){
+  const panel=$("scannerLive");
+  if(panel) panel.classList.toggle("scanning",!!activo);
+  const estado=$("liveEstado");
+  if(estado && activo) estado.setAttribute("aria-live","polite");
+}
+
 function seleccionarVisionLive(modo){
   modoVisionLive=modo;
   visionTermicaLive=modo==="thermal";
@@ -3213,8 +3220,13 @@ async function iniciarRadarVisual(){
     liveCtx=liveCanvas.getContext("2d",{willReadFrequently:true});
     liveBucle(performance.now());
   }catch(error){
-    console.error(error);
-    estado.innerHTML="<b>⚠️ No se pudo abrir la cámara.</b><br><span class='muted'>Comprueba el permiso y que estás usando HTTPS.</span>";
+    console.error("Radar visual · cámara:",error);
+    let detalle="Comprueba el permiso de cámara y que estás usando HTTPS.";
+    if(error?.name==="NotAllowedError") detalle="Safari ha bloqueado el permiso de cámara. Actívalo en Ajustes → Safari → Cámara.";
+    else if(error?.name==="NotFoundError") detalle="No se ha encontrado una cámara disponible.";
+    else if(error?.name==="NotReadableError") detalle="La cámara está ocupada por otra aplicación.";
+    estado.innerHTML="<b>⚠️ No se pudo abrir la cámara.</b><br><span class='muted'>"+detalle+"</span>";
+    activarHUDScanner(false);
   }
 }
 
@@ -3434,8 +3446,12 @@ function abrirCamara(){
       fotosEscaneo=[];actualizarBotonFoto();
       estado.innerHTML="<b>📷 Cámara activa.</b> Haz primero una vista general del bosque.";
     }).catch(error=>{
-      console.error(error);
-      estado.innerHTML="<b>⚠️ No se pudo abrir la cámara.</b><br><span class='muted'>Comprueba el permiso y que estás usando HTTPS.</span>";
+      console.error("Cámara de fotos · cámara:",error);
+      let detalle="Comprueba el permiso de cámara y que estás usando HTTPS.";
+      if(error?.name==="NotAllowedError") detalle="Safari ha bloqueado el permiso de cámara. Actívalo en Ajustes → Safari → Cámara.";
+      else if(error?.name==="NotFoundError") detalle="No se ha encontrado una cámara disponible.";
+      else if(error?.name==="NotReadableError") detalle="La cámara está ocupada por otra aplicación.";
+      estado.innerHTML="<b>⚠️ No se pudo abrir la cámara.</b><br><span class='muted'>"+detalle+"</span>";
     });
   }catch(error){estado.textContent="Cámara no disponible en este navegador.";}
 }
