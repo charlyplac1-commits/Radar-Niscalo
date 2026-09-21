@@ -4235,31 +4235,36 @@ function enfocarRadar(){
 /* ================= INICIO ================= */
 
 $("fechaHallazgo").value=
-
 new Date()
-
 .toISOString()
-
 .slice(0,10);
 
 [
-
 "rainSlider",
-
 "tempSlider",
-
 "soilSlider",
-
 "altSlider"
-
 ].forEach(id=>{
+  $(id).addEventListener("input",pintarFavorabilidad);
+});
 
-$(id).addEventListener(
+/* ================= OCULTAR PORTADA ================= */
 
-"input",
+(function(){
+  const s=document.getElementById("appSplash");
+  if(!s) return;
+  const hide=()=>{
+    s.classList.add("hide");
+    setTimeout(()=>{s.style.display="none"},800);
+  };
+  if(document.readyState==="complete"){
+    setTimeout(hide,2600);
+  }else{
+    window.addEventListener("load",()=>setTimeout(hide,2600),{once:true});
+  }
+  setTimeout(hide,5000);
+})();
 
-pintarFavorabilidad
-
-)
-<script>(function(){const s=document.getElementById("appSplash");if(!s)return;const hide=()=>{s.classList.add("hide");setTimeout(()=>{s.style.display="none"},800)};if(document.readyState==="complete")setTimeout(hide,2600);else window.addEventListener("load",()=>setTimeout(hide,2600),{once:true});setTimeout(hide,5000)})();</script>
-;
+</script>
+</body>
+</html>
