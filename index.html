@@ -1320,11 +1320,11 @@ Radar del Níscalo · Aplicación experimental
     splash.classList.add("hide");
     setTimeout(()=>{splash.style.display="none";},900);
   };
-  const emergencyTimer=setTimeout(emergencyHide,4200);
+  const emergencyTimer=setTimeout(emergencyHide,8500);
   const canvas=document.getElementById("splash3D");
   if(!canvas || typeof THREE==="undefined"){
     clearTimeout(emergencyTimer);
-    setTimeout(emergencyHide,700);
+    setTimeout(emergencyHide,7500);
     return;
   }
   let renderer;
@@ -1453,12 +1453,12 @@ Radar del Níscalo · Aplicación experimental
     emergencyHide();
     setTimeout(()=>{active=false;try{renderer.dispose()}catch(e){}},900);
   };
-  addEventListener("load",()=>setTimeout(hide,4500),{once:true});
-  setTimeout(hide,5200);
+  addEventListener("load",()=>setTimeout(hide,7500),{once:true});
+  setTimeout(hide,8000);
   }catch(e){
     clearTimeout(emergencyTimer);
     console.warn("Portada 3D no disponible:",e);
-    setTimeout(emergencyHide,500);
+    setTimeout(emergencyHide,7500);
   }
 })();
 </script>
@@ -4415,11 +4415,11 @@ new Date()
   iniciarSeguro("datos meteorológicos",()=>cargarDatos());
 
   if(document.readyState==="complete"){
-    setTimeout(hide,4500);
+    setTimeout(hide,7000);
   }else{
     window.addEventListener("load",()=>setTimeout(hide,4500),{once:true});
   }
-  setTimeout(hide,6000);
+  setTimeout(hide,8000);
 })();
 
 </script>
