@@ -880,15 +880,15 @@ Consulta datos históricos de la ubicación seleccionada.
 
 <select id="ano">
 
-<option>2021</option>
-
 <option>2022</option>
 
 <option>2023</option>
 
 <option>2024</option>
 
-<option selected>2025</option>
+<option>2025</option>
+
+<option selected>2026</option>
 
 </select>
 
@@ -1091,6 +1091,8 @@ boton.classList.add("on");
 if(nombre==="historico"){
 
 mostrarEstadisticas();
+
+cargarHistorico();
 
 }
 
@@ -1410,23 +1412,39 @@ navigator.geolocation.getCurrentPosition(
 
 pos=>{
 
-$("lat").value=
+$("lat").value=pos.coords.latitude.toFixed(6);
 
-pos.coords.latitude.toFixed(6);
+$("lon").value=pos.coords.longitude.toFixed(6);
 
-$("lon").value=
-
-pos.coords.longitude.toFixed(6);
+$("estado").textContent="Ubicación obtenida. Cargando datos…";
 
 cargarDatos();
 
 },
 
-()=>{
+error=>{
 
-$("estado").textContent=
+let mensaje="No se pudo obtener la ubicación.";
 
-"No se pudo obtener la ubicación.";
+if(error.code===1){
+
+mensaje="Permiso de ubicación denegado. Actívalo para este sitio y vuelve a pulsar el botón.";
+
+}
+
+else if(error.code===2){
+
+mensaje="No se pudo determinar tu ubicación. Comprueba que la ubicación esté activada.";
+
+}
+
+else if(error.code===3){
+
+mensaje="La ubicación tardó demasiado. Vuelve a intentarlo.";
+
+}
+
+$("estado").textContent=mensaje;
 
 },
 
@@ -1434,9 +1452,9 @@ $("estado").textContent=
 
 enableHighAccuracy:true,
 
-timeout:10000,
+timeout:20000,
 
-maximumAge:60000
+maximumAge:0
 
 }
 
@@ -1482,7 +1500,7 @@ try{
 
 let url=
 
-`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&timezone=auto&past_days=14&forecast_days=7&current=temperature_2m,relative_humidity_2m,wind_gusts_10m&hourly=temperature_2m,relative_humidity_2m,precipitation,precipitation_probability,soil_moisture_0_to_7cm,wind_gusts_10m&daily=temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code`;
+`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&timezone=auto&past_days=14&forecast_days=7&current=temperature_2m,relative_humidity_2m,wind_gusts_10m,soil_moisture_0_to_7cm&hourly=temperature_2m,relative_humidity_2m,precipitation,precipitation_probability,soil_moisture_0_to_7cm,wind_gusts_10m&daily=temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code`;
 
 let respuesta=
 
@@ -1526,71 +1544,36 @@ elevacionDatos.elevation?.[0] || 0
 
 let lluvia14=0;
 
-let tiempos=
+let tiempos=datos.hourly.time;
 
-datos.hourly.time;
+let precipitacion=datos.hourly.precipitation;
 
-let precipitacion=
+// El endpoint trae 14 días pasados + 7 futuros.
+// Buscamos la hora actual del propio endpoint para no mezclar lluvia futura.
+let indiceActual=tiempos.findIndex(t=>t>=datos.current.time);
 
-datos.hourly.precipitation;
+if(indiceActual<0) indiceActual=tiempos.length-1;
 
-let limite=
+let inicio14=Math.max(0,indiceActual-(14*24)+1);
 
-Date.now()-
+for(let i=inicio14;i<=indiceActual;i++){
 
-14*24*60*60*1000;
-
-for(
-
-let i=0;
-
-i<tiempos.length;
-
-i++
-
-){
-
-if(
-
-new Date(tiempos[i]).getTime()
-
->=limite
-
-){
-
-lluvia14+=
-
-Number(
-
-precipitacion[i]||0
-
-);
-
-}
+lluvia14+=Number(precipitacion[i]||0);
 
 }
 
 /* SUELO */
 
-let sueloDatos=
+let humedadSueloRaw=Number(datos.current?.soil_moisture_0_to_7cm);
 
-datos.hourly.soil_moisture_0_to_7cm
-
-.filter(v=>v!==null);
-
-let humedadSuelo=
-
-sueloDatos.length
+let humedadSuelo=Number.isFinite(humedadSueloRaw)
 
 ?
 
-Math.round(
-
-sueloDatos[sueloDatos.length-1]*100
-
-)
+Math.round(humedadSueloRaw*100)
 
 :0;
+
 
 /* ACTUAL */
 
@@ -1966,6 +1949,14 @@ let ano=
 
 $("ano").value;
 
+if(!Number.isFinite(lat)||!Number.isFinite(lon)){
+
+$("historicoEstado").textContent="Introduce una latitud y longitud válidas.";
+
+return;
+
+}
+
 $("historicoEstado").textContent=
 
 "Cargando histórico…";
@@ -1974,9 +1965,15 @@ $("tablaHistorico").innerHTML="";
 
 try{
 
+let fechaFin=ano===String(new Date().getFullYear())
+
+?new Date().toISOString().slice(0,10)
+
+:`${ano}-12-31`;
+
 let url=
 
-`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${ano}-01-01&end_date=${ano}-12-31&timezone=auto&daily=temperature_2m_mean,precipitation_sum`;
+`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${ano}-01-01&end_date=${fechaFin}&timezone=auto&daily=temperature_2m_mean,precipitation_sum`;
 
 let respuesta=
 
@@ -2196,7 +2193,7 @@ console.error(error);
 
 $("historicoEstado").textContent=
 
-"No se pudo cargar el histórico.";
+"No se pudo cargar el histórico. Comprueba la conexión y vuelve a intentarlo.";
 
 }
 
