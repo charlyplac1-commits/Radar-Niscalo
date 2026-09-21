@@ -1546,7 +1546,9 @@ resultado=Math.max(0,Math.min(100,Math.round(
  resultado
  + ((Number(window.sueloActualScore||0.5)-0.5)*8)
  + ((Number(window.terrenoActualScore||0.5)-0.5)*4)
- + ((Number(window.coberturaArbolScore||0.5)-0.5)*6)
+ + ((Number(window.coberturaArbolScore||0.5)-0.5)*5)
+ + ((Number(window.densidadArbolScore||0.5)-0.5)*3)
+ + ((Number(window.ndviScore||0.5)-0.5)*2)
 )));
 registrarTendenciaRadar(resultado);
 
@@ -1955,6 +1957,8 @@ consultarHabitat(lat,lon);
 consultarTerreno(lat,lon);
 consultarSueloGeologia(lat,lon);
 consultarEstructuraArbolado(lat,lon);
+consultarEstructuraAvanzada(lat,lon);
+consultarNDVI(lat,lon);
 
 /* EVIDENCIA PÚBLICA */
 cargarEvidenciaPublica(lat,lon);
@@ -1997,6 +2001,41 @@ window.sueloActualScore=0.5;
 window.sueloActualTexto="Sin datos de suelo";
 window.coberturaArbolScore=0.5;
 window.coberturaArbolTexto="Sin datos de estructura forestal";
+window.densidadArbolScore=0.5;
+window.densidadArbolTexto="Sin datos de densidad forestal";
+window.ndviScore=0.5;
+window.ndviTexto="Sin datos de vegetación reciente";
+
+async function consultarEstructuraAvanzada(lat,lon){
+ const consultar=async(layer)=>{
+  const u="https://geoserveis.icgc.cat/servei/catalunya/variables-biofisiques-arbrat/wms";
+  const p=new URLSearchParams({SERVICE:"WMS",VERSION:"1.3.0",REQUEST:"GetFeatureInfo",LAYERS:layer,QUERY_LAYERS:layer,INFO_FORMAT:"application/json",CRS:"EPSG:4326",WIDTH:"3",HEIGHT:"3",I:"1",J:"1",BBOX:`${lon-.0002},${lat-.0002},${lon+.0002},${lat+.0002}`});
+  const rr=await fetch(u+"?"+p); if(!rr.ok) throw 0;
+  const d=await rr.json(); const pr=d?.features?.[0]?.properties||d?.features?.[0]?.attributes||{};
+  const nums=Object.values(pr).map(Number).filter(Number.isFinite); return nums.length?nums[0]:null;
+ };
+ try{
+  const dens=await consultar("densitat_peus_hectarea_color_2016_2017");
+  if(dens!==null){window.densidadArbolScore=Math.max(0,Math.min(1,1-Math.abs(dens-450)/450));window.densidadArbolTexto="Densidad aproximada: "+Math.round(dens)+" pies/ha";}
+ }catch(e){}
+ pintarFavorabilidad();
+}
+
+async function consultarNDVI(lat,lon){
+ try{
+  const u="https://geoserveis.icgc.cat/servei/catalunya/ndvi-satellit/wms";
+  const ahora=new Date(), y=ahora.getFullYear(), mo=String(ahora.getMonth()+1).padStart(2,"0");
+  const layer="ndvi-satellit-sentinel2-10m-"+y+mo;
+  const p=new URLSearchParams({SERVICE:"WMS",VERSION:"1.3.0",REQUEST:"GetFeatureInfo",LAYERS:layer,QUERY_LAYERS:layer,INFO_FORMAT:"application/json",CRS:"EPSG:4326",WIDTH:"3",HEIGHT:"3",I:"1",J:"1",BBOX:`${lon-.0002},${lat-.0002},${lon+.0002},${lat+.0002}`});
+  const rr=await fetch(u+"?"+p); if(!rr.ok) throw 0;
+  const d=await rr.json(); const pr=d?.features?.[0]?.properties||d?.features?.[0]?.attributes||{};
+  const nums=Object.values(pr).map(Number).filter(Number.isFinite);
+  if(nums.length){const n=Math.max(-1,Math.min(1,nums[0]));window.ndviScore=Math.max(0,Math.min(1,(n+.2)/1.1));window.ndviTexto="NDVI Sentinel-2 reciente: "+n.toFixed(2);}
+ }catch(e){}
+ pintarFavorabilidad();
+}
+
+
 window.radarHistorial=JSON.parse(localStorage.getItem("radar_niscalo_historial")||"[]");
 
 async function consultarEstructuraArbolado(lat,lon){
