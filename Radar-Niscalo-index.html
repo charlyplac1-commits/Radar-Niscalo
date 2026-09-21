@@ -642,7 +642,7 @@ details.compact>summary{font-size:13px}
 
 <script>
 if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=3").catch(()=>{}));
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=4").catch(()=>{}));
 }
 </script>
 </head>
@@ -4024,7 +4024,7 @@ setInterval(()=>cargarDatos(),30*60*1000);
 /* ===== DETALLES DE EXPERIENCIA APP ===== */
 (function(){
   const splash=document.getElementById("appSplash");
-  window.addEventListener("load",()=>setTimeout(()=>splash&&splash.classList.add("hide"),650));
+  window.addEventListener("load",()=>setTimeout(()=>splash&&splash.classList.add("hide"),1500));
   setTimeout(()=>splash&&splash.classList.add("hide"),2200);
   const decision=document.getElementById("decisionRadar");
   if(decision){
