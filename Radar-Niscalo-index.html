@@ -595,6 +595,49 @@ details.compact>summary{font-size:13px}
 }
 .radar-heat-zone{filter:blur(2px);transition:opacity .25s ease,fill-opacity .25s ease}
 .radar-heat-center{filter:blur(.8px)}
+
+/* ===== EXPERIENCIA APP · BOSQUE / INSTRUMENTO DE CAMPO ===== */
+#appSplash{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:radial-gradient(circle at 50% 35%,#315f43 0,#183b29 42%,#0d2418 100%);color:#fff;transition:opacity .55s ease,visibility .55s ease}
+#appSplash.hide{opacity:0;visibility:hidden;pointer-events:none}
+.splash-inner{text-align:center;transform:translateY(-8px);animation:splashIn .7s ease both}
+.splash-mush{font-size:72px;filter:drop-shadow(0 8px 18px rgba(0,0,0,.28));animation:splashPulse 1.8s ease-in-out infinite}
+.splash-title{font-size:30px;font-weight:900;letter-spacing:-.8px;margin-top:8px}
+.splash-sub{font-size:12px;opacity:.78;margin-top:5px;letter-spacing:.3px}
+.splash-scan{width:150px;height:3px;border-radius:5px;background:rgba(255,255,255,.16);overflow:hidden;margin:22px auto 0}
+.splash-scan i{display:block;width:42%;height:100%;background:#e9a34b;box-shadow:0 0 12px #e9a34b;animation:splashScan 1.05s ease-in-out infinite}
+@keyframes splashIn{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes splashPulse{50%{transform:translateY(-3px) scale(1.035)}}
+@keyframes splashScan{0%{transform:translateX(-110%)}100%{transform:translateX(360%)}}
+.app-header{position:relative;overflow:hidden}
+.app-header:after{content:"";position:absolute;inset:-60% -20%;background:linear-gradient(110deg,transparent 42%,rgba(255,255,255,.10) 50%,transparent 58%);transform:translateX(-70%);animation:headerShimmer 8s ease-in-out infinite;pointer-events:none}
+@keyframes headerShimmer{0%,55%{transform:translateX(-70%)}75%,100%{transform:translateX(70%)}}
+.header-status{position:relative;z-index:1}
+.header-status span{animation:statusPulse 2s ease-in-out infinite}
+@keyframes statusPulse{50%{box-shadow:0 0 0 5px rgba(143,209,158,.08)}}
+#radar>.card.score{overflow:hidden}
+#radar>.card.score:before{content:"";position:absolute;width:170px;height:170px;border-radius:50%;right:-90px;top:-85px;background:radial-gradient(circle,rgba(47,107,70,.16),transparent 68%);pointer-events:none}
+#radar>.card.score .ring{position:relative;isolation:isolate}
+#radar>.card.score .ring:after{content:"";position:absolute;inset:-7px;border-radius:50%;border:1px solid rgba(47,107,70,.18);animation:ringPulse 2.8s ease-out infinite;z-index:-1}
+@keyframes ringPulse{0%{transform:scale(.94);opacity:.7}100%{transform:scale(1.18);opacity:0}}
+#motorDecisionCard{position:relative;overflow:hidden}
+#motorDecisionCard:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(#2f6b46,#e56f32);border-radius:4px}
+#decisionRadar{transition:transform .25s ease,box-shadow .25s ease}
+#decisionRadar.flash{transform:scale(1.012);box-shadow:0 0 0 3px rgba(47,107,70,.08)}
+.instrument-label{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:900;letter-spacing:.7px;text-transform:uppercase;color:#637066;margin-bottom:5px}
+.instrument-label i{width:6px;height:6px;border-radius:50%;background:#e56f32;box-shadow:0 0 8px rgba(229,111,50,.65)}
+#scannerLive{position:relative}
+#scannerLive:after{content:"";position:absolute;left:5%;right:5%;top:50%;height:1px;background:linear-gradient(90deg,transparent,rgba(229,163,75,.8),transparent);opacity:0;pointer-events:none}
+#scannerLive.scanning:after{opacity:1;animation:scanLine 2.2s linear infinite}
+@keyframes scanLine{0%{transform:translateY(-105px);opacity:0}15%{opacity:.8}85%{opacity:.8}100%{transform:translateY(105px);opacity:0}}
+#scannerLive.scanning #liveOverlay{box-shadow:inset 0 0 0 1px rgba(229,163,75,.55),inset 0 0 35px rgba(229,163,75,.08)}
+.scan-hud{position:absolute;left:12px;right:12px;top:12px;display:flex;justify-content:space-between;gap:8px;pointer-events:none;z-index:4}
+.scan-hud span{font-size:9px;font-weight:900;letter-spacing:.6px;color:#fff;background:rgba(8,20,13,.62);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(6px);padding:5px 7px;border-radius:8px}
+.scan-hud .live-dot:before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#e56f32;margin-right:5px;box-shadow:0 0 8px #e56f32}
+#btnLiveStart{box-shadow:0 5px 18px rgba(33,75,53,.2)}
+#btnLiveAnalyze{box-shadow:0 5px 18px rgba(229,111,50,.18)}
+#radar>.card:has(.mapbox){position:relative}
+#radar>.card:has(.mapbox) h3:after{content:" · EN VIVO";font-size:9px;letter-spacing:.7px;color:#e56f32;font-weight:900;vertical-align:middle}
+@media(max-width:720px){.splash-title{font-size:27px}.splash-mush{font-size:64px}.scan-hud{top:9px;left:9px;right:9px}.scan-hud span{font-size:8px}}
 </style>
 
 <script>
@@ -605,6 +648,8 @@ if("serviceWorker" in navigator){
 </head>
 
 <body>
+<div id="appSplash" aria-hidden="true"><div class="splash-inner"><div class="splash-mush">🍄</div><div class="splash-title">Radar Níscalo</div><div class="splash-sub">Preparando el radar del monte…</div><div class="splash-scan"><i></i></div></div></div>
+
 
 <header class="app-header">
   <div class="brand">
@@ -1032,7 +1077,7 @@ style="overflow:auto;margin-top:12px">
 <div id="scannerLive">
   <div id="liveEstado" class="notice">Pulsa «Iniciar radar visual» para activar la cámara.</div>
   <div class="livebox" style="position:relative;background:#111;border-radius:16px;overflow:hidden;min-height:280px">
-    <video id="liveVideo" autoplay playsinline muted style="width:100%;display:none;max-height:620px;object-fit:cover"></video>
+    <div class="scan-hud"><span class="live-dot">RADAR VISUAL</span><span>IA · ENTORNO · RADAR</span></div><video id="liveVideo" autoplay playsinline muted style="width:100%;display:none;max-height:620px;object-fit:cover"></video>
     <canvas id="liveOverlay" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none"></canvas>
     <div id="livePlaceholder" style="color:white;text-align:center;padding:95px 15px">🎥 El radar visual aparecerá aquí</div>
   </div>
@@ -3973,6 +4018,19 @@ cargarDatos();
 /* Actualización automática: al dejar la página abierta, se renuevan los datos cada 30 minutos. */
 setInterval(()=>cargarDatos(),30*60*1000);
 
+
+/* ===== DETALLES DE EXPERIENCIA APP ===== */
+(function(){
+  const splash=document.getElementById("appSplash");
+  window.addEventListener("load",()=>setTimeout(()=>splash&&splash.classList.add("hide"),650));
+  setTimeout(()=>splash&&splash.classList.add("hide"),2200);
+  const decision=document.getElementById("decisionRadar");
+  if(decision){
+    const obs=new MutationObserver(()=>{decision.classList.remove("flash");void decision.offsetWidth;decision.classList.add("flash");});
+    obs.observe(decision,{childList:true,subtree:true,characterData:true});
+  }
+})();
+function activarHUDScanner(activo){const box=$("scannerLive");if(box)box.classList.toggle("scanning",!!activo)}
 </script>
 
 </body>
