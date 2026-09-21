@@ -1331,8 +1331,21 @@ Radar del Níscalo · Aplicación experimental
    de rebollones. No es una ilustración plana: todo se renderiza en perspectiva.
 */
 (function(){
+  const splash=document.getElementById("appSplash");
+  const emergencyHide=()=>{
+    if(!splash) return;
+    splash.classList.add("hide");
+    setTimeout(()=>{splash.style.display="none";},900);
+  };
+  const emergencyTimer=setTimeout(emergencyHide,4200);
   const canvas=document.getElementById("splash3D");
-  if(!canvas || typeof THREE==="undefined") return;
+  if(!canvas || typeof THREE==="undefined"){
+    clearTimeout(emergencyTimer);
+    setTimeout(emergencyHide,700);
+    return;
+  }
+  let renderer;
+  try{
   const scene=new THREE.Scene();
   scene.background=new THREE.Color(0x0d1710);
   scene.fog=new THREE.FogExp2(0x152018,.035);
@@ -1452,10 +1465,18 @@ Radar del Níscalo · Aplicación experimental
   }
   animate();
 
-  const splash=document.getElementById("appSplash");
-  const hide=()=>{splash&&splash.classList.add("hide");setTimeout(()=>{active=false;renderer.dispose()},900)};
-  addEventListener("load",()=>setTimeout(hide,3600),{once:true});
-  setTimeout(hide,5200);
+  const hide=()=>{
+    clearTimeout(emergencyTimer);
+    emergencyHide();
+    setTimeout(()=>{active=false;try{renderer.dispose()}catch(e){}},900);
+  };
+  addEventListener("load",()=>setTimeout(hide,3000),{once:true});
+  setTimeout(hide,3600);
+  }catch(e){
+    clearTimeout(emergencyTimer);
+    console.warn("Portada 3D no disponible:",e);
+    setTimeout(emergencyHide,500);
+  }
 })();
 </script>
 
