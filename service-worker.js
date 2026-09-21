@@ -1,4 +1,4 @@
-const CACHE_NAME="radar-niscalo-v4";
+const CACHE_NAME="radar-niscalo-v5";
 const APP_SHELL=[
   "./",
   "./index.html",
