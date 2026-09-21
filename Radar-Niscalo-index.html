@@ -823,7 +823,7 @@ value="900">
 
 <div class="card">
 <h3>🌲 Hábitat del bosque</h3>
-<div id="habitatActual">Analizando cobertura forestal…</div>
+<div id="habitatActual">Analizando cobertura forestal y especie dominante…</div>
 <div class="muted" style="margin-top:8px">Se consulta cartografía forestal pública de Catalunya. El hábitat modifica la favorabilidad, pero no sustituye a la meteorología.</div>
 </div>
 
@@ -1281,16 +1281,42 @@ let suelo=sueloReciente.length
 let alt=Number(elevaciones[i]||0);
 
 let habitatScore=0.5;
+let habitatTexto="Sin clasificación forestal";
 try{
 let hurl=
 `https://maps.icgc.cat/vector03/rest/services/RTT/Referencial_Topogr%C3%A0fic_Territorial/MapServer/4/query?where=1%3D1&geometry=${encodeURIComponent(JSON.stringify({x:Number(longitudes[i]),y:Number(latitudes[i]),spatialReference:{wkid:4326}}))}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=tipus&returnGeometry=false&f=json`;
 let hr=await fetch(hurl);
 let hd=await hr.json();
 let ht=String(hd.features?.[0]?.attributes?.tipus||"").toLowerCase();
-if(/pi|pinar|conífer|bosque|bosc|forest|arbrat/.test(ht)) habitatScore=/pi|pinar/.test(ht)?0.95:0.75;
-else if(/matorral|matollar|arbust/.test(ht)) habitatScore=0.35;
-else if(/cultiu|agr|conreu|agrícola|agricola|urb|edific|industrial|carretera|vial|urban|aigua|riu|llac|embass/.test(ht)) habitatScore=0.05;
-else if(ht) habitatScore=0.20;
+
+if(/pi roig|pinus sylvestris/.test(ht)){
+  habitatScore=1.00;
+  habitatTexto="Pinar de pi roig (Pinus sylvestris)";
+}else if(/pinassa|pinus nigra/.test(ht)){
+  habitatScore=0.95;
+  habitatTexto="Pinar de pinassa (Pinus nigra)";
+}else if(/pi negre|pinus uncinata/.test(ht)){
+  habitatScore=0.90;
+  habitatTexto="Pinar de pi negre (Pinus uncinata)";
+}else if(/pi blanc|pinus halepensis/.test(ht)){
+  habitatScore=0.80;
+  habitatTexto="Pinar de pi blanc (Pinus halepensis)";
+}else if(/pi pinyer|pinus pinea/.test(ht)){
+  habitatScore=0.75;
+  habitatTexto="Pinar de pi pinyer (Pinus pinea)";
+}else if(/pi|pinar|conífer|bosque|bosc|forest|arbrat/.test(ht)){
+  habitatScore=/pi|pinar/.test(ht)?0.88:0.75;
+  habitatTexto="Pinar o bosque de coníferas compatible";
+}else if(/matorral|matollar|arbust/.test(ht)){
+  habitatScore=0.35;
+  habitatTexto="Matorral / vegetación arbustiva";
+}else if(/cultiu|agr|conreu|agrícola|agricola|urb|edific|industrial|carretera|vial|urban|aigua|riu|llac|embass/.test(ht)){
+  habitatScore=0.05;
+  habitatTexto="Cobertura no forestal";
+}else if(ht){
+  habitatScore=0.20;
+  habitatTexto=ht;
+}
 }catch(e){}
 let score=calcularPuntuacion(
 lluvia7,
@@ -1973,9 +1999,24 @@ let tipo=String(datos.features?.[0]?.attributes?.tipus||"").toLowerCase();
 let score=0;
 let texto="Cobertura no identificada";
 
-if(/pi|pinar|conífer|bosque|bosc|forest|arbrat/.test(tipo)){
-score=/pi|pinar/.test(tipo)?0.95:0.75;
-texto="Cobertura forestal compatible";
+if(/pi roig|pinus sylvestris/.test(tipo)){
+score=1.00;
+texto="Pinar de pi roig (Pinus sylvestris)";
+}else if(/pinassa|pinus nigra/.test(tipo)){
+score=0.95;
+texto="Pinar de pinassa (Pinus nigra)";
+}else if(/pi negre|pinus uncinata/.test(tipo)){
+score=0.90;
+texto="Pinar de pi negre (Pinus uncinata)";
+}else if(/pi blanc|pinus halepensis/.test(tipo)){
+score=0.80;
+texto="Pinar de pi blanc (Pinus halepensis)";
+}else if(/pi pinyer|pinus pinea/.test(tipo)){
+score=0.75;
+texto="Pinar de pi pinyer (Pinus pinea)";
+}else if(/pi|pinar|conífer|bosque|bosc|forest|arbrat/.test(tipo)){
+score=/pi|pinar/.test(tipo)?0.88:0.75;
+texto="Pinar o bosque de coníferas compatible";
 }else if(/matorral|matollar|arbust/.test(tipo)){
 score=0.35;
 texto="Matorral / vegetación arbustiva";
