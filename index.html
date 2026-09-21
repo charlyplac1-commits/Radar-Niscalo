@@ -15,7 +15,9 @@
 <title>🍄 Radar del Níscalo</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon.svg">
+<meta name="apple-mobile-web-app-title" content="Radar Níscalo">
+<link rel="apple-touch-icon" sizes="180x180" href="icon.svg?v=3">
+<link rel="apple-touch-icon-precomposed" sizes="180x180" href="icon.svg?v=3">
 
 <link rel="stylesheet"
 
@@ -706,12 +708,12 @@ header.app-header .brand,header.app-header .header-status{position:relative;z-in
 .splash-real-copy .splash-scan i{display:block;width:38%;height:100%;background:#e8a65b;box-shadow:0 0 14px #e8a65b;animation:splashScan 1.1s ease-in-out infinite}
 @keyframes splashRealDrift{from{transform:scale(1.015) translate3d(0,0,0)}to{transform:scale(1.045) translate3d(-.5%,-.35%,0)}}
 @media(max-width:720px){.splash-real-copy{bottom:8%}.splash-real-copy .splash-title{font-size:24px}.splash-real-copy .splash-sub{font-size:10px}.splash-real-copy .splash-brand{font-size:10px;letter-spacing:2.5px}}
-/* iPhone/iPad: evita que la portada animada pueda bloquear la aplicación. */
-@supports (-webkit-touch-callout: none){
-  #appSplash{display:none !important;}
+/* iPhone/iPad: la portada se muestra unos segundos y después se retira sola.
+   No se depende de servicios externos ni de la cámara para cerrarla. */
+#appSplash{display:grid !important;}
+@media(max-width:720px){
+  #appSplash{display:grid !important;opacity:1;visibility:visible;pointer-events:auto;}
 }
-/* iPhone: no bloquear la app con la portada */
-@media (max-width:720px){#appSplash{display:none !important;opacity:0 !important;visibility:hidden !important;pointer-events:none !important;}}
 </style>
 
 <script>
@@ -4414,12 +4416,14 @@ new Date()
   iniciarSeguro("escaneos",()=>mostrarEscaneos());
   iniciarSeguro("datos meteorológicos",()=>cargarDatos());
 
+  /* La portada es visual: nunca debe depender de que un proveedor externo
+     (mapa, meteorología, Leaflet, etc.) responda para desaparecer. */
   if(document.readyState==="complete"){
-    setTimeout(hide,7000);
+    setTimeout(hide,2800);
   }else{
-    window.addEventListener("load",()=>setTimeout(hide,4500),{once:true});
+    window.addEventListener("load",()=>setTimeout(hide,2800),{once:true});
   }
-  setTimeout(hide,8000);
+  setTimeout(hide,5000);
 })();
 
 </script>
