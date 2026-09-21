@@ -824,7 +824,7 @@ value="900">
 <div class="card">
 <h3>🌲 Hábitat del bosque</h3>
 <div id="habitatActual">Analizando cobertura forestal y especie dominante…</div>
-<div id="terrenoActual" style="margin-top:8px">Analizando orientación, pendiente y terreno…</div><div id="tendenciaRadar" style="margin-top:8px">Calculando tendencia…</div>
+<div id="terrenoActual" style="margin-top:8px">Analizando orientación, pendiente y terreno…</div><div id="tendenciaRadar" style="margin-top:8px">Calculando tendencia…</div><div id="historialBiologico" style="margin-top:8px">Analizando historial biológico…</div>
 <div class="muted" style="margin-top:8px">Se consulta cartografía forestal pública de Catalunya. El hábitat modifica la favorabilidad, pero no sustituye a la meteorología.</div>
 </div>
 
@@ -1551,6 +1551,7 @@ resultado=Math.max(0,Math.min(100,Math.round(
  + ((Number(window.ndviScore||0.5)-0.5)*2)
 )));
 resultado=actualizarModeloHistorico(resultado,evidencia);
+resultado=Math.max(0,Math.min(100,Math.round(resultado + Number(window.historialBiologicoScore||0))));
 registrarTendenciaRadar(resultado);
 const conf=calcularFiabilidadDatos().nivel;
 const cajaConf=$("tendenciaRadar");
@@ -1970,6 +1971,7 @@ consultarNDVI(lat,lon);
 
 /* EVIDENCIA PÚBLICA */
 cargarEvidenciaPublica(lat,lon);
+cargarHistorialBiologico(lat,lon);
 
 /* WINDY */
 
@@ -2341,6 +2343,46 @@ return Promise.all(latitudes.map((la,i)=>consultarHabitat(Number(la),Number(long
 /* ================= EVIDENCIA PÚBLICA AUTOMÁTICA ================= */
 
 window.evidenciaPublicaScore=0;
+
+async function cargarHistorialBiologico(lat,lon){
+ try{
+  const ahora=new Date();
+  const resultados=[];
+  for(let y=ahora.getFullYear()-4;y<=ahora.getFullYear();y++){
+   const ini=`${y}-01-01`;
+   const fin=y===ahora.getFullYear()?ahora.toISOString().slice(0,10):`${y}-12-31`;
+   const url=`https://api.inaturalist.org/v1/observations?taxon_name=Lactarius%20deliciosus&lat=${lat}&lng=${lon}&radius=30&per_page=200&order_by=observed_on&order=desc&observed_on=${ini},${fin}`;
+   const rr=await fetch(url);
+   if(!rr.ok) continue;
+   const d=await rr.json();
+   resultados.push(...(d.results||[]));
+  }
+  const meses=Array(13).fill(0);
+  resultados.forEach(o=>{
+   const f=o.observed_on||o.time_observed_at;
+   if(f){const m=new Date(f).getMonth()+1;if(m>=1&&m<=12)meses[m]++;}
+  });
+  const total=resultados.length;
+  const actual=new Date().getMonth()+1;
+  const base=meses.slice(1).reduce((a,b)=>a+b,0);
+  const media=base/12;
+  let factor=0;
+  if(total>=10 && media>0){
+   const rel=meses[actual]/media;
+   factor=Math.max(-3,Math.min(3,(rel-1)*2));
+  }
+  window.historialBiologicoScore=factor;
+  window.historialBiologicoTexto=total>=10
+    ? `${total} observaciones públicas 2022-${ahora.getFullYear()} · mes actual: ${meses[actual]}`
+    : "Pocas observaciones históricas públicas para calibrar";
+  const caja=$("historialBiologico");
+  if(caja)caja.innerHTML=`<b>🧬 Historial biológico:</b> ${escapar(window.historialBiologicoTexto)}`;
+ }catch(e){
+  window.historialBiologicoScore=0;
+  window.historialBiologicoTexto="Historial biológico no disponible ahora";
+ }
+ pintarFavorabilidad();
+}
 
 async function cargarEvidenciaPublica(lat,lon){
 let caja=$("evidenciaPublica");
