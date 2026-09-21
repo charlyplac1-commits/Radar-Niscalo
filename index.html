@@ -4419,11 +4419,11 @@ new Date()
   /* La portada es visual: nunca debe depender de que un proveedor externo
      (mapa, meteorología, Leaflet, etc.) responda para desaparecer. */
   if(document.readyState==="complete"){
-    setTimeout(hide,2800);
+    setTimeout(hide,4000);
   }else{
     window.addEventListener("load",()=>setTimeout(hide,2800),{once:true});
   }
-  setTimeout(hide,5000);
+  setTimeout(hide,6000);
 })();
 
 </script>
