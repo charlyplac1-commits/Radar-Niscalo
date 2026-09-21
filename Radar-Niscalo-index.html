@@ -13,6 +13,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 
 <title>🍄 Radar del Níscalo</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
 
 <link rel="stylesheet"
 
@@ -510,6 +513,11 @@ button{border-radius:12px}
 #liveOverlay{touch-action:none}
 </style>
 
+<script>
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
+}
+</script>
 </head>
 
 <body>
