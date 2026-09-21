@@ -710,6 +710,8 @@ header.app-header .brand,header.app-header .header-status{position:relative;z-in
 @supports (-webkit-touch-callout: none){
   #appSplash{display:none !important;}
 }
+/* iPhone: no bloquear la app con la portada */
+@media (max-width:720px){#appSplash{display:none !important;opacity:0 !important;visibility:hidden !important;pointer-events:none !important;}}
 </style>
 
 <script>
@@ -718,6 +720,15 @@ if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then
 </head>
 
 <body>
+<script>
+window.addEventListener("error",function(e){
+  console.error("Radar Níscalo · error global:",e.error||e.message);
+});
+window.addEventListener("unhandledrejection",function(e){
+  console.error("Radar Níscalo · promesa rechazada:",e.reason);
+});
+</script>
+
 <div id="appSplash" aria-hidden="true">
   <div class="splash-real">
     <svg class="splash-art" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -3177,15 +3188,16 @@ async function iniciarRadarVisual(){
     detenerRadarVisual();
     estado.innerHTML="Solicitando permiso para usar la cámara…";
     activarHUDScanner(true);
-    streamLive=await navigator.mediaDevices.getUserMedia({
+    let constraints={
       audio:false,
-      video:{
-        facingMode:{ideal:"environment"},
-        width:{ideal:1920,max:3840},
-        height:{ideal:1080,max:2160},
-        frameRate:{ideal:30,max:30}
-      }
-    });
+      video:{facingMode:{ideal:"environment"}}
+    };
+    try{
+      streamLive=await navigator.mediaDevices.getUserMedia(constraints);
+    }catch(firstError){
+      console.warn("Cámara con restricciones iniciales falló:",firstError);
+      streamLive=await navigator.mediaDevices.getUserMedia({audio:false,video:true});
+    }
     video.srcObject=streamLive;
     await video.play();
     video.style.display="block";
@@ -3413,7 +3425,9 @@ function abrirCamara(){
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error("Cámara no disponible");
     cerrarStreamCamara();
     estado.innerHTML="Solicitando permiso para usar la cámara…";
-    navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}}}).then(stream=>{
+    navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"}}}).catch(()=>{
+      return navigator.mediaDevices.getUserMedia({audio:false,video:true});
+    }).then(stream=>{
       streamCamara=stream;video.srcObject=stream;
       video.style.display="block";$("camaraPlaceholder").style.display="none";$("guiaCamara").style.display="block";
       $("btnFotoCamara").style.display="inline-block";$("btnCerrarCamara").style.display="inline-block";$("btnAbrirCamara").style.display="none";
@@ -4321,15 +4335,17 @@ new Date()
      Se mantiene aislada para que un servicio externo caído no deje la portada
      bloqueando toda la aplicación.
   */
-  try{
-    iniciarMapa();
-    mostrarHallazgos();
-    mostrarEstadisticas();
-    mostrarEscaneos();
-    cargarDatos().catch(error=>console.error("Carga inicial del Radar:",error));
-  }catch(error){
-    console.error("Error al iniciar Radar Níscalo:",error);
-  }
+  const iniciarSeguro=(nombre,fn)=>{
+    try{
+      const r=fn();
+      if(r&&typeof r.catch==="function") r.catch(e=>console.error("Radar Níscalo · "+nombre,e));
+    }catch(e){ console.error("Radar Níscalo · "+nombre,e); }
+  };
+  iniciarSeguro("mapa",()=>iniciarMapa());
+  iniciarSeguro("hallazgos",()=>mostrarHallazgos());
+  iniciarSeguro("estadísticas",()=>mostrarEstadisticas());
+  iniciarSeguro("escaneos",()=>mostrarEscaneos());
+  iniciarSeguro("datos meteorológicos",()=>cargarDatos());
 
   if(document.readyState==="complete"){
     setTimeout(hide,900);
