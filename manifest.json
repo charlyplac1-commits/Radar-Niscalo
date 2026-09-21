@@ -3,7 +3,7 @@
   "short_name": "Radar Níscalo",
   "description": "Radar de condiciones para buscar rebollones.",
   "lang": "es-ES",
-  "start_url": "./Radar-Niscalo-index.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
