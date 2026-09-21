@@ -446,7 +446,7 @@ height:330px;
 
 <small>
 
-Condiciones meteorológicas, suelo, altitud e histórico
+Meteorología automática + evidencia pública + condiciones del hábitat
 
 </small>
 
@@ -820,6 +820,15 @@ value="900">
 
 </div>
 
+
+<div class="card">
+<h3>🍄 Evidencia pública reciente</h3>
+<div id="evidenciaPublica">Consultando observaciones públicas…</div>
+<div class="muted" style="margin-top:8px">
+No depende de que los usuarios del Radar introduzcan sus hallazgos. Se consultan fuentes públicas disponibles y se usan como una señal adicional, sin publicar puntos privados.
+</div>
+</div>
+
 <div class="card">
 
 <h3>🗺️ Mapa de favorabilidad</h3>
@@ -839,9 +848,7 @@ value="900">
 
 <p class="muted">
 
-La favorabilidad es orientativa y combina lluvia,
-
-temperatura, humedad del suelo y altitud.
+La favorabilidad se calcula automáticamente con meteorología reciente y prevista, humedad del suelo, temperatura, altitud y evidencia pública reciente. Las observaciones personales de «Mis hallazgos» son privadas y no modifican el radar.
 
 </p>
 
@@ -969,11 +976,11 @@ style="display:none">
 
 <div class="card">
 
-<h2>📍 Mis hallazgos</h2>
+<h2>📍 Mis hallazgos privados</h2>
 
 <p class="muted">
 
-Los datos se guardan en este dispositivo.
+Los datos se guardan únicamente en este dispositivo y NO se utilizan para calcular el Radar. Sirven para llevar tu propio historial.
 
 </p>
 
@@ -1275,7 +1282,8 @@ tempActual,
 tempMedia7,
 suelo,
 alt,
-new Date().getMonth()+1
+new Date().getMonth()+1,
+0
 );
 
 let y=Math.floor(i/columnas)-2;
@@ -1409,14 +1417,14 @@ tempActual,
 tempMedia7,
 suelo,
 altitud,
-mes
+mes,
+evidencia=0
 ){
 /*
-  Calibración experimental específica para Lactarius deliciosus.
-  Se da más peso a la precipitación de finales de verano/otoño,
-  la humedad del suelo y la temperatura durante la ventana de
-  fructificación. La altitud actúa como modificador, no como
-  condición principal.
+  Modelo automático provisional.
+  La meteorología es la base. La evidencia pública reciente actúa
+  como una señal adicional y limitada para no dominar al tiempo.
+  «Mis hallazgos» nunca entran en este cálculo.
 */
 let lluvia7Factor=factorCampana(lluvia7,35,30);
 let lluvia14Factor=factorCampana(lluvia14,60,50);
@@ -1435,23 +1443,25 @@ let temperaturaFactor=
 0.65*tempMedia7Factor;
 
 let sueloFactor=Math.max(0,Math.min(1,suelo/100));
-
 let altFactor=factorCampana(altitud,850,750);
-
 let temporadaFactor=factorTemporada(mes);
 
-let resultado=100*(
-0.36*lluviaFactor+
-0.20*temperaturaFactor+
-0.24*sueloFactor+
-0.08*altFactor+
-0.12*temporadaFactor
+/* Base meteorológica */
+let base=100*(
+0.38*lluviaFactor+
+0.22*temperaturaFactor+
+0.25*sueloFactor+
+0.10*altFactor+
+0.05*temporadaFactor
 );
 
-return Math.max(0,Math.min(100,Math.round(resultado)));
+/* La evidencia pública puede mover el resultado, pero como máximo ±10 puntos. */
+let ajusteEvidencia=Math.max(-10,Math.min(10,evidencia));
+
+return Math.max(0,Math.min(100,Math.round(base+ajusteEvidencia)));
 }
 
-function puntuacionActualSimple(lluvia,temp,suelo,alt){
+function puntuacionActualSimple(lluvia,temp,suelo,alt,evidencia=0){
 return calcularPuntuacion(
 lluvia*0.35,
 lluvia,
@@ -1460,105 +1470,43 @@ temp,
 temp,
 suelo,
 alt,
-new Date().getMonth()+1
+new Date().getMonth()+1,
+evidencia
 );
 }
 
 function pintarFavorabilidad(){
-
-let lluvia=
-
-Number($("rainSlider").value);
-
-let temp=
-
-Number($("tempSlider").value);
-
-let suelo=
-
-Number($("soilSlider").value);
-
-let alt=
-
-Number($("altSlider").value);
+let lluvia=Number($("rainSlider").value);
+let temp=Number($("tempSlider").value);
+let suelo=Number($("soilSlider").value);
+let alt=Number($("altSlider").value);
 
 $("rainValue").textContent=lluvia;
-
 $("tempValue").textContent=temp;
-
 $("soilValue").textContent=suelo;
-
 $("altValue").textContent=alt;
 
-let resultado=puntuacionActualSimple(
-lluvia,
-temp,
-suelo,
-alt
-);
+let evidencia=Number(window.evidenciaPublicaScore||0);
+let resultado=puntuacionActualSimple(lluvia,temp,suelo,alt,evidencia);
 
-$("score").textContent=
-
-resultado;
+$("score").textContent=resultado;
 
 if(resultado>=80){
-
-$("nivel").textContent=
-
-"Muy favorable";
-
-$("ventana").textContent=
-
-"Ventana orientativa: 2–6 días";
-
-}
-
-else if(resultado>=60){
-
-$("nivel").textContent=
-
-"Favorable";
-
-$("ventana").textContent=
-
-"Ventana orientativa: 4–9 días";
-
-}
-
-else if(resultado>=40){
-
-$("nivel").textContent=
-
-"Posible";
-
-$("ventana").textContent=
-
-"Conviene vigilar lluvia y humedad";
-
-}
-
-else{
-
-$("nivel").textContent=
-
-"Baja";
-
-$("ventana").textContent=
-
-"Sin ventana clara";
-
+$("nivel").textContent="Muy favorable";
+$("ventana").textContent="Condiciones actuales muy favorables";
+}else if(resultado>=60){
+$("nivel").textContent="Favorable";
+$("ventana").textContent="Condiciones actuales favorables";
+}else if(resultado>=40){
+$("nivel").textContent="Posible";
+$("ventana").textContent="Conviene vigilar lluvia y humedad";
+}else{
+$("nivel").textContent="Baja";
+$("ventana").textContent="Condiciones poco favorables";
 }
 
 $("ring").style.background=
-
-`conic-gradient(
-
-#3e8b58 0 ${resultado}%,
-
-#e5e9e3 ${resultado}% 100%
-
-)`;
-
+`conic-gradient(#3e8b58 0 ${resultado}%,#e5e9e3 ${resultado}% 100%)`;
 }
 
 function calcular(){
@@ -1940,6 +1888,9 @@ lon
 
 pintarMapaZonas(lat,lon);
 
+/* EVIDENCIA PÚBLICA */
+cargarEvidenciaPublica(lat,lon);
+
 /* WINDY */
 
 $("windy").src=
@@ -1966,6 +1917,71 @@ $("estado").textContent=
 
 }
 
+}
+
+/* ================= EVIDENCIA PÚBLICA AUTOMÁTICA ================= */
+
+window.evidenciaPublicaScore=0;
+
+async function cargarEvidenciaPublica(lat,lon){
+let caja=$("evidenciaPublica");
+if(!caja) return;
+
+caja.innerHTML="Consultando observaciones públicas recientes…";
+
+try{
+/*
+  iNaturalist dispone de una API pública de solo lectura para consultar
+  observaciones. Aquí buscamos Lactarius deliciosus alrededor de la
+  ubicación seleccionada. No se usan «Mis hallazgos».
+*/
+let url=
+`https://api.inaturalist.org/v1/observations?taxon_name=Lactarius%20deliciosus&lat=${lat}&lng=${lon}&radius=30&per_page=50&order_by=observed_on&order=desc`;
+
+let respuesta=await fetch(url);
+if(!respuesta.ok) throw new Error("iNaturalist no disponible");
+
+let datos=await respuesta.json();
+let observaciones=Array.isArray(datos.results)?datos.results:[];
+
+let ahora=Date.now();
+let recientes=observaciones.filter(o=>{
+let f=o.observed_on||o.time_observed_at;
+if(!f) return false;
+let t=new Date(f).getTime();
+return Number.isFinite(t) && (ahora-t)<=1000*60*60*24*120;
+});
+
+let n=recientes.length;
+
+/*
+  La evidencia es deliberadamente conservadora:
+  0 observaciones = 0
+  1–2 = +2
+  3–5 = +5
+  6–10 = +8
+  >10 = +10
+*/
+let ajuste=n===0?0:n<=2?2:n<=5?5:n<=10?8:10;
+window.evidenciaPublicaScore=ajuste;
+
+if(n===0){
+caja.innerHTML="<b>Sin observaciones públicas recientes detectadas.</b><br><span class='muted'>Esto no significa que no haya níscalos: solo que no hay registros públicos suficientes en esta fuente.</span>";
+}else{
+let ultima=recientes[0].observed_on||"fecha no indicada";
+caja.innerHTML=
+`<b>${n} observaciones públicas recientes</b> en un radio aproximado de 30 km.<br>
+Última observación registrada: <b>${ultima}</b>.<br>
+<span class="muted">Señal aplicada al radar: +${ajuste} puntos como máximo.</span>`;
+}
+
+pintarFavorabilidad();
+
+}catch(error){
+console.warn("Evidencia pública:",error);
+window.evidenciaPublicaScore=0;
+caja.innerHTML="<b>Fuente pública no disponible ahora.</b><br><span class='muted'>El radar continúa funcionando con los datos meteorológicos.</span>";
+}
 }
 
 /* ================= PREVISIÓN ================= */
@@ -2754,6 +2770,9 @@ mostrarEstadisticas();
 pintarFavorabilidad();
 
 cargarDatos();
+
+/* Actualización automática: al dejar la página abierta, se renuevan los datos cada 30 minutos. */
+setInterval(()=>cargarDatos(),30*60*1000);
 
 </script>
 
