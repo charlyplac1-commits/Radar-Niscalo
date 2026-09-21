@@ -611,7 +611,7 @@ if("serviceWorker" in navigator){
     <div class="brand-icon">🍄</div>
     <div>
       <b>Radar Níscalo</b>
-      <small>Tu brújula para buscar rebollones</small>
+      <small>Tu radar para buscar rebollones</small>
     </div>
   </div>
   <div class="header-status"><span></span> Radar activo</div>
@@ -1045,10 +1045,11 @@ style="overflow:auto;margin-top:12px">
   <div style="display:flex;gap:8px;flex-wrap:wrap">
     <button id="btnLiveStart" onclick="iniciarRadarVisual()">🎥 Iniciar radar visual</button>
     <button id="btnLiveAnalyze" onclick="analizarZonaLive()" style="display:none">🎯 Analizar zona</button>
+    <button id="btnLiveThermal" class="secondary" onclick="alternarVisionTermicaLive()">👁️ Visión térmica: ON</button>
     <button id="btnLiveStop" class="danger" onclick="detenerRadarVisual()" style="display:none">✕ Parar cámara</button>
   </div>
   <div id="liveCandidate" class="notice" style="margin-top:10px">Esperando cámara…</div>
-  <p class="muted" style="margin-top:10px">El mapa de color representa <b>compatibilidad visual del terreno</b>, no una cámara térmica. Un recuadro de «posible níscalo» es una señal experimental y debe confirmarse visualmente.</p>
+  <p class="muted" style="margin-top:10px">La <b>visión térmica</b> es una superposición visual sobre el vídeo real: las zonas cálidas indican mayor compatibilidad según el Radar y la visión del terreno. No es una cámara infrarroja real ni confirma un níscalo.</p>
 </div>
 
 <div id="scannerFotos" style="display:none">
@@ -1220,6 +1221,7 @@ const paso=0.04;
 const columnas=5;
 let latitudes=[];
 let longitudes=[];
+let puntosRadar=[];
 
 for(let y=-2;y<=2;y++){
 for(let x=-2;x<=2;x++){
@@ -1390,23 +1392,7 @@ let popupHtml=
 "<br>🌲 Hábitat: "+Math.round(habitatScore*100)+"/100"+
 "<br>⛰️ Altitud: "+Math.round(alt)+" m";
 
-if(!capaCalorRadar){
-capaCalorRadar=L.heatLayer([],{
-radius:58,
-blur:48,
-maxZoom:12,
-minOpacity:0.18,
-gradient:{
-0.10:"#2457d6",
-0.30:"#00a8ff",
-0.50:"#43d17a",
-0.68:"#ffe14a",
-0.82:"#ff8a00",
-1.00:"#ff2418"
-}
-}).addTo(mapa);
-}
-capaCalorRadar.addLatLng([centroLat,centroLon,Math.max(0.08,Math.min(1,score/100))]);
+puntosRadar.push({lat:centroLat,lon:centroLon,score});
 
 let puntoRadar=L.circleMarker([centroLat,centroLon],{
 radius:8,
@@ -1417,6 +1403,44 @@ interactive:true
 puntoRadar.bindPopup(popupHtml);
 capasFavorabilidad.push(puntoRadar);
 }
+// Construimos una superficie térmica continua a partir de los 25 puntos reales.
+const puntosInterpolados=[];
+for(let gy=0;gy<=20;gy++){
+  const fy=gy/20*4-2;
+  for(let gx=0;gx<=20;gx++){
+    const fx=gx/20*4-2;
+    let suma=0,peso=0;
+    puntosRadar.forEach(p=>{
+      const py=(p.lat-lat)/paso,px=(p.lon-lon)/paso;
+      const dist2=(fx-px)*(fx-px)+(fy-py)*(fy-py);
+      const w=1/Math.pow(0.55+dist2,1.15);
+      suma+=p.score*w;peso+=w;
+    });
+    const valor=peso?suma/peso:0;
+    puntosInterpolados.push([
+      lat+fy*paso,
+      lon+fx*paso,
+      Math.max(.05,Math.min(1,valor/100))
+    ]);
+  }
+}
+capaCalorRadar=L.heatLayer(puntosInterpolados,{
+  radius:42,
+  blur:52,
+  maxZoom:13,
+  minOpacity:.22,
+  max:.98,
+  gradient:{
+    0.05:"#172b9b",
+    0.20:"#006ee6",
+    0.38:"#00bcd4",
+    0.55:"#36c96f",
+    0.70:"#ffe04a",
+    0.84:"#ff8a00",
+    1.00:"#ff2418"
+  }
+});
+if(visionRadarActiva)capaCalorRadar.addTo(mapa);
 }catch(error){
 console.error("Mapa de favorabilidad:",error);
 }
@@ -2756,6 +2780,7 @@ let liveAnim=null;
 let liveCanvas=null;
 let liveCtx=null;
 let liveUltimoAnalisis=0;
+let visionTermicaLive=true;
 const MAX_FOTOS_ESCANEO=3;
 
 function cambiarModoScanner(modo,boton){
@@ -2764,6 +2789,19 @@ function cambiarModoScanner(modo,boton){
   document.querySelectorAll("#escanner .tabs button").forEach(b=>b.classList.remove("on"));
   boton.classList.add("on");
   if(modo==="fotos") detenerRadarVisual();
+}
+
+function alternarVisionTermicaLive(){
+  visionTermicaLive=!visionTermicaLive;
+  const b=$("btnLiveThermal");
+  if(b){
+    b.textContent=visionTermicaLive?"👁️ Visión térmica: ON":"👁️ Visión térmica: OFF";
+    b.className=visionTermicaLive?"":"secondary";
+  }
+  if(!visionTermicaLive){
+    const o=$("liveOverlay"),ctx=o?.getContext("2d");
+    if(ctx)ctx.clearRect(0,0,o.width,o.height);
+  }
 }
 
 async function iniciarRadarVisual(){
@@ -2855,29 +2893,33 @@ function dibujarMapaLive(analisis,combinado){
   }
   const ctx=overlay.getContext("2d");
   ctx.clearRect(0,0,overlay.width,overlay.height);
-  const cw=overlay.width/3,ch=overlay.height/3;
-  analisis.zonas.forEach(z=>{
-    const x=z.col*cw,y=z.fila*ch;
-    ctx.fillStyle=colorHeat(z.visual);
-    ctx.fillRect(x,y,cw,ch);
-    ctx.strokeStyle="rgba(255,255,255,.35)";
-    ctx.strokeRect(x,y,cw,ch);
-    ctx.fillStyle="#fff";
-    ctx.font="bold 15px sans-serif";
-    ctx.textAlign="center";
-    ctx.textBaseline="middle";
-    ctx.shadowColor="#000";ctx.shadowBlur=4;
-    ctx.fillText(z.visual,x+cw/2,y+ch/2);
-  });
-  ctx.shadowBlur=0;
+  if(visionTermicaLive){
+    // Campo térmico suave: manchas radiales superpuestas, sin cuadrados ni cuadrícula.
+    ctx.save();
+    ctx.globalCompositeOperation="screen";
+    const cw=overlay.width/3,ch=overlay.height/3;
+    analisis.zonas.forEach(z=>{
+      const cx=z.col*cw+cw/2,cy=z.fila*ch+ch/2;
+      const r=Math.max(cw,ch)*.78;
+      const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+      const col=z.visual>=80?"255,45,25":z.visual>=65?"255,150,20":z.visual>=50?"255,220,50":"20,115,235";
+      const alpha=.05+Math.abs(z.visual-50)/1200;
+      grad.addColorStop(0,"rgba("+col+","+(.18+alpha)+")");
+      grad.addColorStop(.45,"rgba("+col+","+(.10+alpha*.45)+")");
+      grad.addColorStop(1,"rgba("+col+",0)");
+      ctx.fillStyle=grad;
+      ctx.fillRect(0,0,overlay.width,overlay.height);
+    });
+    ctx.restore();
+  }
   const cx=overlay.width/2,cy=overlay.height/2;
-  ctx.strokeStyle="white";ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(cx-25,cy);ctx.lineTo(cx+25,cy);ctx.moveTo(cx,cy-25);ctx.lineTo(cx,cy+25);ctx.stroke();
-  ctx.strokeStyle="rgba(255,255,255,.85)";ctx.lineWidth=1;
-  ctx.beginPath();ctx.arc(cx,cy,32,0,Math.PI*2);ctx.stroke();
-  ctx.fillStyle="rgba(0,0,0,.65)";
-  ctx.fillRect(8,8,190,32);
-  ctx.fillStyle="#fff";ctx.font="bold 14px sans-serif";ctx.textAlign="left";
+  ctx.strokeStyle="rgba(255,255,255,.9)";ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(cx-22,cy);ctx.lineTo(cx+22,cy);ctx.moveTo(cx,cy-22);ctx.lineTo(cx,cy+22);ctx.stroke();
+  ctx.strokeStyle="rgba(255,255,255,.65)";ctx.lineWidth=1;
+  ctx.beginPath();ctx.arc(cx,cy,30,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle="rgba(0,0,0,.62)";
+  ctx.roundRect(8,8,205,32,8);ctx.fill();
+  ctx.fillStyle="#fff";ctx.font="bold 13px sans-serif";ctx.textAlign="left";
   ctx.fillText("🎯 Zona central "+(analisis.zonas.find(z=>z.fila===1&&z.col===1)?.visual||0)+"/100",16,29);
 }
 
