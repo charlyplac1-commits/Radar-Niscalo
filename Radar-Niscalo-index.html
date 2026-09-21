@@ -830,6 +830,13 @@ value="900">
 
 </div>
 
+<div class="muted" style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap">
+<span>🟢 80–100 Muy favorable</span>
+<span>🟡 60–79 Favorable</span>
+<span>🟠 40–59 Posible</span>
+<span>🔴 0–39 Baja</span>
+</div>
+
 <p class="muted">
 
 La favorabilidad es orientativa y combina lluvia,
@@ -1074,6 +1081,8 @@ let mapa;
 
 let marcador;
 
+let capasFavorabilidad=[];
+
 /* ================= PESTAÑAS ================= */
 
 function tab(nombre,boton){
@@ -1156,6 +1165,58 @@ marcador=L.marker(
 
 .bindPopup("Ubicación consultada");
 
+}
+
+async function pintarMapaZonas(lat,lon){
+if(!mapa) return;
+capasFavorabilidad.forEach(capa=>mapa.removeLayer(capa));
+capasFavorabilidad=[];
+const paso=0.08;
+const columnas=5;
+let latitudes=[];
+let longitudes=[];
+for(let y=-2;y<=2;y++){
+for(let x=-2;x<=2;x++){
+latitudes.push((lat+y*paso).toFixed(4));
+longitudes.push((lon+x*paso).toFixed(4));
+}
+}
+try{
+let consulta="https://api.open-meteo.com/v1/forecast?latitude="+latitudes.join(",")+"&longitude="+longitudes.join(",")+"&timezone=auto&past_days=14&forecast_days=1&current=temperature_2m,soil_moisture_0_to_7cm&hourly=precipitation";
+let respuesta=await fetch(consulta);
+if(!respuesta.ok) throw new Error("Error en datos de zonas");
+let datos=await respuesta.json();
+if(!Array.isArray(datos)) datos=[datos];
+let elev=await fetch("https://api.open-meteo.com/v1/elevation?latitude="+latitudes.join(",")+"&longitude="+longitudes.join(","));
+if(!elev.ok) throw new Error("Error en altitudes");
+let elevData=await elev.json();
+let elevaciones=Array.isArray(elevData.elevation)?elevData.elevation:[elevData.elevation];
+for(let i=0;i<datos.length;i++){
+let d=datos[i];
+if(!d || !d.current || !d.hourly) continue;
+let lluvia=0;
+let tiempos=d.hourly.time||[];
+let precipitacion=d.hourly.precipitation||[];
+let indiceActual=tiempos.findIndex(t=>t>=d.current.time);
+if(indiceActual<0) indiceActual=precipitacion.length-1;
+let inicio=Math.max(0,indiceActual-14*24+1);
+for(let j=inicio;j<=indiceActual;j++) lluvia+=Number(precipitacion[j]||0);
+let temp=Number(d.current.temperature_2m||0);
+let suelo=Number(d.current.soil_moisture_0_to_7cm||0)*100;
+let alt=Number(elevaciones[i]||0);
+let score=calcularPuntuacion(lluvia,temp,suelo,alt);
+let y=Math.floor(i/columnas)-2;
+let x=(i%columnas)-2;
+let centroLat=lat+y*paso;
+let centroLon=lon+x*paso;
+let color=score>=80?"#2e8b57":score>=60?"#f0c419":score>=40?"#f28c28":"#d63c32";
+let rect=L.rectangle([[centroLat-paso/2,centroLon-paso/2],[centroLat+paso/2,centroLon+paso/2]],{color:color,weight:1,opacity:.65,fillColor:color,fillOpacity:.38}).addTo(mapa);
+rect.bindPopup("<b>Favorabilidad: "+score+"/100</b><br>🍄 "+(score>=80?"Muy favorable":score>=60?"Favorable":score>=40?"Posible":"Baja")+"<br>🌧️ "+Math.round(lluvia)+" mm · 🌡️ "+temp.toFixed(1)+" °C<br>💧 Suelo "+Math.round(suelo)+"% · ⛰️ "+Math.round(alt)+" m");
+capasFavorabilidad.push(rect);
+}
+}catch(error){
+console.error("Mapa de favorabilidad:",error);
+}
 }
 
 async function buscarZona(){
@@ -1792,6 +1853,8 @@ lat,
 lon
 
 );
+
+pintarMapaZonas(lat,lon);
 
 /* WINDY */
 
