@@ -1550,9 +1550,9 @@ resultado=Math.max(0,Math.min(100,Math.round(
  + ((Number(window.densidadArbolScore||0.5)-0.5)*3)
  + ((Number(window.ndviScore||0.5)-0.5)*2)
 )));
-resultado=calibracionEmpirica(resultado,evidencia);
+resultado=actualizarModeloHistorico(resultado,evidencia);
 registrarTendenciaRadar(resultado);
-const conf=confianzaRadar();
+const conf=calcularFiabilidadDatos().nivel;
 const cajaConf=$("tendenciaRadar");
 if(cajaConf){
  const actual=cajaConf.innerHTML;
@@ -2069,6 +2069,62 @@ try{
  window.coberturaArbolTexto="Recubrimiento arbóreo no disponible ahora";
 }
 pintarFavorabilidad();
+}
+
+function actualizarModeloHistorico(score,evidencia){
+  /*
+   Calibración histórica prudente:
+   - acumula lecturas locales del radar y evidencia pública.
+   - no trata la ausencia de observaciones como ausencia de níscalos.
+   - necesita un mínimo de muestras y solo ajusta +/-5 puntos.
+   - permite que el modelo mejore con el uso sin alterar la interfaz.
+  */
+  try{
+    const lat=Number(window.ultimaLat), lon=Number(window.ultimaLon);
+    if(!Number.isFinite(lat)||!Number.isFinite(lon)) return score;
+    const key=`${lat.toFixed(2)},${lon.toFixed(2)}`;
+    let datos=JSON.parse(localStorage.getItem("radar_niscalo_calibracion")||"{}");
+    if(!datos[key]) datos[key]=[];
+    datos[key].push({
+      score:Number(score)||0,
+      evidencia:Number(evidencia)||0,
+      lluvia:Number(window.lluviaActual||0),
+      temp:Number(window.tempActual||0),
+      suelo:Number(window.sueloActualScore||.5),
+      habitat:Number(window.habitatActualScore||.5),
+      t:Date.now()
+    });
+    datos[key]=datos[key].filter(x=>Date.now()-x.t<365*24*60*60*1000).slice(-120);
+    localStorage.setItem("radar_niscalo_calibracion",JSON.stringify(datos));
+    const muestras=datos[key];
+    if(muestras.length<12) return score;
+    const positivas=muestras.filter(x=>x.evidencia>0);
+    if(positivas.length<4) return score;
+
+    const mediaScore=positivas.reduce((a,x)=>a+x.score,0)/positivas.length;
+    const mediaE=positivas.reduce((a,x)=>a+x.evidencia,0)/positivas.length;
+    let ajuste=0;
+    if(mediaE>=5 && mediaScore<55) ajuste=Math.min(5,(55-mediaScore)*.18);
+    else if(mediaE>=3 && mediaScore<45) ajuste=Math.min(4,(45-mediaScore)*.15);
+    if(mediaE<=2 && mediaScore>82) ajuste=-Math.min(5,(mediaScore-82)*.12);
+    return Math.max(0,Math.min(100,Math.round(score+ajuste)));
+  }catch(e){ return score; }
+}
+
+function calcularFiabilidadDatos(){
+  const capas=[
+    Number.isFinite(Number(window.lluviaActual)),
+    Number.isFinite(Number(window.tempActual)),
+    Number.isFinite(Number(window.humedadSueloActual)),
+    Number.isFinite(Number(window.altitudActual)),
+    Number(window.habitatActualScore)!==undefined,
+    Number(window.sueloActualScore)!==undefined,
+    Number(window.coberturaArbolScore)!==undefined,
+    Number(window.densidadArbolScore)!==undefined,
+    Number(window.ndviScore)!==undefined
+  ];
+  const n=capas.filter(Boolean).length;
+  return {n,total:capas.length,nivel:n>=8?"Alta":n>=6?"Media":"Baja"};
 }
 
 function calibracionEmpirica(score,evidencia){
