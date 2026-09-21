@@ -2,19 +2,49 @@ import csv, json, os, random, re, time
 from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError, URLError
 
 ROOT = Path(os.environ.get("DATASET_DIR","ai_dataset"))
 POS = ROOT/"positive"; NEG = ROOT/"negative"
 ROOT.mkdir(parents=True, exist_ok=True); POS.mkdir(exist_ok=True); NEG.mkdir(exist_ok=True)
-UA="Radar-Niscalo-AI/1.0 (public research project)"
+UA="Radar-Niscalo-AI/1.1 (public research project; respectful rate limiting)"
 
-def get_json(url):
-    req=Request(url,headers={"User-Agent":UA})
-    with urlopen(req,timeout=30) as r: return json.load(r)
+def get_json(url, retries=4):
+    for attempt in range(retries):
+        req=Request(url,headers={"User-Agent":UA,"Accept":"application/json"})
+        try:
+            with urlopen(req,timeout=30) as r:
+                return json.load(r)
+        except HTTPError as e:
+            if e.code == 429:
+                wait = int(e.headers.get("Retry-After","0") or 0) or (3 * (attempt + 1))
+                print(f"rate limited: {url[:100]}... waiting {wait}s")
+                time.sleep(wait)
+                continue
+            print("request failed", e)
+            return {}
+        except (URLError, TimeoutError) as e:
+            print("request failed", e)
+            time.sleep(2 * (attempt + 1))
+    print("giving up on request", url)
+    return {}
 
-def get_bytes(url):
-    req=Request(url,headers={"User-Agent":UA})
-    with urlopen(req,timeout=45) as r: return r.read()
+def get_bytes(url, retries=3):
+    for attempt in range(retries):
+        req=Request(url,headers={"User-Agent":UA})
+        try:
+            with urlopen(req,timeout=45) as r:
+                return r.read()
+        except HTTPError as e:
+            if e.code == 429:
+                wait = int(e.headers.get("Retry-After","0") or 0) or (4 * (attempt + 1))
+                print(f"download rate limited: waiting {wait}s")
+                time.sleep(wait)
+                continue
+            raise
+        except (URLError, TimeoutError):
+            time.sleep(2 * (attempt + 1))
+    raise RuntimeError("download retries exhausted")
 
 def safe(s): return re.sub(r"[^a-zA-Z0-9._-]+","_",s)[:100]
 
@@ -45,15 +75,18 @@ def inat(limit=450):
             if len(rows)>=limit: break
         page+=1
         if not data.get("results"): break
-        time.sleep(.2)
+        time.sleep(1.0)
     return rows
 
 def commons_search(search,limit):
     out=[]; cont={}
     while len(out)<limit:
-        params={"action":"query","format":"json","generator":"search","gsrsearch":search,"gsrnamespace":6,"gsrlimit":50,"prop":"imageinfo","iiprop":"url|extmetadata","iiurlwidth":640}
+        params={"action":"query","format":"json","generator":"search","gsrsearch":search,"gsrnamespace":6,"gsrlimit":30,"prop":"imageinfo","iiprop":"url|extmetadata","iiurlwidth":640}
         params.update(cont)
         data=get_json("https://commons.wikimedia.org/w/api.php?"+urlencode(params))
+        if not data:
+            print("Commons search temporarily unavailable; moving to next negative query.")
+            break
         for page in data.get("query",{}).get("pages",{}).values():
             ii=(page.get("imageinfo") or [{}])[0]; meta=ii.get("extmetadata",{})
             lic=(meta.get("LicenseShortName",{}).get("value") or "").lower()
@@ -65,7 +98,7 @@ def commons_search(search,limit):
                 out.append({"file":str(p),"label":"no_niscalo","source":"Wikimedia Commons","page_id":page.get("pageid"),"author":meta.get("Artist",{}).get("value"),"license":lic,"source_url":"https://commons.wikimedia.org/wiki/"+page.get("title","").replace(" ","_")})
             if len(out)>=limit: break
         if len(out)>=limit or "continue" not in data: break
-        cont=data["continue"]; time.sleep(.2)
+        cont=data["continue"]; time.sleep(1.5)
     return out
 
 if __name__=="__main__":
