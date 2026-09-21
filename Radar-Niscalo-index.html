@@ -727,6 +727,18 @@ Lluvia próximos 7 días
 
 </div>
 
+<div class="card" style="grid-column:1/-1">
+<h3>🧠 Dinámica de fructificación</h3>
+<div class="grid">
+<div><div class="big" id="lluvia3">--</div><div class="muted">Lluvia · últimos 3 días</div></div>
+<div><div class="big" id="lluvia30">--</div><div class="muted">Lluvia · últimos 30 días</div></div>
+<div><div class="big" id="diasSecos">--</div><div class="muted">Días desde la última lluvia</div></div>
+<div><div class="big" id="sueloProfundo">--</div><div class="muted">Humedad suelo 7–28 cm</div></div>
+</div>
+<div id="dinamicaFructificacion" class="notice" style="margin-top:10px">Calculando respuesta del suelo y de la lluvia…</div>
+</div>
+</div>
+
 <div class="card">
 
 <h3>🌦️ Previsión</h3>
@@ -1417,7 +1429,10 @@ suelo,
 alt,
 new Date().getMonth()+1,
 0,
-habitatScore
+habitatScore,
+0,
+50,
+0
 );
 
 let y=Math.floor(i/columnas)-2;
@@ -1554,7 +1569,10 @@ suelo,
 altitud,
 mes,
 evidencia=0,
-habitat=0
+habitat=0,
+dryDays=0,
+soilDeep=50,
+vpd24=0
 ){
 /*
   Modelo automático provisional:
@@ -1579,17 +1597,30 @@ let temperaturaFactor=
 0.65*tempMedia7Factor;
 
 let sueloFactor=Math.max(0,Math.min(1,suelo/100));
+let sueloProfundoFactor=factorCampana(Number(soilDeep)||50,55,28);
 let altFactor=factorCampana(altitud,850,750);
 let temporadaFactor=factorTemporada(mes);
 
-/* Base ambiental */
+let sequedadFactor=dryDays<=1?0.55:
+  dryDays<=8?factorCampana(dryDays,4.5,4.5):
+  dryDays<=14?factorCampana(dryDays,8,7):0.25;
+
+let dinamicaLluvia=
+  0.45*factorCampana(lluvia7,35,30)+
+  0.35*factorCampana(lluvia14,60,50)+
+  0.20*factorCampana(lluvia30,115,95);
+
 let base=100*(
-0.34*lluviaFactor+
-0.20*temperaturaFactor+
-0.22*sueloFactor+
-0.08*altFactor+
+0.27*lluviaFactor+
+0.12*dinamicaLluvia+
+0.17*temperaturaFactor+
+0.17*sueloFactor+
+0.07*sueloProfundoFactor+
+0.06*altFactor+
 0.06*temporadaFactor+
-0.10*Math.max(0,Math.min(1,habitat))
+0.05*Math.max(0,Math.min(1,habitat))+
+0.03*sequedadFactor+
+0.03*(Number(vpd24)>0?factorCampana(Number(vpd24),0.9,0.9):0.5)
 );
 
 /* Evidencia pública: máximo ±8 puntos */
@@ -1612,7 +1643,10 @@ suelo,
 alt,
 new Date().getMonth()+1,
 evidencia,
-habitat
+habitat,
+Number(window.diasDesdeLluvia||0),
+Number(window.sueloProfundoActual||suelo),
+Number(window.vpdActual||0)
 );
 }
 
@@ -1670,6 +1704,28 @@ $("ventana").textContent="Condiciones poco favorables";
 
 $("ring").style.background=
 `conic-gradient(#3e8b58 0 ${resultado}%,#e5e9e3 ${resultado}% 100%)`;
+}
+
+function actualizarDinamicaFructificacion(){
+  const caja=$("dinamicaFructificacion");
+  if(!caja) return;
+  const r3=Number(window.lluvia3Actual||0);
+  const r7=Number(window.lluvia7Actual||0);
+  const r14=Number(window.lluvia14Actual||0);
+  const secos=Number(window.diasDesdeLluvia||0);
+  const s0=Number(window.humedadSueloActual||0);
+  const s1=Number(window.sueloProfundoActual||s0);
+  const vpd=Number(window.vpdActual||0);
+  let indice=0;
+  indice += factorCampana(r3,18,22)*35;
+  indice += factorCampana(r7,35,30)*25;
+  indice += factorCampana(r14,60,50)*15;
+  indice += factorCampana(s0,60,28)*10;
+  indice += factorCampana(s1,55,28)*10;
+  indice += (secos<=1?.35:secos<=10?1:secos<=16?.55:.15)*5;
+  indice=Math.round(Math.max(0,Math.min(100,indice)));
+  const estado=indice>=75?"🍄 Ventana dinámica favorable":indice>=55?"🟡 Ventana dinámica posible":"⚪ Ventana dinámica débil";
+  caja.innerHTML="<b>"+estado+"</b> · "+indice+"/100<br><span class='muted'>Lluvia 3/7/14 días: "+Math.round(r3)+"/"+Math.round(r7)+"/"+Math.round(r14)+" mm · suelo 0–7 / 7–28 cm: "+Math.round(s0)+"% / "+Math.round(s1)+"% · "+secos+" días secos"+(vpd?" · VPD 24h "+vpd.toFixed(2)+" kPa":"")+"</span>";
 }
 
 function calcular(){
@@ -1790,7 +1846,7 @@ try{
 
 let url=
 
-`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&timezone=auto&past_days=30&forecast_days=7&current=temperature_2m,relative_humidity_2m,wind_gusts_10m,soil_moisture_0_to_7cm&hourly=temperature_2m,relative_humidity_2m,precipitation,precipitation_probability,soil_moisture_0_to_7cm,wind_gusts_10m&daily=temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code`;
+`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&timezone=auto&past_days=30&forecast_days=7&current=temperature_2m,relative_humidity_2m,wind_gusts_10m,soil_moisture_0_to_7cm&hourly=temperature_2m,relative_humidity_2m,precipitation,precipitation_probability,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm,wind_gusts_10m,vapour_pressure_deficit&daily=temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code,et0_fao_evapotranspiration`;
 
 let respuesta=
 
@@ -1830,27 +1886,54 @@ elevacionDatos.elevation?.[0] || 0
 
 );
 
-/* LLUVIA 14 DÍAS */
-
-let lluvia14=0;
+/* DINÁMICA DE LLUVIA Y HUMEDAD */
 
 let tiempos=datos.hourly.time;
-
-let precipitacion=datos.hourly.precipitation;
-
-// El endpoint trae 14 días pasados + 7 futuros.
-// Buscamos la hora actual del propio endpoint para no mezclar lluvia futura.
+let precipitacion=datos.hourly.precipitation||[];
 let indiceActual=tiempos.findIndex(t=>t>=datos.current.time);
-
 if(indiceActual<0) indiceActual=tiempos.length-1;
 
-let inicio14=Math.max(0,indiceActual-(14*24)+1);
+const sumarLluviaHoras=(horas)=>{
+  const ini=Math.max(0,indiceActual-horas+1);
+  let s=0;
+  for(let i=ini;i<=indiceActual;i++) s+=Number(precipitacion[i]||0);
+  return s;
+};
 
-for(let i=inicio14;i<=indiceActual;i++){
+let lluvia3=sumarLluviaHoras(72);
+let lluvia7=sumarLluviaHoras(7*24);
+let lluvia14=sumarLluviaHoras(14*24);
+let lluvia30=sumarLluviaHoras(30*24);
 
-lluvia14+=Number(precipitacion[i]||0);
-
+let horasDesdeLluvia=0;
+for(let i=indiceActual;i>=0;i--){
+  if(Number(precipitacion[i]||0)>=0.5) break;
+  horasDesdeLluvia++;
+  if(horasDesdeLluvia>=30*24) break;
 }
+let diasSecos=Math.floor(horasDesdeLluvia/24);
+
+let sueloProfundoArr=(datos.hourly.soil_moisture_7_to_28cm||[]);
+let sueloProfundoMuestras=[];
+for(let i=Math.max(0,indiceActual-24+1);i<=indiceActual;i++){
+  const v=Number(sueloProfundoArr[i]);
+  if(Number.isFinite(v)) sueloProfundoMuestras.push(v*100);
+}
+let sueloProfundo=sueloProfundoMuestras.length
+  ? sueloProfundoMuestras.reduce((a,b)=>a+b,0)/sueloProfundoMuestras.length
+  : NaN;
+
+let vpdArr=datos.hourly.vapour_pressure_deficit||[];
+let vpdMuestras=[];
+for(let i=Math.max(0,indiceActual-24+1);i<=indiceActual;i++){
+  const v=Number(vpdArr[i]);
+  if(Number.isFinite(v)) vpdMuestras.push(v);
+}
+let vpd24=vpdMuestras.length
+  ? vpdMuestras.reduce((a,b)=>a+b,0)/vpdMuestras.length
+  : NaN;
+
+let et07=(datos.daily.et0_fao_evapotranspiration||[]).slice(0,7).reduce((a,b)=>a+Number(b||0),0);
 
 /* SUELO */
 
@@ -1931,9 +2014,11 @@ Math.max(...probabilidades)
 
 /* MOSTRAR */
 
-$("lluvia14").textContent=
-
-Math.round(lluvia14)+" mm";
+$("lluvia14").textContent=Math.round(lluvia14)+" mm";
+$("lluvia3").textContent=Math.round(lluvia3)+" mm";
+$("lluvia30").textContent=Math.round(lluvia30)+" mm";
+$("diasSecos").textContent=diasSecos+" d";
+$("sueloProfundo").textContent=Number.isFinite(sueloProfundo)?Math.round(sueloProfundo)+"%":"--";
 
 $("suelo").textContent=
 
@@ -2029,6 +2114,19 @@ altitud
 
 );
 
+window.lluvia3Actual=lluvia3;
+window.lluvia7Actual=lluvia7;
+window.lluvia14Actual=lluvia14;
+window.lluvia30Actual=lluvia30;
+window.lluviaActual=lluvia14;
+window.tempActual=temperatura;
+window.humedadSueloActual=humedadSuelo;
+window.sueloProfundoActual=Number.isFinite(sueloProfundo)?sueloProfundo:humedadSuelo;
+window.diasDesdeLluvia=diasSecos;
+window.vpdActual=Number.isFinite(vpd24)?vpd24:0;
+window.et07Actual=et07;
+
+actualizarDinamicaFructificacion();
 pintarFavorabilidad();
 
 /* PREVISIÓN */
