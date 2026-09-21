@@ -739,6 +739,13 @@ Lluvia próximos 7 días
 </div>
 </div>
 
+<div class="card" id="motorDecisionCard">
+<h3>🧭 Decisión del Radar</h3>
+<div id="decisionRadar" class="notice">Analizando las condiciones de la zona…</div>
+<div id="decisionFactores" style="margin-top:10px"></div>
+<div class="muted" style="margin-top:8px">Esta recomendación resume las señales actuales. No garantiza que haya níscalos: sirve para decidir dónde merece la pena buscar.</div>
+</div>
+
 <div class="card">
 
 <h3>🌦️ Previsión</h3>
@@ -1679,6 +1686,7 @@ registrarValidacion(resultado,evidencia);
 actualizarValidacion();
 resultado=Math.max(0,Math.min(100,Math.round(resultado + Number(window.historialBiologicoScore||0))));
 registrarTendenciaRadar(resultado);
+actualizarMotorDecision(resultado);
 const conf=calcularFiabilidadDatos().nivel;
 const cajaConf=$("tendenciaRadar");
 if(cajaConf){
@@ -1726,6 +1734,27 @@ function actualizarDinamicaFructificacion(){
   indice=Math.round(Math.max(0,Math.min(100,indice)));
   const estado=indice>=75?"🍄 Ventana dinámica favorable":indice>=55?"🟡 Ventana dinámica posible":"⚪ Ventana dinámica débil";
   caja.innerHTML="<b>"+estado+"</b> · "+indice+"/100<br><span class='muted'>Lluvia 3/7/14 días: "+Math.round(r3)+"/"+Math.round(r7)+"/"+Math.round(r14)+" mm · suelo 0–7 / 7–28 cm: "+Math.round(s0)+"% / "+Math.round(s1)+"% · "+secos+" días secos"+(vpd?" · VPD 24h "+vpd.toFixed(2)+" kPa":"")+"</span>";
+}
+
+function actualizarMotorDecision(score){
+  const box=$("decisionRadar"), factores=$("decisionFactores");
+  if(!box||score===null||score===undefined||Number.isNaN(Number(score))) return;
+  const s=Number(score), lluvia3=Number(window.lluvia3Actual||0), lluvia30=Number(window.lluvia30Actual||0);
+  const suelo=Number(window.humedadSueloActual||0), sueloProf=Number(window.sueloProfundoActual||0);
+  const secos=Number(window.diasDesdeLluvia||30), temp=Number(window.tempActual||15);
+  const habitat=Number(window.habitatActualScore||0), evid=Number(window.evidenciaPublicaScore||0);
+  const titulo=s>=80?"🔥 ZONA MUY FAVORABLE":s>=65?"🟢 ZONA FAVORABLE":s>=45?"🟡 ZONA POSIBLE":"⚪ ZONA POCO INTERESANTE AHORA";
+  const razones=[
+    lluvia3>=8?"🌧️ Lluvia reciente favorable":lluvia3>=3?"🌦️ Lluvia reciente moderada":"🏜️ Poca lluvia reciente",
+    lluvia30>=30?"💧 Acumulación de lluvia de 30 días favorable":lluvia30>=12?"💧 Acumulación de lluvia moderada":"💧 Acumulación de lluvia baja",
+    secos<=4?"🌱 Pocos días secos":secos<=10?"🌱 Sequedad moderada":"☀️ Periodo seco prolongado",
+    suelo>=45&&sueloProf>=45?"💦 Humedad del suelo favorable":suelo>=30||sueloProf>=30?"💦 Humedad del suelo intermedia":"🏜️ Suelo demasiado seco",
+    temp>=8&&temp<=20?"🌡️ Temperatura compatible":temp>20?"🌡️ Temperatura elevada":"🌡️ Temperatura baja",
+    habitat>=0.75?"🌲 Hábitat muy compatible":habitat>=0.45?"🌲 Hábitat compatible":"🌾 Hábitat poco compatible"
+  ];
+  if(evid>0.15) razones.push("🍄 Hay evidencia pública reciente en la zona");
+  box.innerHTML="<b>"+titulo+"</b><br><span class='muted'>Puntuación actual: "+Math.round(s)+"/100</span>";
+  factores.innerHTML=razones.map(x=>"<span class='badge'>"+x+"</span>").join("");
 }
 
 function calcular(){
