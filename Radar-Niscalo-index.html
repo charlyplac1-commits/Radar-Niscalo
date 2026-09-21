@@ -1389,15 +1389,16 @@ return Math.exp(-Math.pow((valor-ideal)/anchura,2));
 
 function factorTemporada(mes){
 /*
-  Ventana estacional orientativa para rebollón:
-  septiembre-noviembre reciben mayor peso.
-  No es una garantía de fructificación.
+  Calibración estacional específica para rebollón.
+  La literatura sobre Lactarius deliciosus sitúa la fructificación
+  principalmente en otoño y destaca septiembre-octubre como periodo
+  especialmente sensible a la lluvia previa.
 */
 const factores={
-1:.35,2:.25,3:.25,4:.25,5:.20,6:.20,
-7:.35,8:.60,9:.90,10:1.00,11:.90,12:.55
+1:.05,2:.03,3:.03,4:.03,5:.02,6:.02,
+7:.10,8:.35,9:.80,10:1.00,11:.95,12:.55
 };
-return factores[mes]||.35;
+return factores[mes]||.05;
 }
 
 function calcularPuntuacion(
@@ -1411,45 +1412,40 @@ altitud,
 mes
 ){
 /*
-  Modelo experimental:
-  - lluvia reciente: importante, pero evita premiar lluvia excesiva
-  - lluvia acumulada 30 días: mide que el monte haya tenido agua
-  - temperatura actual y media reciente
-  - humedad del suelo
-  - altitud
-  - época del año
-
-  No es un modelo científico validado; se irá calibrando
-  con datos reales de hallazgos.
+  Calibración experimental específica para Lactarius deliciosus.
+  Se da más peso a la precipitación de finales de verano/otoño,
+  la humedad del suelo y la temperatura durante la ventana de
+  fructificación. La altitud actúa como modificador, no como
+  condición principal.
 */
-let lluvia7Factor=factorCampana(lluvia7,45,35);
-let lluvia14Factor=factorCampana(lluvia14,70,55);
-let lluvia30Factor=factorCampana(lluvia30,150,100);
+let lluvia7Factor=factorCampana(lluvia7,35,30);
+let lluvia14Factor=factorCampana(lluvia14,60,50);
+let lluvia30Factor=factorCampana(lluvia30,115,95);
 
 let lluviaFactor=
-0.40*lluvia7Factor+
-0.25*lluvia14Factor+
-0.35*lluvia30Factor;
+0.25*lluvia7Factor+
+0.30*lluvia14Factor+
+0.45*lluvia30Factor;
 
-let tempActualFactor=factorCampana(tempActual,15,6);
+let tempActualFactor=factorCampana(tempActual,14,6);
 let tempMedia7Factor=factorCampana(tempMedia7,15,5);
 
 let temperaturaFactor=
-0.40*tempActualFactor+
-0.60*tempMedia7Factor;
+0.35*tempActualFactor+
+0.65*tempMedia7Factor;
 
 let sueloFactor=Math.max(0,Math.min(1,suelo/100));
 
-let altFactor=factorCampana(altitud,1000,900);
+let altFactor=factorCampana(altitud,850,750);
 
-let temporadaFactor=factorCampana(factorTemporada(mes),1,.55);
+let temporadaFactor=factorTemporada(mes);
 
 let resultado=100*(
-0.30*lluviaFactor+
+0.36*lluviaFactor+
 0.20*temperaturaFactor+
-0.22*sueloFactor+
-0.13*altFactor+
-0.15*temporadaFactor
+0.24*sueloFactor+
+0.08*altFactor+
+0.12*temporadaFactor
 );
 
 return Math.max(0,Math.min(100,Math.round(resultado)));
@@ -1457,9 +1453,9 @@ return Math.max(0,Math.min(100,Math.round(resultado)));
 
 function puntuacionActualSimple(lluvia,temp,suelo,alt){
 return calcularPuntuacion(
-lluvia*0.45,
+lluvia*0.35,
 lluvia,
-lluvia*1.7,
+lluvia*1.55,
 temp,
 temp,
 suelo,
@@ -1494,18 +1490,11 @@ $("soilValue").textContent=suelo;
 
 $("altValue").textContent=alt;
 
-let resultado=
-
-calcularPuntuacion(
-
+let resultado=puntuacionActualSimple(
 lluvia,
-
 temp,
-
 suelo,
-
 alt
-
 );
 
 $("score").textContent=
