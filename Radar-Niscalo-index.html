@@ -824,7 +824,7 @@ value="900">
 <div class="card">
 <h3>🌲 Hábitat del bosque</h3>
 <div id="habitatActual">Analizando cobertura forestal y especie dominante…</div>
-<div id="terrenoActual" style="margin-top:8px">Analizando orientación, pendiente y terreno…</div><div id="tendenciaRadar" style="margin-top:8px">Calculando tendencia…</div><div id="historialBiologico" style="margin-top:8px">Analizando historial biológico…</div>
+<div id="terrenoActual" style="margin-top:8px">Analizando orientación, pendiente y terreno…</div><div id="tendenciaRadar" style="margin-top:8px">Calculando tendencia…</div><div id="historialBiologico" style="margin-top:8px">Analizando historial biológico…</div><div id="ventanaFructificacion" style="margin-top:8px">Analizando ventana de fructificación…</div><div id="validacionRadar" style="margin-top:8px">Preparando validación…</div>
 <div class="muted" style="margin-top:8px">Se consulta cartografía forestal pública de Catalunya. El hábitat modifica la favorabilidad, pero no sustituye a la meteorología.</div>
 </div>
 
@@ -1552,6 +1552,9 @@ resultado=Math.max(0,Math.min(100,Math.round(
 )));
 resultado=actualizarModeloHistorico(resultado,evidencia);
 resultado=aplicarModeloHistorico(resultado);
+const ventana=calcularVentanaFructificacion();
+registrarValidacion(resultado,evidencia);
+actualizarValidacion();
 resultado=Math.max(0,Math.min(100,Math.round(resultado + Number(window.historialBiologicoScore||0))));
 registrarTendenciaRadar(resultado);
 const conf=calcularFiabilidadDatos().nivel;
@@ -2133,6 +2136,54 @@ async function construirModeloHistorico(lat,lon){
   };
   localStorage.setItem(cacheKey,JSON.stringify({t:Date.now(),modelo:window.modeloHistorico}));
  }catch(e){window.modeloHistorico=null;}
+}
+
+function calcularVentanaFructificacion(){
+ try{
+  const lluvia=Number(window.lluviaActual||0);
+  const suelo=Number(window.humedadSueloActual||50);
+  const temp=Number(window.tempActual||15);
+  const lluvia14=Number(window.lluvia14Actual||lluvia);
+  const diasSecos=Number(window.diasDesdeLluvia||0);
+  let s=0;
+  if(lluvia14>=20&&lluvia14<=90)s+=35;
+  else if(lluvia14>90)s+=20;
+  if(temp>=8&&temp<=19)s+=30;
+  else if(temp>=6&&temp<=22)s+=15;
+  if(suelo>=35&&suelo<=85)s+=25;
+  else if(suelo>=25&&suelo<=90)s+=12;
+  if(diasSecos>=1&&diasSecos<=10)s+=10;
+  const ventana=Math.max(0,Math.min(100,Math.round(s)));
+  const caja=$("ventanaFructificacion");
+  if(caja){
+   const texto=ventana>=75?"🍄 Ventana favorable detectada":ventana>=55?"🟡 Ventana posible":"⚪ Ventana poco favorable";
+   caja.innerHTML=`<b>${texto}</b><br><span class="muted">Índice de ventana: ${ventana}/100</span>`;
+  }
+  return ventana;
+ }catch(e){return 0;}
+}
+
+function actualizarValidacion(){
+ try{
+  const d=JSON.parse(localStorage.getItem("radar_validacion")||"[]");
+  const caja=$("validacionRadar"); if(!caja)return;
+  const n=d.length;
+  if(n<10){caja.innerHTML=`<b>🧪 Validación:</b> acumulando datos (${n}/10)`;return;}
+  const conObs=d.filter(x=>x.e>0);
+  const aciertos=conObs.filter(x=>x.p>=60).length;
+  const tasa=conObs.length?Math.round(aciertos/conObs.length*100):0;
+  caja.innerHTML=`<b>🧪 Validación:</b> ${tasa}% de las lecturas con evidencia pública posterior (${conObs.length} casos)`;
+ }catch(e){}
+}
+
+function registrarValidacion(score,evidencia){
+ try{
+  let d=JSON.parse(localStorage.getItem("radar_validacion")||"[]");
+  d.push({p:Number(score)||0,e:Number(evidencia)||0,t:Date.now()});
+  d=d.slice(-200);
+  localStorage.setItem("radar_validacion",JSON.stringify(d));
+  actualizarValidacion();
+ }catch(e){}
 }
 
 function aplicarModeloHistorico(score){
