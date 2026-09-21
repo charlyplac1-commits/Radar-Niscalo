@@ -1694,7 +1694,7 @@ try{
 
 let url=
 
-`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&timezone=auto&past_days=30&forecast_days=7&current=temperature_2m,relative_humidity_2m,wind_gusts_10m,soil_moisture_0_to_7cm&hourly=temperature_2m,relative_humidity_2m,precipitation,precipitation_probability,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm,wind_gusts_10m,vapour_pressure_deficit&daily=temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code,et0_fao_evapotranspiration`;
+`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&timezone=auto&past_days=30&forecast_days=7&current=temperature_2m,relative_humidity_2m,wind_gusts_10m,soil_moisture_0_to_7cm&hourly=temperature_2m,relative_humidity_2m,precipitation,precipitation_probability,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm,wind_gusts_10m,vapour_pressure_deficit&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code,et0_fao_evapotranspiration`;
 
 let respuesta=
 
@@ -3060,7 +3060,7 @@ Number(diario.weather_code?.[i]||0)
 
 <strong>
 
-${Math.round(temperaturaDia)} °C
+${Math.round(temperaturaDia)} °C máx.
 
 </strong>
 
