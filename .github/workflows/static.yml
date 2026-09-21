@@ -31,6 +31,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Validate JavaScript
+        run: |
+          python3 - <<'PY'
+          import re, pathlib
+          html = pathlib.Path('index.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script\\b[^>]*>([\\s\\S]*?)</script>', html, flags=re.I)
+          js = [s for s in scripts if s.strip()]
+          if not js:
+            raise SystemExit('No inline JavaScript found')
+          for i, code in enumerate(js):
+            pathlib.Path(f'/tmp/radar_script_{i}.js').write_text(code, encoding='utf-8')
+          PY
+          for f in /tmp/radar_script_*.js; do node --check "$f"; done
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
