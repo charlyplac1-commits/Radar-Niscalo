@@ -693,7 +693,6 @@ header.app-header .brand,header.app-header .header-status{position:relative;z-in
   .quick-btn{font-size:10px;padding:9px 4px;min-height:42px}
 }
 
-<style>
 #appSplash{position:fixed;inset:0;z-index:99999;background:#0b130d;overflow:hidden;opacity:1;visibility:visible;transition:opacity .65s ease,visibility .65s ease}
 #appSplash.hide{opacity:0;visibility:hidden;pointer-events:none}
 .splash-real{position:relative;width:100%;height:100%;overflow:hidden;background:#0b130d}
@@ -707,7 +706,7 @@ header.app-header .brand,header.app-header .header-status{position:relative;z-in
 .splash-real-copy .splash-scan i{display:block;width:38%;height:100%;background:#e8a65b;box-shadow:0 0 14px #e8a65b;animation:splashScan 1.1s ease-in-out infinite}
 @keyframes splashRealDrift{from{transform:scale(1.015) translate3d(0,0,0)}to{transform:scale(1.045) translate3d(-.5%,-.35%,0)}}
 @media(max-width:720px){.splash-real-copy{bottom:8%}.splash-real-copy .splash-title{font-size:24px}.splash-real-copy .splash-sub{font-size:10px}.splash-real-copy .splash-brand{font-size:10px;letter-spacing:2.5px}}
-</style></style>
+</style>
 
 <script>
 if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});if("caches" in window){caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("radar-niscalo-")).map(k=>caches.delete(k)))).catch(()=>{});}}
@@ -4278,4 +4277,15 @@ if(!e.target.closest("#buscadorZona")&&!e.target.closest("#resultadosZona")) $("
 });
 
 function enfocarRadar(){
-  const lat=Number($("lat").value),lon=Number($("lon").value);
+  const lat=Number($("lat").value),lon=Number($("lon").value)
+<script>
+(function(){
+  const s=document.getElementById("appSplash");
+  if(!s) return;
+  const hide=()=>{s.classList.add("hide");setTimeout(()=>{s.style.display="none";},800);};
+  if(document.readyState==="complete") setTimeout(hide,2600);
+  else window.addEventListener("load",()=>setTimeout(hide,2600),{once:true});
+  setTimeout(hide,5000);
+})();
+</script>
+;
