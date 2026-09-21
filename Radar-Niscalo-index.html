@@ -1542,6 +1542,7 @@ $("altValue").textContent=alt;
 let evidencia=Number(window.evidenciaPublicaScore||0);
 let habitat=Number(window.habitatActualScore||0);
 let resultado=puntuacionActualSimple(lluvia,temp,suelo,alt,evidencia,habitat);
+resultado=Math.max(0,Math.min(100,Math.round(resultado + ((Number(window.sueloActualScore||0.5)-0.5)*8) + ((Number(window.terrenoActualScore||0.5)-0.5)*4))));
 
 $("score").textContent=resultado;
 
@@ -1946,6 +1947,7 @@ pintarMapaZonas(lat,lon);
 consultarHabitat(lat,lon);
 /* TERRENO: MDT oficial ICGC */
 consultarTerreno(lat,lon);
+consultarSueloGeologia(lat,lon);
 
 /* EVIDENCIA PÚBLICA */
 cargarEvidenciaPublica(lat,lon);
@@ -1984,6 +1986,43 @@ window.habitatActualScore=0;
 window.habitatActualTexto="Sin datos de hábitat";
 window.terrenoActualScore=0.5;
 window.terrenoActualTexto="Sin datos de terreno";
+window.sueloActualScore=0.5;
+window.sueloActualTexto="Sin datos de suelo";
+
+async function consultarSueloGeologia(lat,lon){
+try{
+ const caja=$("terrenoActual");
+ const base="https://geoserveis.icgc.cat/servei/catalunya/edafologia/wms";
+ const p=new URLSearchParams({
+  SERVICE:"WMS",VERSION:"1.3.0",REQUEST:"GetFeatureInfo",
+  LAYERS:"sols-25000-wrb",QUERY_LAYERS:"sols-25000-wrb",
+  INFO_FORMAT:"application/json",CRS:"EPSG:4326",
+  WIDTH:"3",HEIGHT:"3",I:"1",J:"1",
+  BBOX:`${lon-0.0002},${lat-0.0002},${lon+0.0002},${lat+0.0002}`
+ });
+ const rr=await fetch(base+"?"+p.toString());
+ if(!rr.ok) throw new Error("ICGC suelos");
+ const d=await rr.json().catch(()=>null);
+ const props=d?.features?.[0]?.properties||d?.features?.[0]?.attributes||null;
+ if(!props) throw new Error("sin datos");
+ const raw=Object.values(props).filter(v=>v!==null&&v!==undefined).join(" ").toLowerCase();
+ let score=.5, texto="Suelo WRB cartografiado por ICGC";
+ if(/calcar|calcic|calcisol|rendzina|leptosol.*cal|cal.*lepto/.test(raw)){score=.72;texto="Suelo con señal calcárea (WRB ICGC)";}
+ else if(/luvisol|cambisol|phaeozem|kastanozem/.test(raw)){score=.62;texto="Suelo forestal/evolucionado (WRB ICGC)";}
+ else if(/arenosol|fluvisol/.test(raw)){score=.45;texto="Suelo arenoso/aluvial (WRB ICGC)";}
+ else if(/acrisol|alisol|podzol|umbriso|andosol/.test(raw)){score=.40;texto="Suelo ácido o de tendencia ácida (WRB ICGC)";}
+ window.sueloActualScore=score;
+ window.sueloActualTexto=texto;
+ if(caja)caja.innerHTML=`<b>🪨 Suelo / geología</b><br><span class="muted">${escapar(texto)}</span>`;
+}catch(e){
+ window.sueloActualScore=.5;
+ window.sueloActualTexto="Cartografía de suelo no disponible ahora";
+ const caja=$("terrenoActual");
+ if(caja)caja.innerHTML="<b>🪨 Suelo / geología</b><br><span class='muted'>No disponible ahora. El Radar continúa.</span>";
+}
+pintarFavorabilidad();
+}
+
 
 async function consultarTerreno(lat,lon){
 try{
