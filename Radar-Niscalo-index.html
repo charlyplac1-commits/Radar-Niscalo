@@ -599,7 +599,7 @@ details.compact>summary{font-size:13px}
 
 <script>
 if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=2").catch(()=>{}));
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=3").catch(()=>{}));
 }
 </script>
 </head>
@@ -1425,23 +1425,39 @@ for(let gy=0;gy<=20;gy++){
     ]);
   }
 }
-capaCalorRadar=L.heatLayer(puntosInterpolados,{
-  radius:42,
-  blur:52,
-  maxZoom:13,
-  minOpacity:.22,
-  max:.98,
-  gradient:{
-    0.05:"#172b9b",
-    0.20:"#006ee6",
-    0.38:"#00bcd4",
-    0.55:"#36c96f",
-    0.70:"#ffe04a",
-    0.84:"#ff8a00",
-    1.00:"#ff2418"
+if(puntosRadar.length){
+  /* Superficie continua: usamos más puntos interpolados y una capa más ancha
+     para que siga siendo visible incluso con el mapa alejado. */
+  const puntosInterpolados=[];
+  for(let gy=0;gy<=32;gy++){
+    const fy=gy/32*4-2;
+    for(let gx=0;gx<=32;gx++){
+      const fx=gx/32*4-2;
+      let suma=0,peso=0;
+      puntosRadar.forEach(p=>{
+        const py=(p.lat-lat)/paso,px=(p.lon-lon)/paso;
+        const dist2=(fx-px)*(fx-px)+(fy-py)*(fy-py);
+        const w=1/Math.pow(0.35+dist2,1.05);
+        suma+=p.score*w;peso+=w;
+      });
+      const valor=peso?suma/peso:0;
+      puntosInterpolados.push([lat+fy*paso,lon+fx*paso,Math.max(.02,Math.min(1,valor/100))]);
+    }
   }
-});
-if(visionRadarActiva)capaCalorRadar.addTo(mapa);
+  if(typeof L.heatLayer==="function"){
+    capaCalorRadar=L.heatLayer(puntosInterpolados,{
+      radius:70,blur:72,maxZoom:14,minOpacity:.28,max:.98,
+      gradient:{
+        0.02:"#07133d",0.18:"#1239a6",0.34:"#008fe8",
+        0.50:"#00cfa5",0.64:"#8ee22b",0.76:"#ffe000",
+        0.88:"#ff7900",1:"#ff170d"
+      }
+    });
+    if(visionRadarActiva)capaCalorRadar.addTo(mapa);
+  }else{
+    console.warn("Leaflet.heat no está disponible; no se puede pintar la superficie radar.");
+  }
+}
 }catch(error){
 console.error("Mapa de favorabilidad:",error);
 }
@@ -2904,7 +2920,7 @@ function dibujarMapaLive(analisis,combinado){
     */
     const src=liveCanvas;
     if(src){
-      const smallW=320,smallH=240;
+      const smallW=480,smallH=Math.max(270,Math.round(480*video.videoHeight/video.videoWidth));
       const tmp=document.createElement("canvas");
       tmp.width=smallW;tmp.height=smallH;
       const tctx=tmp.getContext("2d",{willReadFrequently:true});
