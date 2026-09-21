@@ -1104,6 +1104,7 @@ Radar del Níscalo · Aplicación experimental
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 
 <script>
 
@@ -1114,18 +1115,15 @@ let mapa;
 let marcador;
 
 let capasFavorabilidad=[];
+let capaCalorRadar=null;
 let visionRadarActiva=true;
 
 function alternarVisionRadar(){
 visionRadarActiva=!visionRadarActiva;
-capasFavorabilidad.forEach(capa=>{
-if(capa && capa.setStyle){
-capa.setStyle({
-opacity:visionRadarActiva?(capa.options._radarOuter?0.82:0.18):0,
-fillOpacity:visionRadarActiva?(capa.options._radarOuter?0.20:0.10):0
-});
+if(capaCalorRadar){
+  if(visionRadarActiva) capaCalorRadar.addTo(mapa);
+  else mapa.removeLayer(capaCalorRadar);
 }
-});
 let boton=$("btnVisionRadar");
 if(boton){
 boton.textContent=visionRadarActiva?"👁️ Visión Radar: ON":"👁️ Visión Radar: OFF";
@@ -1211,6 +1209,7 @@ async function pintarMapaZonas(lat,lon){
 if(!mapa) return;
 capasFavorabilidad.forEach(capa=>mapa.removeLayer(capa));
 capasFavorabilidad=[];
+if(capaCalorRadar){mapa.removeLayer(capaCalorRadar);capaCalorRadar=null;}
 
 /*
   Mapa local: 5x5 celdas.
@@ -1378,51 +1377,7 @@ score>=60?"Favorable":
 score>=40?"Posible":
 "Baja";
 
-/*
-  Visión térmica:
-  cada punto genera varios círculos concéntricos muy transparentes.
-  Al solaparse crean una nube continua, sin bordes de cuadrícula.
-*/
-const radios=[
-  4200,
-  3200,
-  2300,
-  1500
-];
-
-radios.forEach((radio,indice)=>{
-let calor=L.circle(
-[centroLat,centroLon],
-{
-radius:radio,
-stroke:false,
-color:color,
-fillColor:color,
-opacity:0.18+(indice*0.14),
-fillOpacity:0.055+(indice*0.035),
-interactive:false,
-className:"radar-heat-zone",
-_radarOuter:false
-}
-).addTo(mapa);
-capasFavorabilidad.push(calor);
-});
-
-let puntoRadar=L.circle(
-[centroLat,centroLon],
-{
-radius:900,
-color:color,
-weight:1,
-opacity:.82,
-fillColor:color,
-fillOpacity:.20,
-className:"radar-heat-zone radar-heat-center",
-_radarOuter:true
-}
-).addTo(mapa);
-
-puntoRadar.bindPopup(
+let popupHtml=
 "<b>🍄 Favorabilidad: "+score+"/100</b>"+
 "<br>🍄 "+nivel+
 "<hr style='margin:7px 0'>"+
@@ -1433,9 +1388,33 @@ puntoRadar.bindPopup(
 "<br>🌡️ Media 7 días: "+tempMedia7.toFixed(1)+" °C"+
 "<br>💧 Suelo: "+Math.round(suelo)+"%"+
 "<br>🌲 Hábitat: "+Math.round(habitatScore*100)+"/100"+
-"<br>⛰️ Altitud: "+Math.round(alt)+" m"
-);
+"<br>⛰️ Altitud: "+Math.round(alt)+" m";
 
+if(!capaCalorRadar){
+capaCalorRadar=L.heatLayer([],{
+radius:58,
+blur:48,
+maxZoom:12,
+minOpacity:0.18,
+gradient:{
+0.10:"#2457d6",
+0.30:"#00a8ff",
+0.50:"#43d17a",
+0.68:"#ffe14a",
+0.82:"#ff8a00",
+1.00:"#ff2418"
+}
+}).addTo(mapa);
+}
+capaCalorRadar.addLatLng([centroLat,centroLon,Math.max(0.08,Math.min(1,score/100))]);
+
+let puntoRadar=L.circleMarker([centroLat,centroLon],{
+radius:8,
+opacity:0,
+fillOpacity:0,
+interactive:true
+}).addTo(mapa);
+puntoRadar.bindPopup(popupHtml);
 capasFavorabilidad.push(puntoRadar);
 }
 }catch(error){
