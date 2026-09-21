@@ -1,0 +1,20 @@
+{
+  "name": "Radar del Níscalo",
+  "short_name": "Radar Níscalo",
+  "description": "Radar de condiciones para buscar rebollones.",
+  "lang": "es-ES",
+  "start_url": "./Radar-Niscalo-index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f2e9",
+  "theme_color": "#214b35",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
