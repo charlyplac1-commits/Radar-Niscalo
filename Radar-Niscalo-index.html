@@ -70,15 +70,17 @@ opacity:.85;
 
 }
 
-main{
-
-max-width:1000px;
-
-margin:auto;
-
-padding:12px;
-
-}
+main{max-width:1000px;margin:auto;padding:8px}
+details.compact{background:white;border:1px solid #dfe3dc;border-radius:14px;padding:0 12px;margin:8px 0;box-shadow:0 1px 5px rgba(0,0,0,.04)}
+details.compact>summary{cursor:pointer;font-weight:800;padding:12px 2px;list-style:none}
+details.compact>summary::-webkit-details-marker{display:none}
+details.compact>summary:after{content:"＋";float:right;font-size:18px;color:#68736b}
+details.compact[open]>summary:after{content:"−"}
+details.compact .inside{padding:0 0 10px}
+.metric-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:8px 0}
+.metric{background:#f5f7f3;border-radius:12px;padding:9px;text-align:center}
+.metric .big{font-size:20px}
+@media(max-width:720px){.metric-strip{grid-template-columns:repeat(2,1fr)}}
 
 .card{
 
@@ -471,11 +473,7 @@ Histórico
 
 </button>
 
-<button onclick="tab('hallazgos',this)">
 
-Mis hallazgos
-
-</button>
 
 <button onclick="tab('escanner',this)">
 
@@ -591,155 +589,32 @@ style="margin-top:8px">
 
 </div>
 
-<div class="grid">
-
-<div class="card">
-
-<div class="big" id="lluvia14">
-
---
-
+<details class="compact" open>
+<summary>🌦️ Datos actuales</summary>
+<div class="inside">
+<div class="metric-strip">
+<div class="metric"><div class="big" id="lluvia14">--</div><div class="muted">Lluvia 14 días</div></div>
+<div class="metric"><div class="big" id="suelo">--</div><div class="muted">Humedad suelo</div></div>
+<div class="metric"><div class="big" id="temperatura">--</div><div class="muted">Temperatura</div></div>
+<div class="metric"><div class="big" id="altitud">--</div><div class="muted">Altitud</div></div>
 </div>
-
-<div class="muted">
-
-Lluvia · últimos 14 días
-
+<div class="metric-strip">
+<div class="metric"><div class="big" id="humedad">--</div><div class="muted">Humedad ambiental</div></div>
+<div class="metric"><div class="big" id="probLluvia">--</div><div class="muted">Prob. lluvia</div></div>
+<div class="metric"><div class="big" id="rafaga">--</div><div class="muted">Ráfaga máxima</div></div>
+<div class="metric"><div class="big" id="lluvia7">--</div><div class="muted">Lluvia próximos 7 días</div></div>
 </div>
-
 </div>
+</details>
 
-<div class="card">
-
-<div class="big" id="suelo">
-
---
-
-</div>
-
-<div class="muted">
-
-Humedad del suelo
-
-</div>
-
-</div>
-
-<div class="card">
-
-<div class="big" id="temperatura">
-
---
-
-</div>
-
-<div class="muted">
-
-Temperatura
-
-</div>
-
-</div>
-
-<div class="card">
-
-<div class="big" id="altitud">
-
---
-
-</div>
-
-<div class="muted">
-
-Altitud
-
-</div>
-
-</div>
-
-</div>
-
-<div class="grid">
-
-<div class="card">
-
-<div class="big" id="humedad">
-
---
-
-</div>
-
-<div class="muted">
-
-Humedad ambiental
-
-</div>
-
-</div>
-
-<div class="card">
-
-<div class="big" id="probLluvia">
-
---
-
-</div>
-
-<div class="muted">
-
-Probabilidad lluvia
-
-</div>
-
-</div>
-
-<div class="card">
-
-<div class="big" id="rafaga">
-
---
-
-</div>
-
-<div class="muted">
-
-Ráfaga máxima
-
-</div>
-
-</div>
-
-<div class="card">
-
-<div class="big" id="lluvia7">
-
---
-
-</div>
-
-<div class="muted">
-
-Lluvia próximos 7 días
-
-</div>
-
-</div>
-
-</div>
-
-<div class="card" style="grid-column:1/-1">
-<h3>🧠 Dinámica de fructificación</h3>
+<details class="compact" open><summary>🧠 Dinámica de fructificación</summary><div class="inside">
 <div class="grid">
 <div><div class="big" id="lluvia3">--</div><div class="muted">Lluvia · últimos 3 días</div></div>
 <div><div class="big" id="lluvia30">--</div><div class="muted">Lluvia · últimos 30 días</div></div>
 <div><div class="big" id="diasSecos">--</div><div class="muted">Días desde la última lluvia</div></div>
 <div><div class="big" id="sueloProfundo">--</div><div class="muted">Humedad suelo 7–28 cm</div></div>
 </div>
-<div id="dinamicaFructificacion" class="notice" style="margin-top:10px">Calculando respuesta del suelo y de la lluvia…</div>
-</div>
-</div>
-
-<div class="card" id="motorDecisionCard">
+<div id="dinamicaFructificacion" class="notice" style="margin-top:10px">Calculando respuesta del suelo y de la lluvia…</div></div></details><div class="card" id="motorDecisionCard">
 <h3>🧭 Decisión del Radar</h3>
 <div id="decisionRadar" class="notice">Analizando las condiciones de la zona…</div>
 <div id="decisionFactores" style="margin-top:10px"></div>
@@ -761,9 +636,7 @@ Lluvia próximos 7 días
 
 </div>
 
-<div class="card">
-
-<h3>🎚️ Condiciones</h3>
+<details class="compact"><summary>🎚️ Ajuste manual de condiciones</summary><div class="inside">
 
 <label>
 
@@ -847,17 +720,17 @@ max="2500"
 
 value="900">
 
-<button onclick="calcular()">
-
-🍄 Calcular favorabilidad
-
-</button>
-
-</div>
-
-
+<button onclick="calcular()">🍄 Calcular favorabilidad</button></div></details>
+<details class="compact"><summary>🌲 Hábitat y terreno</summary><div class="inside">
+<div id="habitatActual">Analizando cobertura forestal y especie dominante…</div>
+<div id="terrenoActual" style="margin-top:8px">Analizando orientación, pendiente y terreno…</div><div id="tendenciaRadar" style="margin-top:8px">Calculando tendencia…</div><div id="historialBiologico" style="margin-top:8px">Analizando historial biológico…</div><div id="ventanaFructificacion" style="margin-top:8px">Analizando ventana de fructificación…</div><div id="validacionRadar" style="margin-top:8px">Preparando validación…</div>
+<div class="muted" style="margin-top:8px">Se consulta cartografía forestal pública de Catalunya. El hábitat modifica la favorabilidad, pero no sustituye a la meteorología.</div>
+</div></details>
+<details class="compact"><summary>🍄 Evidencia pública reciente</summary><div class="inside">
+<div id="evidenciaPublica">Consultando observaciones públicas…</div>
+<div class="muted" style="margin-top:8px">No depende de que los usuarios del Radar introduzcan sus hallazgos. Se consultan fuentes públicas disponibles y se usan como una señal adicional, sin publicar puntos privados.</div>
+</div></details>
 <div class="card">
-<h3>🌲 Hábitat del bosque</h3>
 <div id="habitatActual">Analizando cobertura forestal y especie dominante…</div>
 <div id="terrenoActual" style="margin-top:8px">Analizando orientación, pendiente y terreno…</div><div id="tendenciaRadar" style="margin-top:8px">Calculando tendencia…</div><div id="historialBiologico" style="margin-top:8px">Analizando historial biológico…</div><div id="ventanaFructificacion" style="margin-top:8px">Analizando ventana de fructificación…</div><div id="validacionRadar" style="margin-top:8px">Preparando validación…</div>
 <div class="muted" style="margin-top:8px">Se consulta cartografía forestal pública de Catalunya. El hábitat modifica la favorabilidad, pero no sustituye a la meteorología.</div>
@@ -896,9 +769,7 @@ La favorabilidad se calcula automáticamente con meteorología reciente y previs
 
 </div>
 
-<div class="card">
-
-<h3>🌧️ Radar meteorológico</h3>
+<details class="compact"><summary>🌧️ Radar meteorológico</summary><div class="inside">
 
 <iframe
 
@@ -908,13 +779,7 @@ style="width:100%;height:390px;border:0;border-radius:12px"
 
 src="https://embed.windy.com/embed2.html?lat=41.6&lon=1.8&detailLat=41.6&detailLon=1.8&width=650&height=450&zoom=7&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=default&metricTemp=default&metricRain=default&metricSnow=default&metricCloud=default"
 
-allowfullscreen>
-
-</iframe>
-
-</div>
-
-</section>
+allowfullscreen></iframe></div></details></section>
 
 <!-- ================= HISTORICO ================= -->
 
@@ -926,7 +791,7 @@ style="display:none">
 
 <div class="card">
 
-<h2>📅 Histórico meteorológico</h2>
+<h2>📊 Histórico y resultados</h2>
 
 <p>
 
@@ -991,125 +856,24 @@ style="overflow:auto;margin-top:12px">
 </div>
 
 <div class="card">
-
-<h3>🍄 Histórico de mis recogidas</h3>
-
-<div
-
-id="estadisticas"
-
-class="notice">
-
-Todavía no hay hallazgos.
-
+<h3>📊 Rendimiento del Radar en campo</h3>
+<div id="estadisticasCampo" class="notice">Todavía no hay salidas registradas con el Radar.</div>
+<div class="muted" style="margin-top:8px">Datos experimentales de este dispositivo. Sirven para comprobar cómo se comporta el Radar con tus propias salidas; no son una validación científica.</div>
 </div>
-
-</div>
-
-</section>
-
-<!-- ================= HALLAZGOS ================= -->
-
-<section
-
-id="hallazgos"
-
-style="display:none">
-
 <div class="card">
-
-<h2>📍 Mis hallazgos privados</h2>
-
-<p class="muted">
-
-Los datos se guardan únicamente en este dispositivo y NO se utilizan para calcular el Radar. Sirven para llevar tu propio historial.
-
-</p>
-
-<div class="row">
-
-<div>
-
-<label>Fecha</label>
-
-<input
-
-id="fechaHallazgo"
-
-type="date">
-
+<h3>🍄 Mis recogidas</h3>
+<div id="estadisticas" class="notice">Todavía no hay hallazgos.</div>
 </div>
-
-<div>
-
-<label>Cantidad</label>
-
-<input
-
-id="cantidadHallazgo"
-
-type="number"
-
-min="1"
-
-placeholder="Ej. 15">
-
+<div class="card">
+<h3>📍 Mis hallazgos privados</h3>
+<p class="muted">Los datos se guardan únicamente en este dispositivo y NO se utilizan para calcular el Radar.</p>
+<div class="row"><div><label>Fecha</label><input id="fechaHallazgo" type="date"></div><div><label>Cantidad</label><input id="cantidadHallazgo" type="number" min="1" placeholder="Ej. 15"></div></div>
+<label>Zona / municipio</label><input id="zonaHallazgo" placeholder="Municipio, comarca o zona">
+<label>Notas</label><input id="notasHallazgo" placeholder="Pinar húmedo, después de lluvia…">
+<button onclick="guardarHallazgo()">🍄 Guardar hallazgo</button>
+<button class="danger" onclick="borrarHallazgos()">Borrar todos</button>
+<div id="listaHallazgos" class="list" style="margin-top:15px"></div>
 </div>
-
-</div>
-
-<label>
-
-Zona / municipio
-
-</label>
-
-<input
-
-id="zonaHallazgo"
-
-placeholder="Municipio, comarca o zona">
-
-<label>
-
-Notas
-
-</label>
-
-<input
-
-id="notasHallazgo"
-
-placeholder="Pinar húmedo, después de lluvia…">
-
-<button onclick="guardarHallazgo()">
-
-🍄 Guardar hallazgo
-
-</button>
-
-<button
-
-class="danger"
-
-onclick="borrarHallazgos()">
-
-Borrar todos
-
-</button>
-
-<div
-
-id="listaHallazgos"
-
-class="list"
-
-style="margin-top:15px">
-
-</div>
-
-</div>
-
 </section>
 
 <!-- ================= ESCÁNER ================= -->
@@ -1215,7 +979,7 @@ let capasFavorabilidad=[];
 
 function tab(nombre,boton){
 
-["radar","historico","hallazgos","escanner"].forEach(id=>{
+["radar","historico","escanner"].forEach(id=>{
 
 $(id).style.display =
 
@@ -1231,19 +995,9 @@ document
 
 boton.classList.add("on");
 
-if(nombre==="historico"){
+if(nombre==="historico"){mostrarEstadisticas();mostrarRendimientoCampo();cargarHistorico();}
 
-mostrarEstadisticas();
 
-cargarHistorico();
-
-}
-
-if(nombre==="hallazgos"){
-
-mostrarHallazgos();
-
-}
 
 if(nombre==="radar" && mapa){
 
@@ -3709,6 +3463,20 @@ ${h.notas
 
 .join("");
 
+}
+
+function mostrarRendimientoCampo(){
+const box=$("estadisticasCampo"); if(!box)return;
+let datos=[]; try{datos=JSON.parse(localStorage.getItem("radar_resultados_campo")||"[]")}catch(e){}
+if(!datos.length){box.innerHTML="Todavía no hay salidas registradas con el Radar.";return;}
+const total=datos.length, positivos=datos.filter(x=>x.outcome==="encontre").length, negativos=total-positivos;
+const pct=Math.round(positivos/total*100);
+const bandas=[["80–100",80,100],["60–79",60,79],["40–59",40,59],["0–39",0,39]];
+const filas=bandas.map(b=>{const v=datos.filter(x=>Number(x.score)>=b[1]&&Number(x.score)<=b[2]),p=v.filter(x=>x.outcome==="encontre").length;return "<span class='badge'><b>"+b[0]+"</b>: "+p+"/"+v.length+" positivas</span>"}).join("");
+const media=a=>a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length):"—";
+const ps=datos.filter(x=>x.outcome==="encontre").map(x=>Number(x.score)).filter(Number.isFinite);
+const ns=datos.filter(x=>x.outcome!=="encontre").map(x=>Number(x.score)).filter(Number.isFinite);
+box.innerHTML="<b>"+positivos+"/"+total+" salidas positivas · "+pct+"%</b><br><span class='muted'>"+negativos+" sin encontrar · media de puntuación: positivas "+media(ps)+" · negativas "+media(ns)+"</span><div style='margin-top:8px'>"+filas+"</div>";
 }
 
 function mostrarEstadisticas(){
