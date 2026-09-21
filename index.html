@@ -3195,21 +3195,29 @@ async function iniciarRadarVisual(){
     detenerRadarVisual();
     estado.innerHTML="Solicitando permiso para usar la cámara…";
     activarHUDScanner(true);
-    let constraints={
-      audio:false,
-      video:{facingMode:{ideal:"environment"}}
-    };
+    const constraints={audio:false,video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}}};
     try{
       streamLive=await navigator.mediaDevices.getUserMedia(constraints);
     }catch(firstError){
       console.warn("Cámara con restricciones iniciales falló:",firstError);
       streamLive=await navigator.mediaDevices.getUserMedia({audio:false,video:true});
     }
+    video.muted=true;
+    video.autoplay=true;
+    video.playsInline=true;
+    video.setAttribute("playsinline","");
+    video.setAttribute("webkit-playsinline","");
     video.srcObject=streamLive;
-    await video.play();
     video.style.display="block";
     $("livePlaceholder").style.display="none";
     overlay.style.display="block";
+    await new Promise((resolve,reject)=>{
+      if(video.readyState>=2 && video.videoWidth>0){resolve();return;}
+      const timer=setTimeout(()=>reject(new Error("La cámara no entregó imagen al vídeo.")),5000);
+      video.addEventListener("loadedmetadata",()=>{clearTimeout(timer);resolve();},{once:true});
+    });
+    await video.play();
+    if(!video.videoWidth||!video.videoHeight) throw new Error("La cámara está activa pero no está entregando imagen.");
     $("btnLiveStart").style.display="none";
     $("btnLiveAnalyze").style.display="inline-block";
     $("btnLiveStop").style.display="inline-block";
@@ -3431,21 +3439,40 @@ function detectarCandidatoVisual(canvas,analisis){
   return {score,texto};
 }
 
-function abrirCamara(){
+async function abrirCamara(){
   const estado=$("camaraEstado"),video=$("videoCamara");
   try{
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error("Cámara no disponible");
     cerrarStreamCamara();
     estado.innerHTML="Solicitando permiso para usar la cámara…";
-    navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"}}}).catch(()=>{
-      return navigator.mediaDevices.getUserMedia({audio:false,video:true});
-    }).then(stream=>{
-      streamCamara=stream;video.srcObject=stream;
-      video.style.display="block";$("camaraPlaceholder").style.display="none";$("guiaCamara").style.display="block";
-      $("btnFotoCamara").style.display="inline-block";$("btnCerrarCamara").style.display="inline-block";$("btnAbrirCamara").style.display="none";
-      fotosEscaneo=[];actualizarBotonFoto();
-      estado.innerHTML="<b>📷 Cámara activa.</b> Haz primero una vista general del bosque.";
-    }).catch(error=>{
+    let stream;
+    try{
+      stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}}});
+    }catch(firstError){
+      console.warn("Cámara fotográfica con restricciones iniciales falló:",firstError);
+      stream=await navigator.mediaDevices.getUserMedia({audio:false,video:true});
+    }
+    streamCamara=stream;
+    video.muted=true;
+    video.autoplay=true;
+    video.playsInline=true;
+    video.setAttribute("playsinline","");
+    video.setAttribute("webkit-playsinline","");
+    video.srcObject=stream;
+    video.style.display="block";
+    $("camaraPlaceholder").style.display="none";
+    $("guiaCamara").style.display="block";
+    await new Promise((resolve,reject)=>{
+      if(video.readyState>=2 && video.videoWidth>0){resolve();return;}
+      const timer=setTimeout(()=>reject(new Error("La cámara no entregó imagen al vídeo.")),5000);
+      video.addEventListener("loadedmetadata",()=>{clearTimeout(timer);resolve();},{once:true});
+    });
+    await video.play();
+    if(!video.videoWidth||!video.videoHeight) throw new Error("La cámara está activa pero no está entregando imagen.");
+    $("btnFotoCamara").style.display="inline-block";$("btnCerrarCamara").style.display="inline-block";$("btnAbrirCamara").style.display="none";
+    fotosEscaneo=[];actualizarBotonFoto();
+    estado.innerHTML="<b>📷 Cámara activa.</b> Haz primero una vista general del bosque.";
+  }catch(error){
       console.error("Cámara de fotos · cámara:",error);
       let detalle="Comprueba el permiso de cámara y que estás usando HTTPS.";
       if(error?.name==="NotAllowedError") detalle="Safari ha bloqueado el permiso de cámara. Actívalo en Ajustes → Safari → Cámara.";
