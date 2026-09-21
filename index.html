@@ -3439,7 +3439,7 @@ function detectarCandidatoVisual(canvas,analisis){
   return {score,texto};
 }
 
-async function abrirCamara(){
+async async function abrirCamara(){
   const estado=$("camaraEstado"),video=$("videoCamara");
   try{
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error("Cámara no disponible");
