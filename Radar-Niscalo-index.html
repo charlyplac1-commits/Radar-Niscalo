@@ -1171,47 +1171,157 @@ async function pintarMapaZonas(lat,lon){
 if(!mapa) return;
 capasFavorabilidad.forEach(capa=>mapa.removeLayer(capa));
 capasFavorabilidad=[];
-const paso=0.08;
+
+/*
+  Mapa local: 5x5 celdas.
+  Cada celda mide aproximadamente 4 km de lado.
+  Calculamos condiciones independientes para cada punto.
+*/
+const paso=0.04;
 const columnas=5;
 let latitudes=[];
 let longitudes=[];
+
 for(let y=-2;y<=2;y++){
 for(let x=-2;x<=2;x++){
 latitudes.push((lat+y*paso).toFixed(4));
 longitudes.push((lon+x*paso).toFixed(4));
 }
 }
+
 try{
-let consulta="https://api.open-meteo.com/v1/forecast?latitude="+latitudes.join(",")+"&longitude="+longitudes.join(",")+"&timezone=auto&past_days=14&forecast_days=1&current=temperature_2m,soil_moisture_0_to_7cm&hourly=precipitation";
+let consulta=
+"https://api.open-meteo.com/v1/forecast?latitude="+latitudes.join(",")+
+"&longitude="+longitudes.join(",")+
+"&timezone=auto&past_days=30&forecast_days=7"+
+"&current=temperature_2m,soil_moisture_0_to_7cm"+
+"&hourly=temperature_2m,precipitation,soil_moisture_0_to_7cm";
+
 let respuesta=await fetch(consulta);
 if(!respuesta.ok) throw new Error("Error en datos de zonas");
+
 let datos=await respuesta.json();
 if(!Array.isArray(datos)) datos=[datos];
-let elev=await fetch("https://api.open-meteo.com/v1/elevation?latitude="+latitudes.join(",")+"&longitude="+longitudes.join(","));
+
+let elev=await fetch(
+"https://api.open-meteo.com/v1/elevation?latitude="+
+latitudes.join(",")+
+"&longitude="+
+longitudes.join(",")
+);
+
 if(!elev.ok) throw new Error("Error en altitudes");
+
 let elevData=await elev.json();
-let elevaciones=Array.isArray(elevData.elevation)?elevData.elevation:[elevData.elevation];
+let elevaciones=Array.isArray(elevData.elevation)
+?elevData.elevation
+:[elevData.elevation];
+
 for(let i=0;i<datos.length;i++){
 let d=datos[i];
 if(!d || !d.current || !d.hourly) continue;
-let lluvia=0;
+
 let tiempos=d.hourly.time||[];
 let precipitacion=d.hourly.precipitation||[];
+let temperaturas=d.hourly.temperature_2m||[];
+let humedadSuelo=d.hourly.soil_moisture_0_to_7cm||[];
+
 let indiceActual=tiempos.findIndex(t=>t>=d.current.time);
-if(indiceActual<0) indiceActual=precipitacion.length-1;
-let inicio=Math.max(0,indiceActual-14*24+1);
-for(let j=inicio;j<=indiceActual;j++) lluvia+=Number(precipitacion[j]||0);
-let temp=Number(d.current.temperature_2m||0);
-let suelo=Number(d.current.soil_moisture_0_to_7cm||0)*100;
+if(indiceActual<0) indiceActual=tiempos.length-1;
+
+let inicio7=Math.max(0,indiceActual-(7*24)+1);
+let inicio14=Math.max(0,indiceActual-(14*24)+1);
+let inicio30=Math.max(0,indiceActual-(30*24)+1);
+
+let lluvia7=0;
+let lluvia14=0;
+let lluvia30=0;
+let temp7=[];
+let sueloReciente=[];
+
+for(let j=inicio30;j<=indiceActual;j++){
+let lluvia=Number(precipitacion[j]||0);
+lluvia30+=lluvia;
+
+if(j>=inicio14) lluvia14+=lluvia;
+if(j>=inicio7){
+lluvia7+=lluvia;
+let t=Number(temperaturas[j]);
+if(Number.isFinite(t)) temp7.push(t);
+}
+}
+
+for(let j=Math.max(0,indiceActual-24+1);j<=indiceActual;j++){
+let s=Number(humedadSuelo[j]);
+if(Number.isFinite(s)) sueloReciente.push(s*100);
+}
+
+let tempActual=Number(d.current.temperature_2m||0);
+let tempMedia7=temp7.length
+?temp7.reduce((a,b)=>a+b,0)/temp7.length
+:tempActual;
+
+let suelo=sueloReciente.length
+?sueloReciente.reduce((a,b)=>a+b,0)/sueloReciente.length
+:Number(d.current.soil_moisture_0_to_7cm||0)*100;
+
 let alt=Number(elevaciones[i]||0);
-let score=calcularPuntuacion(lluvia,temp,suelo,alt);
+
+let score=calcularPuntuacion(
+lluvia7,
+lluvia14,
+lluvia30,
+tempActual,
+tempMedia7,
+suelo,
+alt,
+new Date().getMonth()+1
+);
+
 let y=Math.floor(i/columnas)-2;
 let x=(i%columnas)-2;
 let centroLat=lat+y*paso;
 let centroLon=lon+x*paso;
-let color=score>=80?"#2e8b57":score>=60?"#f0c419":score>=40?"#f28c28":"#d63c32";
-let rect=L.rectangle([[centroLat-paso/2,centroLon-paso/2],[centroLat+paso/2,centroLon+paso/2]],{color:color,weight:1,opacity:.65,fillColor:color,fillOpacity:.38}).addTo(mapa);
-rect.bindPopup("<b>Favorabilidad: "+score+"/100</b><br>🍄 "+(score>=80?"Muy favorable":score>=60?"Favorable":score>=40?"Posible":"Baja")+"<br>🌧️ "+Math.round(lluvia)+" mm · 🌡️ "+temp.toFixed(1)+" °C<br>💧 Suelo "+Math.round(suelo)+"% · ⛰️ "+Math.round(alt)+" m");
+
+let color=
+score>=80?"#2e8b57":
+score>=60?"#f0c419":
+score>=40?"#f28c28":
+"#d63c32";
+
+let rect=L.rectangle(
+[
+[centroLat-paso/2,centroLon-paso/2],
+[centroLat+paso/2,centroLon+paso/2]
+],
+{
+color:color,
+weight:1,
+opacity:.7,
+fillColor:color,
+fillOpacity:.38
+}
+).addTo(mapa);
+
+let nivel=
+score>=80?"Muy favorable":
+score>=60?"Favorable":
+score>=40?"Posible":
+"Baja";
+
+rect.bindPopup(
+"<b>🍄 Favorabilidad: "+score+"/100</b>"+
+"<br>🍄 "+nivel+
+"<hr style='margin:7px 0'>"+
+"🌧️ Últimos 7 días: "+Math.round(lluvia7)+" mm"+
+"<br>🌧️ Últimos 14 días: "+Math.round(lluvia14)+" mm"+
+"<br>🌧️ Últimos 30 días: "+Math.round(lluvia30)+" mm"+
+"<br>🌡️ Temp. actual: "+tempActual.toFixed(1)+" °C"+
+"<br>🌡️ Media 7 días: "+tempMedia7.toFixed(1)+" °C"+
+"<br>💧 Suelo: "+Math.round(suelo)+"%"+
+"<br>⛰️ Altitud: "+Math.round(alt)+" m"
+);
+
 capasFavorabilidad.push(rect);
 }
 }catch(error){
@@ -1273,104 +1383,89 @@ mapa.setView(
 
 /* ================= FAVORABILIDAD ================= */
 
+function factorCampana(valor,ideal,anchura){
+return Math.exp(-Math.pow((valor-ideal)/anchura,2));
+}
+
+function factorTemporada(mes){
+/*
+  Ventana estacional orientativa para rebollón:
+  septiembre-noviembre reciben mayor peso.
+  No es una garantía de fructificación.
+*/
+const factores={
+1:.35,2:.25,3:.25,4:.25,5:.20,6:.20,
+7:.35,8:.60,9:.90,10:1.00,11:.90,12:.55
+};
+return factores[mes]||.35;
+}
+
 function calcularPuntuacion(
-
-lluvia,
-
-temp,
-
+lluvia7,
+lluvia14,
+lluvia30,
+tempActual,
+tempMedia7,
 suelo,
-
-altitud
-
+altitud,
+mes
 ){
+/*
+  Modelo experimental:
+  - lluvia reciente: importante, pero evita premiar lluvia excesiva
+  - lluvia acumulada 30 días: mide que el monte haya tenido agua
+  - temperatura actual y media reciente
+  - humedad del suelo
+  - altitud
+  - época del año
+
+  No es un modelo científico validado; se irá calibrando
+  con datos reales de hallazgos.
+*/
+let lluvia7Factor=factorCampana(lluvia7,45,35);
+let lluvia14Factor=factorCampana(lluvia14,70,55);
+let lluvia30Factor=factorCampana(lluvia30,150,100);
 
 let lluviaFactor=
+0.40*lluvia7Factor+
+0.25*lluvia14Factor+
+0.35*lluvia30Factor;
 
-Math.exp(
+let tempActualFactor=factorCampana(tempActual,15,6);
+let tempMedia7Factor=factorCampana(tempMedia7,15,5);
 
--Math.pow(
+let temperaturaFactor=
+0.40*tempActualFactor+
+0.60*tempMedia7Factor;
 
-(lluvia-85)/55,
+let sueloFactor=Math.max(0,Math.min(1,suelo/100));
 
-2
+let altFactor=factorCampana(altitud,1000,900);
 
-)
+let temporadaFactor=factorCampana(factorTemporada(mes),1,.55);
 
+let resultado=100*(
+0.30*lluviaFactor+
+0.20*temperaturaFactor+
+0.22*sueloFactor+
+0.13*altFactor+
+0.15*temporadaFactor
 );
 
-let tempFactor=
+return Math.max(0,Math.min(100,Math.round(resultado)));
+}
 
-Math.exp(
-
--Math.pow(
-
-(temp-15)/5,
-
-2
-
-)
-
+function puntuacionActualSimple(lluvia,temp,suelo,alt){
+return calcularPuntuacion(
+lluvia*0.45,
+lluvia,
+lluvia*1.7,
+temp,
+temp,
+suelo,
+alt,
+new Date().getMonth()+1
 );
-
-let sueloFactor=
-
-Math.max(
-
-0,
-
-Math.min(
-
-1,
-
-suelo/100
-
-)
-
-);
-
-let altFactor=
-
-Math.exp(
-
--Math.pow(
-
-(altitud-1000)/850,
-
-2
-
-)
-
-);
-
-let resultado=
-
-100*(
-
-0.34*lluviaFactor+
-
-0.24*tempFactor+
-
-0.24*sueloFactor+
-
-0.18*altFactor
-
-);
-
-return Math.max(
-
-0,
-
-Math.min(
-
-100,
-
-Math.round(resultado)
-
-)
-
-);
-
 }
 
 function pintarFavorabilidad(){
@@ -1595,7 +1690,7 @@ try{
 
 let url=
 
-`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&timezone=auto&past_days=14&forecast_days=7&current=temperature_2m,relative_humidity_2m,wind_gusts_10m,soil_moisture_0_to_7cm&hourly=temperature_2m,relative_humidity_2m,precipitation,precipitation_probability,soil_moisture_0_to_7cm,wind_gusts_10m&daily=temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code`;
+`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&timezone=auto&past_days=30&forecast_days=7&current=temperature_2m,relative_humidity_2m,wind_gusts_10m,soil_moisture_0_to_7cm&hourly=temperature_2m,relative_humidity_2m,precipitation,precipitation_probability,soil_moisture_0_to_7cm,wind_gusts_10m&daily=temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code`;
 
 let respuesta=
 
