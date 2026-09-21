@@ -3003,11 +3003,8 @@ fecha+"T12:00:00"
 );
 
 let temperaturaDia=
-
 Number(
-
-diario.temperature_2m_mean?.[i] ?? 0
-
+  diario.temperature_2m_max?.[i] ?? diario.temperature_2m_mean?.[i] ?? 0
 );
 
 let lluviaDia=
