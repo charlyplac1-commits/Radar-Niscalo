@@ -694,10 +694,9 @@ header.app-header .brand,header.app-header .header-status{position:relative;z-in
 }#appSplash{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;z-index:99999!important;display:block!important}
 .splash-3d{position:relative;width:100%;height:100%;overflow:hidden;background:#0d1710}
 #splash3D{position:absolute;inset:0;width:100%;height:100%;display:block}
-<style>
 #appSplash{position:fixed;inset:0;z-index:99999;background:#0b130d;overflow:hidden;opacity:1;visibility:visible;transition:opacity .65s ease,visibility .65s ease}
 #appSplash.hide{opacity:0;visibility:hidden;pointer-events:none}.splash-real{position:relative;width:100%;height:100%;overflow:hidden;background:#0b130d}.splash-art{position:absolute;inset:0;width:100%;height:100%;display:block;transform:scale(1.015);animation:splashRealDrift 14s ease-in-out infinite alternate}.splash-real-vignette{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(2,8,4,.16),transparent 34%,rgba(1,5,3,.08) 58%,rgba(0,0,0,.82) 100%),radial-gradient(ellipse at 50% 48%,transparent 20%,rgba(0,0,0,.42) 100%);pointer-events:none}.splash-real-copy{position:absolute;left:0;right:0;bottom:8%;text-align:center;color:#fff;padding:0 20px;z-index:3;text-shadow:0 3px 22px rgba(0,0,0,.95)}.splash-real-copy .splash-brand{font-size:11px;font-weight:900;letter-spacing:3px}.splash-real-copy .splash-title{font-size:26px;font-weight:900;margin-top:9px;letter-spacing:-.5px}.splash-real-copy .splash-sub{font-size:11px;opacity:.84;margin-top:6px;letter-spacing:.7px}.splash-real-copy .splash-scan{width:170px;height:3px;margin:18px auto 0;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.16)}.splash-real-copy .splash-scan i{display:block;width:38%;height:100%;background:#e8a65b;box-shadow:0 0 14px #e8a65b;animation:splashScan 1.1s ease-in-out infinite}@keyframes splashRealDrift{from{transform:scale(1.015) translate3d(0,0,0)}to{transform:scale(1.045) translate3d(-.5%,-.35%,0)}}@media(max-width:720px){.splash-real-copy{bottom:8%}.splash-real-copy .splash-title{font-size:24px}.splash-real-copy .splash-sub{font-size:10px}.splash-real-copy .splash-brand{font-size:10px;letter-spacing:2.5px}}
-</style></style>
+</style>
 
 <script>
 /* Actualización estable: esta versión no registra Service Worker. */
@@ -4261,4 +4260,6 @@ $(id).addEventListener(
 
 pintarFavorabilidad
 
-);
+)
+<script>(function(){const s=document.getElementById("appSplash");if(!s)return;const hide=()=>{s.classList.add("hide");setTimeout(()=>{s.style.display="none"},800)};if(document.readyState==="complete")setTimeout(hide,2600);else window.addEventListener("load",()=>setTimeout(hide,2600),{once:true});setTimeout(hide,5000)})();</script>
+;
