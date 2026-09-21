@@ -1,0 +1,23 @@
+{
+  "classes": [
+    "niscalo",
+    "no_niscalo"
+  ],
+  "positive_class": "niscalo",
+  "input_size": 224,
+  "normalization": {
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  },
+  "validation_accuracy": 1.0,
+  "model": "MobileNetV3-Small",
+  "purpose": "experimental visual candidate detector; not species confirmation"
+}
