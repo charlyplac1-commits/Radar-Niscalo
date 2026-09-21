@@ -515,6 +515,12 @@ Selecciona una ubicación
 <div class="card">
 
 <h3>📍 Ubicación</h3>
+<label>🔎 Buscar zona, municipio o lugar</label>
+<div style="position:relative">
+<input id="buscadorZona" type="search" placeholder="Ej. Montseny, Berga, Prades..." autocomplete="off">
+<div id="resultadosZona" style="position:absolute;left:0;right:0;top:100%;z-index:2000;background:white;border:1px solid #cfd6cf;border-radius:9px;max-height:240px;overflow:auto;box-shadow:0 4px 12px rgba(0,0,0,.12)"></div>
+</div>
+<div class="muted" style="margin-top:6px">Escribe el nombre y selecciona una zona de la lista.</div>
 
 <div class="row">
 
@@ -1150,6 +1156,34 @@ marcador=L.marker(
 
 .bindPopup("Ubicación consultada");
 
+}
+
+async function buscarZona(){
+let consulta=$("buscadorZona").value.trim();
+let caja=$("resultadosZona");
+if(consulta.length<2){caja.innerHTML="";return;}
+caja.innerHTML='<div style="padding:10px">Buscando…</div>';
+try{
+let url="https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&accept-language=es&q="+encodeURIComponent(consulta);
+let respuesta=await fetch(url);
+if(!respuesta.ok) throw new Error();
+let lugares=await respuesta.json();
+if(!lugares.length){caja.innerHTML='<div style="padding:10px">No se encontraron lugares.</div>';return;}
+caja.innerHTML=lugares.map((l,i)=>`<button type="button" data-zona="${i}" style="display:block;width:100%;margin:0;border-radius:0;background:white;color:#17231b;text-align:left;font-weight:500;border-bottom:1px solid #e5e9e3">${escapar(l.display_name)}</button>`).join("");
+caja.querySelectorAll("button").forEach((b,i)=>b.onclick=()=>{
+let l=lugares[i];
+let lat=Number(l.lat),lon=Number(l.lon);
+$("lat").value=lat.toFixed(6);
+$("lon").value=lon.toFixed(6);
+$("buscadorZona").value=l.display_name;
+caja.innerHTML="";
+moverMapa(lat,lon);
+cargarDatos();
+});
+}catch(error){
+console.error(error);
+caja.innerHTML='<div style="padding:10px">No se pudo buscar la zona. Comprueba la conexión.</div>';
+}
 }
 
 function moverMapa(lat,lon){
@@ -2522,6 +2556,15 @@ caracter=>({
 );
 
 }
+
+let temporizadorBusqueda;
+$("buscadorZona").addEventListener("input",()=>{
+clearTimeout(temporizadorBusqueda);
+temporizadorBusqueda=setTimeout(buscarZona,350);
+});
+document.addEventListener("click",e=>{
+if(!e.target.closest("#buscadorZona")&&!e.target.closest("#resultadosZona")) $("resultadosZona").innerHTML="";
+});
 
 /* ================= INICIO ================= */
 
