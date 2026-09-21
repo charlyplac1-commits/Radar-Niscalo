@@ -2814,9 +2814,9 @@ async function iniciarRadarVisual(){
       audio:false,
       video:{
         facingMode:{ideal:"environment"},
-        width:{ideal:1280},
-        height:{ideal:720},
-        frameRate:{ideal:15,max:20}
+        width:{ideal:1920,max:3840},
+        height:{ideal:1080,max:2160},
+        frameRate:{ideal:30,max:30}
       }
     });
     video.srcObject=streamLive;
@@ -2888,41 +2888,135 @@ function dibujarMapaLive(analisis,combinado){
   const overlay=$("liveOverlay"),video=$("liveVideo");
   if(!overlay||!video.videoWidth)return;
   const w=overlay.clientWidth||video.clientWidth||320,h=overlay.clientHeight||video.clientHeight||240;
-  if(overlay.width!==Math.round(w)||overlay.height!==Math.round(h)){
-    overlay.width=Math.round(w);overlay.height=Math.round(h);
+  const ow=Math.max(320,Math.round(w)),oh=Math.max(240,Math.round(h));
+  if(overlay.width!==ow||overlay.height!==oh){
+    overlay.width=ow;overlay.height=oh;
   }
   const ctx=overlay.getContext("2d");
-  ctx.clearRect(0,0,overlay.width,overlay.height);
+  ctx.clearRect(0,0,ow,oh);
+
   if(visionTermicaLive){
-    // Campo térmico suave: manchas radiales superpuestas, sin cuadrados ni cuadrícula.
+    /*
+      VISIÓN TÉRMICA RADAR · campo continuo.
+      No se dibuja una cuadrícula: los 9 valores se interpolan a una malla
+      fina y se amplían suavemente. La cámara real permanece visible debajo.
+    */
+    const cols=48,rows=27;
+    const field=document.createElement("canvas");
+    field.width=cols;field.height=rows;
+    const fctx=field.getContext("2d");
+    const img=fctx.createImageData(cols,rows);
+    const zonas=analisis.zonas||[];
+    const base=Number.isFinite(combinado)?combinado:50;
+
+    function zscore(col,fila){
+      const z=zonas.find(v=>v.col===col&&v.fila===fila);
+      const visual=Number(z?.visual);
+      return Number.isFinite(visual)?visual:base;
+    }
+    const z00=zscore(0,0),z10=zscore(1,0),z20=zscore(2,0);
+    const z01=zscore(0,1),z11=zscore(1,1),z21=zscore(2,1);
+    const z02=zscore(0,2),z12=zscore(1,2),z22=zscore(2,2);
+
+    function thermalColor(v){
+      // Paleta térmica continua: azul → cian → verde → amarillo → naranja → rojo.
+      const stops=[
+        [0,20,45,180],
+        [20,15,95,210],
+        [38,0,170,235],
+        [52,0,205,165],
+        [66,40,220,80],
+        [78,255,220,25],
+        [88,255,125,10],
+        [96,255,45,0],
+        [100,255,0,0]
+      ];
+      const x=Math.max(0,Math.min(100,v));
+      let a=stops[0],b=stops[stops.length-1];
+      for(let i=0;i<stops.length-1;i++){
+        if(x>=stops[i][0]&&x<=stops[i+1][0]){a=stops[i];b=stops[i+1];break;}
+      }
+      const t=(x-a[0])/Math.max(1,b[0]-a[0]);
+      return [
+        Math.round(a[1]+(b[1]-a[1])*t),
+        Math.round(a[2]+(b[2]-a[2])*t),
+        Math.round(a[3]+(b[3]-a[3])*t)
+      ];
+    }
+
+    for(let y=0;y<rows;y++){
+      const fy=y/(rows-1)*2;
+      const fy0=Math.floor(fy),fy1=Math.min(2,fy0+1),ty=fy-fy0;
+      for(let x=0;x<cols;x++){
+        const fx=x/(cols-1)*2;
+        const fx0=Math.floor(fx),fx1=Math.min(2,fx0+1),tx=fx-fx0;
+        const grid=[
+          [z00,z10,z20],
+          [z01,z11,z21],
+          [z02,z12,z22]
+        ];
+        const top=grid[fy0][fx0]*(1-tx)+grid[fy0][fx1]*tx;
+        const bot=grid[fy1][fx0]*(1-tx)+grid[fy1][fx1]*tx;
+        let v=top*(1-ty)+bot*ty;
+        // El radar ambiental aporta una base estable; la cámara aporta el detalle.
+        v=v*.68+base*.32;
+        const [r,g,b,a]=thermalColor(v);
+        const p=(y*cols+x)*4;
+        img.data[p]=r;img.data[p+1]=g;img.data[p+2]=b;
+        img.data[p+3]=Math.round(a*.78);
+      }
+    }
+    fctx.putImageData(img,0,0);
+
+    // Escalado con suavizado: elimina cualquier sensación de celdas.
+    ctx.save();
+    ctx.imageSmoothingEnabled=true;
+    ctx.globalAlpha=.62;
+    ctx.globalCompositeOperation="screen";
+    ctx.drawImage(field,0,0,ow,oh);
+    ctx.globalAlpha=.22;
+    ctx.filter="blur(8px)";
+    ctx.drawImage(field,0,0,ow,oh);
+    ctx.filter="none";
+    ctx.restore();
+
+    // Halo central muy sutil, orientado al punto que se está explorando.
+    const centro=zscore(1,1);
+    const grad=ctx.createRadialGradient(ow/2,oh/2,0,ow/2,oh/2,Math.max(ow,oh)*.42);
+    const ca=Math.max(.02,Math.min(.16,(centro-35)/500));
+    grad.addColorStop(0,"rgba(255,60,0,"+ca+")");
+    grad.addColorStop(.55,"rgba(255,180,20,"+(ca*.35)+")");
+    grad.addColorStop(1,"rgba(255,255,0,0)");
     ctx.save();
     ctx.globalCompositeOperation="screen";
-    const cw=overlay.width/3,ch=overlay.height/3;
-    analisis.zonas.forEach(z=>{
-      const cx=z.col*cw+cw/2,cy=z.fila*ch+ch/2;
-      const r=Math.max(cw,ch)*.78;
-      const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
-      const col=z.visual>=80?"255,45,25":z.visual>=65?"255,150,20":z.visual>=50?"255,220,50":"20,115,235";
-      const alpha=.05+Math.abs(z.visual-50)/1200;
-      grad.addColorStop(0,"rgba("+col+","+(.18+alpha)+")");
-      grad.addColorStop(.45,"rgba("+col+","+(.10+alpha*.45)+")");
-      grad.addColorStop(1,"rgba("+col+",0)");
-      ctx.fillStyle=grad;
-      ctx.fillRect(0,0,overlay.width,overlay.height);
-    });
+    ctx.fillStyle=grad;
+    ctx.fillRect(0,0,ow,oh);
     ctx.restore();
   }
-  const cx=overlay.width/2,cy=overlay.height/2;
-  ctx.strokeStyle="rgba(255,255,255,.9)";ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(cx-22,cy);ctx.lineTo(cx+22,cy);ctx.moveTo(cx,cy-22);ctx.lineTo(cx,cy+22);ctx.stroke();
-  ctx.strokeStyle="rgba(255,255,255,.65)";ctx.lineWidth=1;
-  ctx.beginPath();ctx.arc(cx,cy,30,0,Math.PI*2);ctx.stroke();
-  ctx.fillStyle="rgba(0,0,0,.62)";
-  ctx.roundRect(8,8,205,32,8);ctx.fill();
-  ctx.fillStyle="#fff";ctx.font="bold 13px sans-serif";ctx.textAlign="left";
-  ctx.fillText("🎯 Zona central "+(analisis.zonas.find(z=>z.fila===1&&z.col===1)?.visual||0)+"/100",16,29);
-}
 
+  // Mira central limpia, siempre visible.
+  const cx=ow/2,cy=oh/2;
+  ctx.save();
+  ctx.strokeStyle="rgba(255,255,255,.92)";
+  ctx.lineWidth=2;
+  ctx.shadowColor="rgba(0,0,0,.65)";
+  ctx.shadowBlur=4;
+  ctx.beginPath();
+  ctx.moveTo(cx-22,cy);ctx.lineTo(cx+22,cy);
+  ctx.moveTo(cx,cy-22);ctx.lineTo(cx,cy+22);
+  ctx.stroke();
+  ctx.strokeStyle="rgba(255,255,255,.62)";
+  ctx.lineWidth=1;
+  ctx.beginPath();ctx.arc(cx,cy,30,0,Math.PI*2);ctx.stroke();
+  ctx.restore();
+
+  ctx.save();
+  ctx.font="700 10px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+  ctx.fillStyle="rgba(255,255,255,.92)";
+  ctx.shadowColor="rgba(0,0,0,.7)";ctx.shadowBlur=4;
+  ctx.fillText("THERMAL RADAR",12,18);
+  ctx.restore();
+}
 function actualizarCandidatoLive(analisis,centro,combinado){
   const caja=$("liveCandidate");
   const mejor=analisis.zonas.slice().sort((a,b)=>b.visual-a.visual)[0];
