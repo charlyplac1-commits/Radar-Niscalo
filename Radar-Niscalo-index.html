@@ -1045,11 +1045,12 @@ style="overflow:auto;margin-top:12px">
   <div style="display:flex;gap:8px;flex-wrap:wrap">
     <button id="btnLiveStart" onclick="iniciarRadarVisual()">🎥 Iniciar radar visual</button>
     <button id="btnLiveAnalyze" onclick="analizarZonaLive()" style="display:none">🎯 Analizar zona</button>
-    <button id="btnLiveThermal" class="secondary" onclick="alternarVisionTermicaLive()">👁️ Visión térmica: ON</button>
+    <button id="btnLiveNormal" class="" onclick="seleccionarVisionLive('normal')">📷 Cámara normal</button>
+    <button id="btnLiveThermal" class="secondary" onclick="seleccionarVisionLive('thermal')">🌡️ Visión térmica</button>
     <button id="btnLiveStop" class="danger" onclick="detenerRadarVisual()" style="display:none">✕ Parar cámara</button>
   </div>
   <div id="liveCandidate" class="notice" style="margin-top:10px">Esperando cámara…</div>
-  <p class="muted" style="margin-top:10px">La <b>visión térmica</b> es una superposición visual sobre el vídeo real: las zonas cálidas indican mayor compatibilidad según el Radar y la visión del terreno. No es una cámara infrarroja real ni confirma un níscalo.</p>
+  <p class="muted" style="margin-top:10px">La <b>visión térmica</b> es un modo independiente de la cámara normal. Convierte el vídeo en una paleta térmica de alto contraste; el Radar modula la lectura de las zonas favorables. No es un sensor infrarrojo real ni confirma un níscalo.</p>
 </div>
 
 <div id="scannerFotos" style="display:none">
@@ -2780,7 +2781,8 @@ let liveAnim=null;
 let liveCanvas=null;
 let liveCtx=null;
 let liveUltimoAnalisis=0;
-let visionTermicaLive=true;
+let visionTermicaLive=false;
+let modoVisionLive="normal";
 const MAX_FOTOS_ESCANEO=3;
 
 function cambiarModoScanner(modo,boton){
@@ -2791,17 +2793,17 @@ function cambiarModoScanner(modo,boton){
   if(modo==="fotos") detenerRadarVisual();
 }
 
+function seleccionarVisionLive(modo){
+  modoVisionLive=modo;
+  visionTermicaLive=modo==="thermal";
+  const bn=$("btnLiveNormal"),bt=$("btnLiveThermal");
+  if(bn)bn.className=modo==="normal"?"":"secondary";
+  if(bt)bt.className=modo==="thermal"?"":"secondary";
+  const o=$("liveOverlay"),ctx=o?.getContext("2d");
+  if(ctx&&modo==="normal")ctx.clearRect(0,0,o.width,o.height);
+}
 function alternarVisionTermicaLive(){
-  visionTermicaLive=!visionTermicaLive;
-  const b=$("btnLiveThermal");
-  if(b){
-    b.textContent=visionTermicaLive?"👁️ Visión térmica: ON":"👁️ Visión térmica: OFF";
-    b.className=visionTermicaLive?"":"secondary";
-  }
-  if(!visionTermicaLive){
-    const o=$("liveOverlay"),ctx=o?.getContext("2d");
-    if(ctx)ctx.clearRect(0,0,o.width,o.height);
-  }
+  seleccionarVisionLive(visionTermicaLive?"normal":"thermal");
 }
 
 async function iniciarRadarVisual(){
@@ -2887,111 +2889,78 @@ function colorHeat(v){
 function dibujarMapaLive(analisis,combinado){
   const overlay=$("liveOverlay"),video=$("liveVideo");
   if(!overlay||!video.videoWidth)return;
-  const w=overlay.clientWidth||video.clientWidth||320,h=overlay.clientHeight||video.clientHeight||240;
-  const ow=Math.max(320,Math.round(w)),oh=Math.max(240,Math.round(h));
-  if(overlay.width!==ow||overlay.height!==oh){
-    overlay.width=ow;overlay.height=oh;
-  }
-  const ctx=overlay.getContext("2d");
+  const ow=Math.max(320,video.videoWidth>video.videoHeight?640:360);
+  const oh=Math.max(240,Math.round(ow*video.videoHeight/video.videoWidth));
+  if(overlay.width!==ow||overlay.height!==oh){overlay.width=ow;overlay.height=oh;}
+  const ctx=overlay.getContext("2d",{willReadFrequently:true});
   ctx.clearRect(0,0,ow,oh);
 
   if(visionTermicaLive){
     /*
-      VISIÓN TÉRMICA RADAR · campo continuo.
-      No se dibuja una cuadrícula: los 9 valores se interpolan a una malla
-      fina y se amplían suavemente. La cámara real permanece visible debajo.
+      VISIÓN TÉRMICA INDEPENDIENTE:
+      no es un velo amarillo. Se convierte la imagen de cámara a una
+      paleta térmica de alto contraste y el Radar modula suavemente
+      la intensidad de las zonas favorables.
     */
-    const cols=48,rows=27;
-    const field=document.createElement("canvas");
-    field.width=cols;field.height=rows;
-    const fctx=field.getContext("2d");
-    const img=fctx.createImageData(cols,rows);
-    const zonas=analisis.zonas||[];
-    const base=Number.isFinite(combinado)?combinado:50;
-
-    function zscore(col,fila){
-      const z=zonas.find(v=>v.col===col&&v.fila===fila);
-      const visual=Number(z?.visual);
-      return Number.isFinite(visual)?visual:base;
-    }
-    const z00=zscore(0,0),z10=zscore(1,0),z20=zscore(2,0);
-    const z01=zscore(0,1),z11=zscore(1,1),z21=zscore(2,1);
-    const z02=zscore(0,2),z12=zscore(1,2),z22=zscore(2,2);
-
-    function thermalColor(v){
-      // Paleta térmica continua: azul → cian → verde → amarillo → naranja → rojo.
-      const stops=[
-        [0,20,45,180],
-        [20,15,95,210],
-        [38,0,170,235],
-        [52,0,205,165],
-        [66,40,220,80],
-        [78,255,220,25],
-        [88,255,125,10],
-        [96,255,45,0],
-        [100,255,0,0]
-      ];
-      const x=Math.max(0,Math.min(100,v));
-      let a=stops[0],b=stops[stops.length-1];
-      for(let i=0;i<stops.length-1;i++){
-        if(x>=stops[i][0]&&x<=stops[i+1][0]){a=stops[i];b=stops[i+1];break;}
+    const src=liveCanvas;
+    if(src){
+      const smallW=320,smallH=240;
+      const tmp=document.createElement("canvas");
+      tmp.width=smallW;tmp.height=smallH;
+      const tctx=tmp.getContext("2d",{willReadFrequently:true});
+      tctx.drawImage(src,0,0,smallW,smallH);
+      const data=tctx.getImageData(0,0,smallW,smallH);
+      const d=data.data;
+      const zonas=analisis.zonas||[];
+      function zscore(px,py){
+        const col=Math.min(2,Math.floor(px*3));
+        const fila=Math.min(2,Math.floor(py*3));
+        const z=zonas.find(v=>v.col===col&&v.fila===fila);
+        return Number.isFinite(Number(z?.visual))?Number(z.visual):Number(combinado)||50;
       }
-      const t=(x-a[0])/Math.max(1,b[0]-a[0]);
-      return [
-        Math.round(a[1]+(b[1]-a[1])*t),
-        Math.round(a[2]+(b[2]-a[2])*t),
-        Math.round(a[3]+(b[3]-a[3])*t)
-      ];
-    }
-
-    for(let y=0;y<rows;y++){
-      const fy=y/(rows-1)*2;
-      const fy0=Math.floor(fy),fy1=Math.min(2,fy0+1),ty=fy-fy0;
-      for(let x=0;x<cols;x++){
-        const fx=x/(cols-1)*2;
-        const fx0=Math.floor(fx),fx1=Math.min(2,fx0+1),tx=fx-fx0;
-        const grid=[
-          [z00,z10,z20],
-          [z01,z11,z21],
-          [z02,z12,z22]
+      function heatColor(v){
+        const stops=[
+          [0,[3,8,35]],[18,[8,35,120]],[35,[0,110,210]],
+          [50,[0,185,115]],[65,[150,220,25]],[78,[255,225,0]],
+          [88,[255,105,0]],[96,[235,20,0]],[100,[255,245,235]]
         ];
-        const top=grid[fy0][fx0]*(1-tx)+grid[fy0][fx1]*tx;
-        const bot=grid[fy1][fx0]*(1-tx)+grid[fy1][fx1]*tx;
-        let v=top*(1-ty)+bot*ty;
-        // El radar ambiental aporta una base estable; la cámara aporta el detalle.
-        v=v*.68+base*.32;
-        const [r,g,b,a]=thermalColor(v);
-        const p=(y*cols+x)*4;
-        img.data[p]=r;img.data[p+1]=g;img.data[p+2]=b;
-        img.data[p+3]=Math.round(a*.78);
+        const x=Math.max(0,Math.min(100,v));
+        let a=stops[0],b=stops[stops.length-1];
+        for(let i=0;i<stops.length-1;i++){if(x>=stops[i][0]&&x<=stops[i+1][0]){a=stops[i];b=stops[i+1];break;}}
+        const t=(x-a[0])/Math.max(1,b[0]-a[0]);
+        return [
+          a[1][0]+(b[1][0]-a[1][0])*t,
+          a[1][1]+(b[1][1]-a[1][1])*t,
+          a[1][2]+(b[1][2]-a[1][2])*t
+        ];
       }
+      for(let y=0;y<smallH;y++){
+        const py=y/smallH;
+        for(let x=0;x<smallW;x++){
+          const i=(y*smallW+x)*4;
+          const r=d[i],g=d[i+1],b=d[i+2];
+          // Luminancia con contraste: la textura real del bosque permanece visible.
+          const lum=(0.2126*r+0.7152*g+0.0722*b)/255;
+          const contrast=Math.max(0,Math.min(1,(lum-.08)/.84));
+          // El radar no colorea toda la imagen: desplaza la lectura térmica de forma local.
+          const local=zscore(x/smallW,y/smallH);
+          const radarInfluence=(local-(Number(combinado)||50))*.16;
+          const thermal=Math.max(0,Math.min(100,(contrast*100)+radarInfluence));
+          const [hr,hg,hb]=heatColor(thermal);
+          // Mezcla mínima con luminancia para conservar relieve y detalle.
+          const detail=.88+.12*contrast;
+          d[i]=Math.round(hr*detail);
+          d[i+1]=Math.round(hg*detail);
+          d[i+2]=Math.round(hb*detail);
+          d[i+3]=255;
+        }
+      }
+      tctx.putImageData(data,0,0);
+      ctx.save();
+      ctx.imageSmoothingEnabled=true;
+      ctx.drawImage(tmp,0,0,ow,oh);
+      ctx.restore();
     }
-    fctx.putImageData(img,0,0);
-
-    // Escalado con suavizado: elimina cualquier sensación de celdas.
-    ctx.save();
-    ctx.imageSmoothingEnabled=true;
-    ctx.globalAlpha=.62;
-    ctx.globalCompositeOperation="screen";
-    ctx.drawImage(field,0,0,ow,oh);
-    ctx.globalAlpha=.22;
-    ctx.filter="blur(8px)";
-    ctx.drawImage(field,0,0,ow,oh);
-    ctx.filter="none";
-    ctx.restore();
-
-    // Halo central muy sutil, orientado al punto que se está explorando.
-    const centro=zscore(1,1);
-    const grad=ctx.createRadialGradient(ow/2,oh/2,0,ow/2,oh/2,Math.max(ow,oh)*.42);
-    const ca=Math.max(.02,Math.min(.16,(centro-35)/500));
-    grad.addColorStop(0,"rgba(255,60,0,"+ca+")");
-    grad.addColorStop(.55,"rgba(255,180,20,"+(ca*.35)+")");
-    grad.addColorStop(1,"rgba(255,255,0,0)");
-    ctx.save();
-    ctx.globalCompositeOperation="screen";
-    ctx.fillStyle=grad;
-    ctx.fillRect(0,0,ow,oh);
-    ctx.restore();
   }
 
   // Mira central limpia, siempre visible.
@@ -3010,12 +2979,14 @@ function dibujarMapaLive(analisis,combinado){
   ctx.beginPath();ctx.arc(cx,cy,30,0,Math.PI*2);ctx.stroke();
   ctx.restore();
 
-  ctx.save();
-  ctx.font="700 10px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
-  ctx.fillStyle="rgba(255,255,255,.92)";
-  ctx.shadowColor="rgba(0,0,0,.7)";ctx.shadowBlur=4;
-  ctx.fillText("THERMAL RADAR",12,18);
-  ctx.restore();
+  if(visionTermicaLive){
+    ctx.save();
+    ctx.font="700 10px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+    ctx.fillStyle="rgba(255,255,255,.92)";
+    ctx.shadowColor="rgba(0,0,0,.75)";ctx.shadowBlur=4;
+    ctx.fillText("THERMAL RADAR",12,18);
+    ctx.restore();
+  }
 }
 function actualizarCandidatoLive(analisis,centro,combinado){
   const caja=$("liveCandidate");
