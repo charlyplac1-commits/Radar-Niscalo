@@ -1105,6 +1105,16 @@ Pulsa «Abrir cámara» para empezar.
 
 <canvas id="fotoCamara" style="width:100%;display:none"></canvas>
 
+<div id="guiaCamara" style="position:absolute;inset:0;display:none;pointer-events:none">
+<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.18),transparent 25%,transparent 75%,rgba(0,0,0,.18))"></div>
+<div style="position:absolute;inset:12%;border:1px solid rgba(255,255,255,.75);border-radius:12px"></div>
+<div style="position:absolute;left:33.33%;top:12%;bottom:12%;border-left:1px solid rgba(255,255,255,.35)"></div>
+<div style="position:absolute;left:66.66%;top:12%;bottom:12%;border-left:1px solid rgba(255,255,255,.35)"></div>
+<div style="position:absolute;top:41.66%;left:12%;right:12%;border-top:1px solid rgba(255,255,255,.35)"></div>
+<div style="position:absolute;top:70%;left:12%;right:12%;border-top:1px solid rgba(255,255,255,.35)"></div>
+<div style="position:absolute;left:0;right:0;bottom:12px;text-align:center;color:white;font-size:12px;text-shadow:0 1px 3px #000">Apunta principalmente al suelo y al bosque · evita cielo y carretera</div>
+</div>
+
 <div id="camaraPlaceholder" style="color:white;text-align:center;padding:80px 15px">
 📷 La cámara aparecerá aquí
 </div>
@@ -2677,6 +2687,7 @@ async function abrirCamara(){
     video.srcObject=streamCamara;
     video.style.display="block";
     $("camaraPlaceholder").style.display="none";
+    $("guiaCamara").style.display="block";
     $("fotoCamara").style.display="none";
     $("btnFotoCamara").style.display="inline-block";
     $("btnCerrarCamara").style.display="inline-block";
@@ -2703,6 +2714,7 @@ function cerrarCamara(){
   video.style.display="none";
   $("fotoCamara").style.display="none";
   $("camaraPlaceholder").style.display="block";
+  $("guiaCamara").style.display="none";
   $("btnFotoCamara").style.display="none";
   $("btnCerrarCamara").style.display="none";
   $("btnAbrirCamara").style.display="inline-block";
@@ -2713,6 +2725,7 @@ function cerrarCamara(){
 function repetirFoto(){
   $("fotoCamara").style.display="none";
   $("videoCamara").style.display="block";
+  $("guiaCamara").style.display="block";
   $("btnFotoCamara").style.display="inline-block";
   $("btnRepetirCamara").style.display="none";
   $("camaraEstado").innerHTML="<b>📷 Cámara activa.</b> Puedes volver a enfocar y hacer otra fotografía.";
@@ -2743,62 +2756,115 @@ async function hacerFoto(){
 
 async function analizarFotoTerreno(canvas){
   /*
-    Primera versión: análisis visual local y combinación con los datos
-    que ya calcula Radar Níscalo. No envía la fotografía a ningún servidor.
-    Más adelante podremos añadir un modelo de visión real.
+    Segunda versión del escáner:
+    divide la fotografía en una cuadrícula 3x3 y calcula una señal visual
+    independiente para cada zona. El objetivo es localizar "puntos de
+    interés" dentro de la imagen, no afirmar que exista un níscalo.
   */
   try{
-    const ctx=canvas.getContext("2d");
+    const ctx=canvas.getContext("2d",{willReadFrequently:true});
     const w=canvas.width;
     const h=canvas.height;
-    const sample=ctx.getImageData(0,0,w,h, {willReadFrequently:true}).data;
 
-    let verdes=0, marrones=0, oscuros=0, claros=0, total=0;
+    const radarRaw=Number($("score").textContent);
+    const radarVal=Number.isFinite(radarRaw)?radarRaw:50;
 
-    /* Muestreo para no procesar todos los píxeles */
-    const paso=Math.max(4,Math.floor(Math.sqrt((w*h)/50000)));
+    const zonas=[];
+    let sumaVisual=0;
 
-    for(let y=0;y<h;y+=paso){
-      for(let x=0;x<w;x+=paso){
-        const i=(y*w+x)*4;
-        const r=sample[i], g=sample[i+1], b=sample[i+2];
-        const brillo=(r+g+b)/3;
-        total++;
+    for(let fila=0;fila<3;fila++){
+      for(let col=0;col<3;col++){
+        const x0=Math.floor(col*w/3);
+        const y0=Math.floor(fila*h/3);
+        const x1=Math.floor((col+1)*w/3);
+        const y1=Math.floor((fila+1)*h/3);
+        const datos=ctx.getImageData(x0,y0,x1-x0,y1-y0).data;
 
-        if(g>r*1.08 && g>b*1.05) verdes++;
-        if(r>g*1.08 && g>b*1.05 && r>55 && g>35) marrones++;
-        if(brillo<70) oscuros++;
-        if(brillo>190) claros++;
+        let verdes=0,marrones=0,oscuros=0,claros=0,total=0;
+        const paso=Math.max(4,Math.floor(Math.sqrt(((x1-x0)*(y1-y0))/9000)));
+
+        for(let y=0;y<y1-y0;y+=paso){
+          for(let x=0;x<x1-x0;x+=paso){
+            const i=(y*(x1-x0)+x)*4;
+            const r=datos[i],g=datos[i+1],b=datos[i+2];
+            const brillo=(r+g+b)/3;
+            total++;
+
+            if(g>r*1.08 && g>b*1.05) verdes++;
+            if(r>g*1.08 && g>b*1.05 && r>55 && g>35) marrones++;
+            if(brillo<75) oscuros++;
+            if(brillo>195) claros++;
+          }
+        }
+
+        const pv=verdes/Math.max(1,total);
+        const pm=marrones/Math.max(1,total);
+        const po=oscuros/Math.max(1,total);
+        const pc=claros/Math.max(1,total);
+
+        let visual=50;
+        visual+=Math.min(20,pv*45);
+        visual+=Math.min(18,pm*40);
+        visual+=Math.min(8,po*12);
+        visual-=Math.min(22,pc*28);
+        visual=Math.max(0,Math.min(100,Math.round(visual)));
+
+        const combinado=Math.round(radarVal*0.70+visual*0.30);
+        zonas.push({fila,col,visual,combinado,pv,pm});
+        sumaVisual+=visual;
       }
     }
 
-    const porcentajeVerde=verdes/total;
-    const porcentajeMarron=marrones/total;
-    const porcentajeOscuro=oscuros/total;
-    const porcentajeClaro=claros/total;
+    const visualGlobal=Math.round(sumaVisual/zonas.length);
+    const mejor=zonas.slice().sort((a,b)=>b.combinado-a.combinado).slice(0,3);
+    const combinadoGlobal=Math.round(radarVal*0.70+visualGlobal*0.30);
 
     /*
-      Señal visual deliberadamente prudente:
-      bosque/vegetación + suelo oscuro/marrón suele ser más compatible
-      que una imagen dominada por cielo, roca clara o superficies urbanas.
+      Dibujamos sobre la fotografía una "cartografía visual" sencilla.
+      Verde = zona visualmente más compatible.
+      Rojo = menos compatible.
     */
-    let visual=50;
-    visual += Math.min(20,porcentajeVerde*45);
-    visual += Math.min(15,porcentajeMarron*35);
-    visual += Math.min(8,porcentajeOscuro*12);
-    visual -= Math.min(18,porcentajeClaro*25);
-    visual=Math.max(0,Math.min(100,Math.round(visual)));
+    ctx.drawImage(canvas,0,0);
 
-    const radar=Number($("score").textContent);
-    const radarVal=Number.isFinite(radar)?radar:50;
+    zonas.forEach(z=>{
+      const x=z.col*w/3;
+      const y=z.fila*h/3;
+      const zw=w/3;
+      const zh=h/3;
 
-    const combinado=Math.round(radarVal*0.70+visual*0.30);
+      let alpha=0.10;
+      if(z.combinado>=75) alpha=0.30;
+      else if(z.combinado>=60) alpha=0.22;
+      else if(z.combinado<45) alpha=0.20;
 
-    let lectura=
-      combinado>=80?"Muy compatible":
-      combinado>=65?"Compatible":
-      combinado>=50?"Posible":
+      ctx.fillStyle =
+        z.combinado>=75 ? "rgba(40,180,70,"+alpha+")" :
+        z.combinado>=60 ? "rgba(235,190,40,"+alpha+")" :
+        "rgba(210,65,50,"+alpha+")";
+
+      ctx.fillRect(x,y,zw,zh);
+      ctx.strokeStyle="rgba(255,255,255,.75)";
+      ctx.lineWidth=Math.max(2,w/600);
+      ctx.strokeRect(x+1,y+1,zw-2,zh-2);
+
+      ctx.fillStyle="rgba(0,0,0,.62)";
+      ctx.fillRect(x+8,y+8,100,28);
+      ctx.fillStyle="#fff";
+      ctx.font=Math.max(14,w/70)+"px sans-serif";
+      ctx.fillText(z.combinado+"/100",x+16,y+28);
+    });
+
+    const lectura=
+      combinadoGlobal>=80?"Muy compatible":
+      combinadoGlobal>=65?"Compatible":
+      combinadoGlobal>=50?"Posible":
       "Poco compatible";
+
+    const etiquetas=mejor.map(z=>{
+      const letras=["N","NE","E","SE","S","SO","O","NO","CENTRO"];
+      const indice=z.fila*3+z.col;
+      return letras[indice]||("zona "+(indice+1));
+    });
 
     const lat=Number($("lat").value);
     const lon=Number($("lon").value);
@@ -2807,21 +2873,21 @@ async function analizarFotoTerreno(canvas){
 
     $("resultadoEscaner").innerHTML=
       "<div class='notice'>"+
-      "<b>🍄 Resultado del escaneo: "+combinado+"/100</b><br>"+
-      "Nivel: <b>"+lectura+"</b>"+
-      "<br><br>"+
-      "📷 Señal visual: <b>"+visual+"/100</b>"+
+      "<b>🍄 Cartografiado visual: "+combinadoGlobal+"/100 · "+lectura+"</b>"+
+      "<br><br>🟢 <b>Las zonas verdes de la imagen son las que el análisis considera más interesantes.</b>"+
+      "<br>📍 Zonas destacadas: <b>"+etiquetas.join(", ")+"</b>"+
+      "<br>📷 Señal visual global: <b>"+visualGlobal+"/100</b>"+
       "<br>🍄 Radar ambiental: <b>"+radarVal+"/100</b>"+
       (Number.isFinite(habitat) ? "<br>🌲 Hábitat cartografiado: <b>"+Math.round(habitat*100)+"/100</b>" : "")+
       (Number.isFinite(suelo) ? "<br>🪨 Suelo cartografiado: <b>"+Math.round(suelo*100)+"/100</b>" : "")+
-      (Number.isFinite(lat)&&Number.isFinite(lon) ? "<br>📍 Punto analizado: "+lat.toFixed(4)+", "+lon.toFixed(4) : "")+
-      "<br><br><span class='muted'>La cámara analiza únicamente características visibles de la fotografía. No puede ver níscalos ocultos bajo la hojarasca y esta versión no identifica ejemplares de forma automática.</span>"+
+      (Number.isFinite(lat)&&Number.isFinite(lon) ? "<br>📍 Punto GPS: "+lat.toFixed(4)+", "+lon.toFixed(4) : "")+
+      "<br><br><span class='muted'>Esto es un mapa visual experimental basado en la imagen y el Radar. No detecta níscalos ocultos ni sustituye una identificación de la seta.</span>"+
       "</div>";
 
-    $("camaraEstado").innerHTML="<b>✅ Análisis terminado.</b> Puedes repetir la fotografía.";
+    $("camaraEstado").innerHTML="<b>✅ Cartografiado terminado.</b> Las zonas de la fotografía han quedado marcadas por nivel de interés.";
   }catch(error){
     console.error("Análisis de fotografía:",error);
-    $("camaraEstado").textContent="La fotografía se ha tomado, pero no se pudo analizar.";
+    $("camaraEstado").textContent="La fotografía se ha tomado, pero no se pudo cartografiar.";
   }
 }
 
