@@ -732,6 +732,27 @@ header.app-header .brand,header.app-header .header-status{position:relative;z-in
   .splash-copy{bottom:8%}
 }
 
+
+
+/* ===== SPLASH PROFESIONAL PROCEDURAL · BOSQUE + MANCHA NATURAL DE REBOLLONES ===== */
+#appSplash{background:#11140f!important}
+.splash-pro-scene{position:relative;width:100%;height:100%;overflow:hidden;background:#151b14}
+.splash-pro-art{position:absolute;inset:0;width:100%;height:100%;display:block;transform:scale(1.015);animation:splashProDrift 16s ease-in-out infinite alternate}
+.splash-pro-vignette{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(4,10,6,.25),transparent 30%,rgba(3,7,4,.12) 55%,rgba(2,5,3,.78) 100%),radial-gradient(ellipse at 50% 55%,transparent 28%,rgba(0,0,0,.48) 100%);pointer-events:none}
+.splash-pro-grain{position:absolute;inset:0;opacity:.075;mix-blend-mode:soft-light;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.32'/%3E%3C/svg%3E")}
+.splash-pro-spores{position:absolute;inset:0;pointer-events:none}
+.splash-pro-spores i{position:absolute;width:3px;height:3px;border-radius:50%;background:#f4e7bf;box-shadow:0 0 9px rgba(244,231,191,.7);opacity:.15;animation:proSpore 6s ease-in-out infinite}
+.splash-pro-spores i:nth-child(1){left:18%;top:42%;animation-delay:-1s}.splash-pro-spores i:nth-child(2){left:28%;top:31%;animation-delay:-3s}.splash-pro-spores i:nth-child(3){left:39%;top:45%;animation-delay:-2s}.splash-pro-spores i:nth-child(4){left:52%;top:29%;animation-delay:-4s}.splash-pro-spores i:nth-child(5){left:64%;top:40%;animation-delay:-1.5s}.splash-pro-spores i:nth-child(6){left:75%;top:32%;animation-delay:-3.5s}.splash-pro-spores i:nth-child(7){left:84%;top:49%;animation-delay:-2.5s}.splash-pro-spores i:nth-child(8){left:47%;top:53%;animation-delay:-4.5s}
+.splash-pro-copy{position:absolute;left:0;right:0;bottom:9%;text-align:center;color:#fff;padding:0 22px;text-shadow:0 2px 18px rgba(0,0,0,.9);z-index:3}
+.splash-pro-copy .splash-brand{font-size:11px;font-weight:950;letter-spacing:3px;opacity:.94}
+.splash-pro-copy .splash-title{font-size:26px;font-weight:900;letter-spacing:-.5px;margin-top:9px}
+.splash-pro-copy .splash-sub{font-size:11px;opacity:.82;margin-top:6px;letter-spacing:.8px}
+.splash-pro-copy .splash-scan{width:170px;height:3px;margin:19px auto 0;border-radius:10px;overflow:hidden;background:rgba(255,255,255,.17)}
+.splash-pro-copy .splash-scan i{display:block;width:38%;height:100%;background:#e8a65b;box-shadow:0 0 14px #e8a65b;animation:splashScan 1.15s ease-in-out infinite}
+@keyframes splashProDrift{0%{transform:scale(1.015) translate3d(0,0,0)}100%{transform:scale(1.045) translate3d(-.6%,-.35%,0)}}
+@keyframes proSpore{0%,100%{transform:translate3d(0,0,0);opacity:.08}45%{opacity:.48}60%{transform:translate3d(15px,-34px,0);opacity:.32}}
+@media(max-width:720px){.splash-pro-copy{bottom:8%}.splash-pro-copy .splash-title{font-size:24px}.splash-pro-copy .splash-sub{font-size:10px}.splash-pro-copy .splash-brand{font-size:10px;letter-spacing:2.5px}}
+
 </style>
 
 <script>
@@ -743,22 +764,119 @@ if("serviceWorker" in navigator){
 
 <body>
 <div id="appSplash" aria-hidden="true">
-  <div class="splash-photo-scene">
-    <div class="splash-photo-forest"></div>
-    <div class="splash-photo-light"></div>
-    <div class="splash-photo-mush"></div>
-    <div class="splash-photo-vignette"></div>
-    <div class="splash-photo-spores" aria-hidden="true">
-      <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-    </div>
-    <div class="splash-copy">
-      <div class="splash-brand">🍄 <span>RADAR NÍSCALO</span></div>
+  <div class="splash-pro-scene">
+    <svg class="splash-pro-art" viewBox="0 0 900 1600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#172d24"/><stop offset=".45" stop-color="#42634b"/><stop offset="1" stop-color="#18251b"/></linearGradient>
+        <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5d6044"/><stop offset=".35" stop-color="#3c3827"/><stop offset="1" stop-color="#17160f"/></linearGradient>
+        <radialGradient id="sun"><stop stop-color="#fff7c9" stop-opacity=".72"/><stop offset=".35" stop-color="#d8c98d" stop-opacity=".18"/><stop offset="1" stop-color="#d8c98d" stop-opacity="0"/></radialGradient>
+        <radialGradient id="cap"><stop offset="0" stop-color="#d98a3e"/><stop offset=".5" stop-color="#b95827"/><stop offset=".82" stop-color="#7d351d"/><stop offset="1" stop-color="#4b2116"/></radialGradient>
+        <linearGradient id="stem" x1="0" x2="1"><stop stop-color="#d8c6a0"/><stop offset=".5" stop-color="#b9a27d"/><stop offset="1" stop-color="#76624a"/></linearGradient>
+        <filter id="soft"><feGaussianBlur stdDeviation="18"/></filter>
+        <filter id="mist"><feGaussianBlur stdDeviation="7"/></filter>
+        <filter id="shadow"><feGaussianBlur in="SourceAlpha" stdDeviation="10"/><feOffset dy="12"/><feComponentTransfer><feFuncA type="linear" slope=".42"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+
+      <rect width="900" height="1600" fill="url(#sky)"/>
+      <ellipse cx="610" cy="360" rx="330" ry="300" fill="url(#sun)" filter="url(#soft)"/>
+
+      <!-- pinar profundo -->
+      <g opacity=".82">
+        <path d="M90 0L42 1120h130L126 0z" fill="#20291f"/>
+        <path d="M290 0L250 1080h115L338 0z" fill="#283126"/>
+        <path d="M520 0L474 1010h120L560 0z" fill="#1e2920"/>
+        <path d="M760 0L705 1120h135L802 0z" fill="#1b241c"/>
+        <g fill="#223a29" opacity=".8">
+          <path d="M0 250L120 90l120 160-90-28 85 130-105-54-92 72z"/>
+          <path d="M190 310L330 105l150 205-105-38 105 145-142-64-108 92z"/>
+          <path d="M430 250L550 70l160 190-118-35 125 150-148-67-105 86z"/>
+          <path d="M650 310L790 100l150 205-108-38 68 138-128-61-100 87z"/>
+        </g>
+      </g>
+
+      <!-- troncos cercanos -->
+      <g opacity=".96">
+        <path d="M-30 0L-5 1060 105 1110 145 0z" fill="#302c20"/>
+        <path d="M175 0L205 980l92 65L310 0z" fill="#3a3324"/>
+        <path d="M665 0L625 1050l112 45L780 0z" fill="#332d21"/>
+        <path d="M840 0L810 1070l105 35L940 0z" fill="#29271e"/>
+        <g stroke="#6a5b40" stroke-width="9" opacity=".3">
+          <path d="M48 90l-18 840M244 140l8 720M704 80l-25 860M878 120l-20 850"/>
+        </g>
+      </g>
+
+      <!-- ramas y copas -->
+      <g fill="none" stroke="#182219" stroke-linecap="round" opacity=".9">
+        <path d="M60 260C170 220 235 300 360 390M250 180C350 160 450 230 535 320M690 210C600 260 560 340 480 420M840 270C740 300 710 390 610 455" stroke-width="34"/>
+        <path d="M110 330C240 300 330 390 430 480M760 350C650 390 590 470 500 530" stroke-width="24"/>
+      </g>
+
+      <!-- suelo forestal -->
+      <path d="M0 930 Q220 870 450 960 T900 920 V1600H0Z" fill="url(#ground)"/>
+      <path d="M0 1040 Q180 950 370 1040T900 1000V1600H0Z" fill="#29271c" opacity=".62"/>
+
+      <!-- hojarasca -->
+      <g stroke-linecap="round" opacity=".78">
+        <g stroke="#796344" stroke-width="8"><path d="M35 1110l90 32M160 1210l105-20M320 1090l75 28M500 1190l115-38M700 1080l95 34M790 1300l80-22M50 1400l115-28M360 1370l95 40M570 1460l120-34"/></g>
+        <g stroke="#9a7b50" stroke-width="4"><path d="M80 1180l55-44M230 1320l72-62M420 1140l52-58M620 1260l64-62M730 1450l80-58M300 1490l60-72"/></g>
+      </g>
+
+      <!-- mancha natural de rebollones, varios tamaños y parcialmente ocultos -->
+      <g filter="url(#shadow)">
+        <!-- grande izquierda -->
+        <path d="M248 1260C251 1192 282 1155 316 1158C345 1162 363 1202 360 1260Z" fill="url(#cap)"/>
+        <path d="M248 1258C275 1232 332 1225 360 1257C345 1278 271 1281 248 1258Z" fill="#74351f" opacity=".6"/>
+        <path d="M287 1255L288 1328Q306 1344 327 1328L327 1254Z" fill="url(#stem)"/>
+        <path d="M263 1218Q300 1195 344 1216M270 1235Q305 1210 350 1232" fill="none" stroke="#f0b66a" stroke-opacity=".34" stroke-width="7"/>
+
+        <!-- pequeño frontal -->
+        <path d="M410 1320C414 1281 434 1259 457 1262C478 1266 488 1290 488 1320Z" fill="url(#cap)"/>
+        <path d="M430 1318L432 1360Q448 1370 463 1358L463 1318Z" fill="url(#stem)"/>
+
+        <!-- grupo central tras hierba -->
+        <path d="M505 1230C511 1176 543 1144 580 1150C610 1155 625 1186 625 1230Z" fill="url(#cap)"/>
+        <path d="M535 1226L538 1302Q557 1316 579 1301L582 1227Z" fill="url(#stem)"/>
+        <path d="M540 1195Q568 1176 607 1195" fill="none" stroke="#efb267" stroke-opacity=".32" stroke-width="7"/>
+
+        <!-- ejemplar lateral parcialmente escondido -->
+        <path d="M635 1325C638 1282 661 1258 686 1264C708 1270 720 1293 720 1325Z" fill="url(#cap)"/>
+        <path d="M655 1320L657 1370Q674 1382 692 1368L694 1320Z" fill="url(#stem)"/>
+
+        <!-- pequeño detrás -->
+        <path d="M365 1205C368 1174 385 1155 405 1158C423 1161 432 1180 432 1206Z" fill="#9f4b25"/>
+        <path d="M382 1204L384 1248Q398 1258 411 1247L412 1204Z" fill="url(#stem)"/>
+      </g>
+
+      <!-- hierbas que integran las setas en el terreno -->
+      <g fill="none" stroke-linecap="round">
+        <path d="M220 1360q-15-90 22-142M235 1360q12-78 62-128M475 1390q-6-100 32-150M500 1395q25-85 72-132M615 1405q-5-100 34-158M710 1390q20-76 60-112" stroke="#56603d" stroke-width="7"/>
+        <path d="M195 1320q30-40 55-46M450 1350q30-48 55-60M610 1350q30-50 58-56" stroke="#7a7448" stroke-width="5"/>
+      </g>
+
+      <!-- bruma baja -->
+      <path d="M0 980Q210 910 430 1000T900 950V1160Q670 1080 450 1160T0 1100Z" fill="#d6d5bb" opacity=".11" filter="url(#mist)"/>
+      <rect width="900" height="1600" fill="url(#sun)" opacity=".18"/>
+
+      <!-- luz de profundidad -->
+      <g opacity=".12" filter="url(#soft)">
+        <path d="M170 0L500 1100L430 1110L80 0Z" fill="#f6e8b0"/>
+        <path d="M520 0L610 1060L550 1070L455 0Z" fill="#fff0bc"/>
+      </g>
+    </svg>
+
+    <div class="splash-pro-vignette"></div>
+    <div class="splash-pro-grain"></div>
+    <div class="splash-pro-spores"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+
+    <div class="splash-pro-copy">
+      <div class="splash-brand">🍄 RADAR NÍSCALO</div>
       <div class="splash-title">Preparando el radar del rebollón…</div>
       <div class="splash-sub"><i>Lactarius deliciosus</i> · bosque · suelo · lluvia · IA</div>
       <div class="splash-scan"><i></i></div>
     </div>
   </div>
 </div>
+
 
 <header class="app-header">
   <div class="brand">
