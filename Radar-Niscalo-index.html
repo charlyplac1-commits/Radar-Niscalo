@@ -434,6 +434,9 @@ height:330px;
 
 }
 
+
+.livebox{min-height:280px}
+#liveOverlay{touch-action:none}
 </style>
 
 </head>
@@ -1085,43 +1088,81 @@ style="margin-top:15px">
 
 <!-- ================= ESCÁNER ================= -->
 
+
 <section id="escanner" style="display:none">
 <div class="card">
-<h2>📷 Escáner de terreno</h2>
-<p class="muted">Haz hasta 3 fotografías del entorno: una vista general, una del suelo y otra lateral. El escáner combina las tres señales visuales con el Radar ambiental, hábitat y suelo cartografiados.</p>
-<div id="camaraEstado" class="notice" style="margin-bottom:10px">Pulsa «Abrir cámara» para empezar.</div>
-<div style="position:relative;background:#111;border-radius:15px;overflow:hidden;min-height:240px">
-<video id="videoCamara" autoplay playsinline muted style="width:100%;display:none;max-height:520px;object-fit:cover"></video>
-<canvas id="fotoCamara" style="width:100%;display:none"></canvas>
-<div id="guiaCamara" style="position:absolute;inset:0;display:none;pointer-events:none">
-<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.18),transparent 25%,transparent 75%,rgba(0,0,0,.18))"></div>
-<div style="position:absolute;inset:12%;border:1px solid rgba(255,255,255,.75);border-radius:12px"></div>
-<div style="position:absolute;left:33.33%;top:12%;bottom:12%;border-left:1px solid rgba(255,255,255,.35)"></div>
-<div style="position:absolute;left:66.66%;top:12%;bottom:12%;border-left:1px solid rgba(255,255,255,.35)"></div>
-<div style="position:absolute;top:41.66%;left:12%;right:12%;border-top:1px solid rgba(255,255,255,.35)"></div>
-<div style="position:absolute;top:70%;left:12%;right:12%;border-top:1px solid rgba(255,255,255,.35)"></div>
-<div style="position:absolute;left:0;right:0;bottom:12px;text-align:center;color:white;font-size:12px;text-shadow:0 1px 3px #000">Apunta al bosque y al suelo · haz 3 vistas diferentes</div>
+<h2>🍄 Escáner avanzado de níscalos</h2>
+<p class="muted">Dos modos: <b>Radar visual en directo</b> para recorrer el bosque y <b>Escaneo fotográfico</b> para analizar tres vistas. Todo el análisis visual se realiza en el navegador.</p>
+
+<div class="tabs" style="margin-top:10px">
+<button id="modoLiveBtn" class="on" onclick="cambiarModoScanner('live',this)">🎥 Radar visual</button>
+<button id="modoFotosBtn" onclick="cambiarModoScanner('fotos',this)">📷 3 fotografías</button>
 </div>
-<div id="camaraPlaceholder" style="color:white;text-align:center;padding:80px 15px">📷 La cámara aparecerá aquí</div>
+
+<div id="scannerLive">
+  <div id="liveEstado" class="notice">Pulsa «Iniciar radar visual» para activar la cámara.</div>
+  <div class="livebox" style="position:relative;background:#111;border-radius:16px;overflow:hidden;min-height:280px">
+    <video id="liveVideo" autoplay playsinline muted style="width:100%;display:none;max-height:620px;object-fit:cover"></video>
+    <canvas id="liveOverlay" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none"></canvas>
+    <div id="livePlaceholder" style="color:white;text-align:center;padding:95px 15px">🎥 El radar visual aparecerá aquí</div>
+  </div>
+  <div class="grid" style="margin-top:10px">
+    <div class="card" style="margin:0"><div class="big" id="liveScore">--</div><div class="muted">Compatibilidad visual</div></div>
+    <div class="card" style="margin:0"><div class="big" id="liveCenter">--</div><div class="muted">🎯 Zona central</div></div>
+    <div class="card" style="margin:0"><div class="big" id="liveRadar">--</div><div class="muted">Radar ambiental</div></div>
+    <div class="card" style="margin:0"><div class="big" id="liveCombined">--</div><div class="muted">Señal combinada</div></div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button id="btnLiveStart" onclick="iniciarRadarVisual()">🎥 Iniciar radar visual</button>
+    <button id="btnLiveAnalyze" onclick="analizarZonaLive()" style="display:none">🎯 Analizar zona</button>
+    <button id="btnLiveStop" class="danger" onclick="detenerRadarVisual()" style="display:none">✕ Parar cámara</button>
+  </div>
+  <div id="liveCandidate" class="notice" style="margin-top:10px">Esperando cámara…</div>
+  <p class="muted" style="margin-top:10px">El mapa de color representa <b>compatibilidad visual del terreno</b>, no una cámara térmica. Un recuadro de «posible níscalo» es una señal experimental y debe confirmarse visualmente.</p>
 </div>
-<div style="display:flex;gap:8px;flex-wrap:wrap">
-<button id="btnAbrirCamara" onclick="abrirCamara()">📷 Abrir cámara</button>
-<button id="btnFotoCamara" onclick="hacerFoto()" style="display:none">📸 Analizar foto 1/3</button>
-<button id="btnRepetirCamara" class="secondary" onclick="repetirFoto()" style="display:none">🔄 Repetir</button>
-<button id="btnCerrarCamara" class="danger" onclick="cerrarCamara()" style="display:none">✕ Cerrar</button>
+
+<div id="scannerFotos" style="display:none">
+  <div id="camaraEstado" class="notice" style="margin-bottom:10px">Pulsa «Abrir cámara» para empezar.</div>
+  <div style="position:relative;background:#111;border-radius:15px;overflow:hidden;min-height:240px">
+    <video id="videoCamara" autoplay playsinline muted style="width:100%;display:none;max-height:520px;object-fit:cover"></video>
+    <canvas id="fotoCamara" style="width:100%;display:none"></canvas>
+    <div id="guiaCamara" style="position:absolute;inset:0;display:none;pointer-events:none">
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.18),transparent 25%,transparent 75%,rgba(0,0,0,.18))"></div>
+      <div style="position:absolute;inset:12%;border:1px solid rgba(255,255,255,.75);border-radius:12px"></div>
+      <div style="position:absolute;left:33.33%;top:12%;bottom:12%;border-left:1px solid rgba(255,255,255,.35)"></div>
+      <div style="position:absolute;left:66.66%;top:12%;bottom:12%;border-left:1px solid rgba(255,255,255,.35)"></div>
+      <div style="position:absolute;top:41.66%;left:12%;right:12%;border-top:1px solid rgba(255,255,255,.35)"></div>
+      <div style="position:absolute;top:70%;left:12%;right:12%;border-top:1px solid rgba(255,255,255,.35)"></div>
+      <div style="position:absolute;left:0;right:0;bottom:12px;text-align:center;color:white;font-size:12px;text-shadow:0 1px 3px #000">Apunta al bosque y al suelo · haz 3 vistas diferentes</div>
+    </div>
+    <div id="camaraPlaceholder" style="color:white;text-align:center;padding:80px 15px">📷 La cámara aparecerá aquí</div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button id="btnAbrirCamara" onclick="abrirCamara()">📷 Abrir cámara</button>
+    <button id="btnFotoCamara" onclick="hacerFoto()" style="display:none">📸 Analizar foto 1/3</button>
+    <button id="btnRepetirCamara" class="secondary" onclick="repetirFoto()" style="display:none">🔄 Repetir</button>
+    <button id="btnCerrarCamara" class="danger" onclick="cerrarCamara()" style="display:none">✕ Cerrar</button>
+  </div>
+  <div id="resultadoEscaner" style="margin-top:12px"></div>
 </div>
-<div id="resultadoEscaner" style="margin-top:12px"></div>
-</div>
+
 <div class="card">
-<h3>🧭 Cómo hacerlo</h3>
-<div class="badge">1️⃣ Vista general</div><div class="badge">2️⃣ Suelo</div><div class="badge">3️⃣ Vista lateral</div>
-<p class="muted" style="margin-top:10px">No hace falta que las fotos sean perfectas. El programa compara las tres y genera una señal visual conjunta. No detecta níscalos ocultos.</p>
+<h3>🧠 Qué está haciendo el sistema</h3>
+<div class="badge">👁️ Visión del terreno</div>
+<div class="badge">🌲 Hábitat</div>
+<div class="badge">🌧️ Meteorología</div>
+<div class="badge">📚 Evidencia pública</div>
+<div class="badge">🍄 Candidato visual</div>
+<p class="muted" style="margin-top:10px">La aplicación combina señales independientes. No convierte una coincidencia visual en una identificación segura de especie.</p>
 </div>
+
 <div class="card">
 <h3>💾 Escaneos guardados</h3>
 <div id="listaEscaneos"><span class="muted">Todavía no hay escaneos guardados.</span></div>
 </div>
+</div>
 </section>
+
 
 </main>
 
@@ -2618,108 +2659,296 @@ caja.innerHTML="<b>Fuente pública no disponible ahora.</b><br><span class='mute
 }
 
 
-/* ================= ESCÁNER DE TERRENO ================= */
+
+/* ================= ESCÁNER AVANZADO ================= */
 let streamCamara=null;
+let streamLive=null;
 let fotosEscaneo=[];
+let liveAnim=null;
+let liveCanvas=null;
+let liveCtx=null;
+let liveUltimoAnalisis=0;
 const MAX_FOTOS_ESCANEO=3;
 
-async function abrirCamara(){
-  const estado=$("camaraEstado"), video=$("videoCamara");
+function cambiarModoScanner(modo,boton){
+  $("scannerLive").style.display=modo==="live"?"block":"none";
+  $("scannerFotos").style.display=modo==="fotos"?"block":"none";
+  document.querySelectorAll("#escanner .tabs button").forEach(b=>b.classList.remove("on"));
+  boton.classList.add("on");
+  if(modo==="fotos") detenerRadarVisual();
+}
+
+async function iniciarRadarVisual(){
+  const estado=$("liveEstado"),video=$("liveVideo"),overlay=$("liveOverlay");
   try{
-    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error("Cámara no disponible");
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error("Cámara no disponible");
+    detenerRadarVisual();
+    estado.innerHTML="Solicitando permiso para usar la cámara…";
+    streamLive=await navigator.mediaDevices.getUserMedia({
+      audio:false,
+      video:{
+        facingMode:{ideal:"environment"},
+        width:{ideal:1280},
+        height:{ideal:720},
+        frameRate:{ideal:15,max:20}
+      }
+    });
+    video.srcObject=streamLive;
+    await video.play();
+    video.style.display="block";
+    $("livePlaceholder").style.display="none";
+    overlay.style.display="block";
+    $("btnLiveStart").style.display="none";
+    $("btnLiveAnalyze").style.display="inline-block";
+    $("btnLiveStop").style.display="inline-block";
+    estado.innerHTML="<b>🎥 Radar visual activo.</b> Mueve lentamente la cámara por el suelo y el bosque.";
+    liveCanvas=document.createElement("canvas");
+    liveCanvas.width=320;
+    liveCanvas.height=240;
+    liveCtx=liveCanvas.getContext("2d",{willReadFrequently:true});
+    liveBucle(performance.now());
+  }catch(error){
+    console.error(error);
+    estado.innerHTML="<b>⚠️ No se pudo abrir la cámara.</b><br><span class='muted'>Comprueba el permiso y que estás usando HTTPS.</span>";
+  }
+}
+
+function detenerRadarVisual(){
+  if(liveAnim){cancelAnimationFrame(liveAnim);liveAnim=null;}
+  if(streamLive){streamLive.getTracks().forEach(t=>t.stop());streamLive=null;}
+  const video=$("liveVideo"),overlay=$("liveOverlay");
+  if(video){video.pause();video.srcObject=null;video.style.display="none";}
+  if(overlay){overlay.style.display="none";}
+  if($("livePlaceholder")) $("livePlaceholder").style.display="block";
+  if($("btnLiveStart")) $("btnLiveStart").style.display="inline-block";
+  if($("btnLiveAnalyze")) $("btnLiveAnalyze").style.display="none";
+  if($("btnLiveStop")) $("btnLiveStop").style.display="none";
+}
+
+function liveBucle(ahora){
+  if(!streamLive||!liveCanvas)return;
+  liveAnim=requestAnimationFrame(liveBucle);
+  if(ahora-liveUltimoAnalisis<140)return;
+  liveUltimoAnalisis=ahora;
+  const video=$("liveVideo");
+  if(!video.videoWidth||!video.videoHeight)return;
+  liveCtx.drawImage(video,0,0,liveCanvas.width,liveCanvas.height);
+  const analisis=analizarImagenBase(liveCanvas);
+  const radar=obtenerRadarActual();
+  const combinado=Math.round(radar*.55+analisis.visual*.45);
+  const centro=analisis.zonas.find(z=>z.fila===1&&z.col===1)?.visual||analisis.visual;
+  $("liveScore").textContent=analisis.visual;
+  $("liveCenter").textContent=centro;
+  $("liveRadar").textContent=radar;
+  $("liveCombined").textContent=combinado;
+  dibujarMapaLive(analisis,combinado);
+  actualizarCandidatoLive(analisis,centro,combinado);
+}
+
+function obtenerRadarActual(){
+  const n=Number(($("score")||{}).textContent);
+  return Number.isFinite(n)?Math.max(0,Math.min(100,n)):50;
+}
+
+function colorHeat(v){
+  if(v>=80)return "rgba(35,180,80,.45)";
+  if(v>=65)return "rgba(150,210,50,.40)";
+  if(v>=50)return "rgba(245,190,35,.42)";
+  if(v>=35)return "rgba(240,110,35,.42)";
+  return "rgba(210,45,45,.45)";
+}
+
+function dibujarMapaLive(analisis,combinado){
+  const overlay=$("liveOverlay"),video=$("liveVideo");
+  if(!overlay||!video.videoWidth)return;
+  const w=overlay.clientWidth||video.clientWidth||320,h=overlay.clientHeight||video.clientHeight||240;
+  if(overlay.width!==Math.round(w)||overlay.height!==Math.round(h)){
+    overlay.width=Math.round(w);overlay.height=Math.round(h);
+  }
+  const ctx=overlay.getContext("2d");
+  ctx.clearRect(0,0,overlay.width,overlay.height);
+  const cw=overlay.width/3,ch=overlay.height/3;
+  analisis.zonas.forEach(z=>{
+    const x=z.col*cw,y=z.fila*ch;
+    ctx.fillStyle=colorHeat(z.visual);
+    ctx.fillRect(x,y,cw,ch);
+    ctx.strokeStyle="rgba(255,255,255,.35)";
+    ctx.strokeRect(x,y,cw,ch);
+    ctx.fillStyle="#fff";
+    ctx.font="bold 15px sans-serif";
+    ctx.textAlign="center";
+    ctx.textBaseline="middle";
+    ctx.shadowColor="#000";ctx.shadowBlur=4;
+    ctx.fillText(z.visual,x+cw/2,y+ch/2);
+  });
+  ctx.shadowBlur=0;
+  const cx=overlay.width/2,cy=overlay.height/2;
+  ctx.strokeStyle="white";ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(cx-25,cy);ctx.lineTo(cx+25,cy);ctx.moveTo(cx,cy-25);ctx.lineTo(cx,cy+25);ctx.stroke();
+  ctx.strokeStyle="rgba(255,255,255,.85)";ctx.lineWidth=1;
+  ctx.beginPath();ctx.arc(cx,cy,32,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle="rgba(0,0,0,.65)";
+  ctx.fillRect(8,8,190,32);
+  ctx.fillStyle="#fff";ctx.font="bold 14px sans-serif";ctx.textAlign="left";
+  ctx.fillText("🎯 Zona central "+(analisis.zonas.find(z=>z.fila===1&&z.col===1)?.visual||0)+"/100",16,29);
+}
+
+function actualizarCandidatoLive(analisis,centro,combinado){
+  const caja=$("liveCandidate");
+  const mejor=analisis.zonas.slice().sort((a,b)=>b.visual-a.visual)[0];
+  const visualFuerte=mejor&&mejor.visual>=78;
+  const contextoFavorable=combinado>=65;
+  if(visualFuerte&&contextoFavorable){
+    caja.innerHTML="<b>🍄 Candidato visual fuerte en esta zona.</b><br>Compatibilidad "+mejor.visual+"/100 · señal combinada "+combinado+"/100.<br><span class='muted'>Acércate y pulsa «Analizar zona» para hacer una comprobación más detallada. Esto no confirma que sea un níscalo.</span>";
+  }else if(visualFuerte){
+    caja.innerHTML="<b>🔎 Zona visualmente interesante.</b><br>Compatibilidad "+mejor.visual+"/100, pero el contexto ambiental todavía no es suficientemente fuerte.";
+  }else{
+    caja.innerHTML="Moviendo la cámara… <b>"+combinado+"/100</b> de señal combinada. Busca cambios claros de puntuación y zonas verdes.";
+  }
+}
+
+async function analizarZonaLive(){
+  if(!streamLive||!liveCanvas)return;
+  const video=$("liveVideo");
+  liveCtx.drawImage(video,0,0,liveCanvas.width,liveCanvas.height);
+  const analisis=analizarImagenBase(liveCanvas);
+  const centro=analisis.zonas.find(z=>z.fila===1&&z.col===1)?.visual||analisis.visual;
+  const radar=obtenerRadarActual();
+  const combinado=Math.round(radar*.55+analisis.visual*.45);
+  const candidato=detectarCandidatoVisual(liveCanvas,analisis);
+  const lat=Number($("lat").value),lon=Number($("lon").value);
+  const registro={
+    fecha:new Date().toISOString(),
+    tipo:"radar-visual",
+    lat:Number.isFinite(lat)?lat:null,
+    lon:Number.isFinite(lon)?lon:null,
+    resultado:combinado,
+    visual:analisis.visual,
+    centro,
+    radar,
+    candidato:candidato.score,
+    observacion:candidato.texto
+  };
+  guardarEscaneo(registro);
+  $("liveCandidate").innerHTML=
+    "<b>🎯 Análisis de zona</b><br>"+
+    "Señal combinada: <b>"+combinado+"/100</b><br>"+
+    "Visual: <b>"+analisis.visual+"/100</b> · Centro: <b>"+centro+"/100</b><br>"+
+    "🍄 Señal de candidato visual: <b>"+candidato.score+"/100</b><br>"+
+    "<span class='muted'>"+escapar(candidato.texto)+"</span>";
+  mostrarEscaneos();
+}
+
+function detectarCandidatoVisual(canvas,analisis){
+  const ctx=canvas.getContext("2d",{willReadFrequently:true});
+  const w=canvas.width,h=canvas.height;
+  const x0=Math.floor(w*.30),y0=Math.floor(h*.30),x1=Math.floor(w*.70),y1=Math.floor(h*.70);
+  const d=ctx.getImageData(x0,y0,x1-x0,y1-y0).data;
+  let n=0,naranja=0,rojo=0,marron=0,oscuro=0;
+  for(let i=0;i<d.length;i+=16){
+    const r=d[i],g=d[i+1],b=d[i+2],br=(r+g+b)/3;n++;
+    if(r>85&&r>g*1.18&&g>b*1.05&&g<150)naranja++;
+    if(r>80&&r>g*1.35&&r>b*1.25)rojo++;
+    if(r>45&&r>g*1.08&&g>b*1.03&&r<180)marron++;
+    if(br<90)oscuro++;
+  }
+  const pn=naranja/n,pr=rojo/n,pm=marron/n,po=oscuro/n;
+  const centro=analisis.zonas.find(z=>z.fila===1&&z.col===1)?.visual||50;
+  let score=centro*.45+Math.min(100,pn*700)*.25+Math.min(100,pm*240)*.15+Math.min(100,po*180)*.05+Math.min(100,pr*900)*.10;
+  score=Math.round(Math.max(0,Math.min(100,score)));
+  let texto=score>=75
+    ?"Hay una combinación de color/contraste compatible con un posible objeto de interés. Acércate antes de sacar conclusiones."
+    :score>=55
+    ?"Hay una señal visual moderada, pero no tiene suficiente fuerza para considerarla un candidato claro."
+    :"No aparece una señal visual suficientemente característica en la zona central.";
+  return {score,texto};
+}
+
+function abrirCamara(){
+  const estado=$("camaraEstado"),video=$("videoCamara");
+  try{
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error("Cámara no disponible");
     cerrarStreamCamara();
     estado.innerHTML="Solicitando permiso para usar la cámara…";
-    streamCamara=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}}});
-    video.srcObject=streamCamara;
-    video.style.display="block"; $("camaraPlaceholder").style.display="none"; $("guiaCamara").style.display="block";
-    $("fotoCamara").style.display="none"; $("btnFotoCamara").style.display="inline-block"; $("btnCerrarCamara").style.display="inline-block"; $("btnAbrirCamara").style.display="none";
-    fotosEscaneo=[];
-    actualizarBotonFoto();
-    estado.innerHTML="<b>📷 Cámara activa.</b> Haz primero una vista general del bosque.";
-  }catch(error){
-    console.error("Cámara:",error);
-    estado.innerHTML="<b>⚠️ No se pudo abrir la cámara.</b><br><span class='muted'>Comprueba el permiso del navegador y que estás usando HTTPS.</span>";
-  }
+    navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}}}).then(stream=>{
+      streamCamara=stream;video.srcObject=stream;
+      video.style.display="block";$("camaraPlaceholder").style.display="none";$("guiaCamara").style.display="block";
+      $("btnFotoCamara").style.display="inline-block";$("btnCerrarCamara").style.display="inline-block";$("btnAbrirCamara").style.display="none";
+      fotosEscaneo=[];actualizarBotonFoto();
+      estado.innerHTML="<b>📷 Cámara activa.</b> Haz primero una vista general del bosque.";
+    }).catch(error=>{
+      console.error(error);
+      estado.innerHTML="<b>⚠️ No se pudo abrir la cámara.</b><br><span class='muted'>Comprueba el permiso y que estás usando HTTPS.</span>";
+    });
+  }catch(error){estado.textContent="Cámara no disponible en este navegador.";}
 }
 function cerrarStreamCamara(){if(streamCamara){streamCamara.getTracks().forEach(track=>track.stop());streamCamara=null;}}
 function cerrarCamara(){
-  cerrarStreamCamara(); const video=$("videoCamara"); video.srcObject=null; video.style.display="none"; $("fotoCamara").style.display="none";
-  $("camaraPlaceholder").style.display="block"; $("guiaCamara").style.display="none"; $("btnFotoCamara").style.display="none"; $("btnCerrarCamara").style.display="none"; $("btnAbrirCamara").style.display="inline-block"; $("camaraEstado").textContent="Cámara cerrada.";
-  fotosEscaneo=[];
+  cerrarStreamCamara();const video=$("videoCamara");video.srcObject=null;video.style.display="none";$("fotoCamara").style.display="none";
+  $("camaraPlaceholder").style.display="block";$("guiaCamara").style.display="none";$("btnFotoCamara").style.display="none";$("btnCerrarCamara").style.display="none";$("btnAbrirCamara").style.display="inline-block";$("camaraEstado").textContent="Cámara cerrada.";fotosEscaneo=[];
 }
 function actualizarBotonFoto(){
   $("btnFotoCamara").textContent="📸 Analizar foto "+(fotosEscaneo.length+1)+"/3";
-  if(fotosEscaneo.length===0) $("camaraEstado").innerHTML="<b>1/3 · Vista general.</b> Fotografía el conjunto del bosque.";
-  else if(fotosEscaneo.length===1) $("camaraEstado").innerHTML="<b>2/3 · Suelo.</b> Apunta hacia la hojarasca, pinocha y tierra.";
-  else if(fotosEscaneo.length===2) $("camaraEstado").innerHTML="<b>3/3 · Vista lateral.</b> Apunta a la vegetación y los árboles.";
+  if(fotosEscaneo.length===0)$("camaraEstado").innerHTML="<b>1/3 · Vista general.</b> Fotografía el conjunto del bosque.";
+  else if(fotosEscaneo.length===1)$("camaraEstado").innerHTML="<b>2/3 · Suelo.</b> Apunta hacia la hojarasca, pinocha y tierra.";
+  else if(fotosEscaneo.length===2)$("camaraEstado").innerHTML="<b>3/3 · Vista lateral.</b> Apunta a la vegetación y los árboles.";
 }
 function repetirFoto(){
-  $("fotoCamara").style.display="none"; $("videoCamara").style.display="block"; $("guiaCamara").style.display="block"; $("btnFotoCamara").style.display="inline-block"; actualizarBotonFoto();
+  $("fotoCamara").style.display="none";$("videoCamara").style.display="block";$("guiaCamara").style.display="block";$("btnFotoCamara").style.display="inline-block";actualizarBotonFoto();
 }
 async function hacerFoto(){
-  const video=$("videoCamara"), canvas=$("fotoCamara");
+  const video=$("videoCamara"),canvas=$("fotoCamara");
   if(!video.videoWidth||!video.videoHeight){$("camaraEstado").textContent="Espera un momento a que la cámara esté lista.";return;}
-  canvas.width=video.videoWidth; canvas.height=video.videoHeight;
-  const ctx=canvas.getContext("2d",{willReadFrequently:true}); ctx.drawImage(video,0,0,canvas.width,canvas.height);
-  const analisis=analizarImagenBase(canvas);
-  fotosEscaneo.push(analisis);
-  video.style.display="none"; canvas.style.display="block"; $("btnFotoCamara").style.display="none";
+  canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+  const ctx=canvas.getContext("2d",{willReadFrequently:true});ctx.drawImage(video,0,0,canvas.width,canvas.height);
+  const analisis=analizarImagenBase(canvas);fotosEscaneo.push(analisis);
+  video.style.display="none";canvas.style.display="block";$("btnFotoCamara").style.display="none";
   if(fotosEscaneo.length<MAX_FOTOS_ESCANEO){
-    $("btnRepetirCamara").style.display="inline-block";
-    actualizarBotonFoto();
-    $("btnRepetirCamara").onclick=()=>{ $("btnRepetirCamara").style.display="none"; repetirFoto(); };
+    $("btnRepetirCamara").style.display="inline-block";actualizarBotonFoto();
+    $("btnRepetirCamara").onclick=()=>{$("btnRepetirCamara").style.display="none";repetirFoto();};
     $("camaraEstado").innerHTML="<b>✅ Foto "+fotosEscaneo.length+"/3 analizada.</b> Ahora prepara la siguiente.";
-    setTimeout(()=>{ if(fotosEscaneo.length<3){ $("videoCamara").style.display="block"; $("fotoCamara").style.display="none"; $("guiaCamara").style.display="block"; $("btnFotoCamara").style.display="inline-block"; $("btnRepetirCamara").style.display="none"; actualizarBotonFoto(); }},700);
+    setTimeout(()=>{if(fotosEscaneo.length<3){$("videoCamara").style.display="block";$("fotoCamara").style.display="none";$("guiaCamara").style.display="block";$("btnFotoCamara").style.display="inline-block";$("btnRepetirCamara").style.display="none";actualizarBotonFoto();}},700);
   }else{
-    cerrarStreamCamara();
-    $("btnFotoCamara").style.display="none"; $("btnRepetirCamara").style.display="none";
-    await finalizarEscaneo();
+    cerrarStreamCamara();$("btnFotoCamara").style.display="none";$("btnRepetirCamara").style.display="none";await finalizarEscaneo();
   }
 }
 function analizarImagenBase(canvas){
-  const ctx=canvas.getContext("2d",{willReadFrequently:true}), w=canvas.width,h=canvas.height;
-  const zonas=[]; let suma=0;
-  for(let fila=0;fila<3;fila++) for(let col=0;col<3;col++){
+  const ctx=canvas.getContext("2d",{willReadFrequently:true}),w=canvas.width,h=canvas.height;
+  const zonas=[];let suma=0;
+  for(let fila=0;fila<3;fila++)for(let col=0;col<3;col++){
     const x0=Math.floor(col*w/3),y0=Math.floor(fila*h/3),x1=Math.floor((col+1)*w/3),y1=Math.floor((fila+1)*h/3);
-    const datos=ctx.getImageData(x0,y0,x1-x0,y1-y0).data; let verdes=0,marrones=0,oscuros=0,claros=0,total=0;
+    const datos=ctx.getImageData(x0,y0,x1-x0,y1-y0).data;let verdes=0,marrones=0,oscuros=0,claros=0,total=0;
     const paso=Math.max(4,Math.floor(Math.sqrt(((x1-x0)*(y1-y0))/9000)));
-    for(let y=0;y<y1-y0;y+=paso) for(let x=0;x<x1-x0;x+=paso){
-      const i=(y*(x1-x0)+x)*4,r=datos[i],g=datos[i+1],b=datos[i+2],brillo=(r+g+b)/3; total++;
-      if(g>r*1.08&&g>b*1.05) verdes++;
-      if(r>g*1.08&&g>b*1.05&&r>55&&g>35) marrones++;
-      if(brillo<75) oscuros++; if(brillo>195) claros++;
+    for(let y=0;y<y1-y0;y+=paso)for(let x=0;x<x1-x0;x+=paso){
+      const i=(y*(x1-x0)+x)*4,r=datos[i],g=datos[i+1],b=datos[i+2],brillo=(r+g+b)/3;total++;
+      if(g>r*1.08&&g>b*1.05)verdes++;
+      if(r>g*1.08&&g>b*1.05&&r>55&&g>35)marrones++;
+      if(brillo<75)oscuros++;if(brillo>195)claros++;
     }
     const pv=verdes/Math.max(1,total),pm=marrones/Math.max(1,total),po=oscuros/Math.max(1,total),pc=claros/Math.max(1,total);
     let visual=50+Math.min(20,pv*45)+Math.min(18,pm*40)+Math.min(8,po*12)-Math.min(22,pc*28);
-    visual=Math.max(0,Math.min(100,Math.round(visual))); suma+=visual; zonas.push({fila,col,visual});
+    visual=Math.max(0,Math.min(100,Math.round(visual)));suma+=visual;zonas.push({fila,col,visual});
   }
   return {visual:Math.round(suma/zonas.length),zonas};
 }
 async function finalizarEscaneo(){
-  const radarRaw=Number($("score").textContent), radarVal=Number.isFinite(radarRaw)?radarRaw:50;
-  const visualGlobal=Math.round(fotosEscaneo.reduce((s,f)=>s+f.visual,0)/fotosEscaneo.length);
-  const habitat=Number(window.habitatActualScore), suelo=Number(window.sueloActualScore);
-  const combinado=Math.round(radarVal*.70+visualGlobal*.30);
-  const lectura=combinado>=80?"Muy compatible":combinado>=65?"Compatible":combinado>=50?"Posible":"Poco compatible";
-  const lat=Number($("lat").value),lon=Number($("lon").value);
-  const fecha=new Date();
-  const escaneo={fecha:fecha.toISOString(),lat:Number.isFinite(lat)?lat:null,lon:Number.isFinite(lon)?lon:null,resultado:combinado,visual:visualGlobal,radar:radarVal,habitat:Number.isFinite(habitat)?Math.round(habitat*100):null,suelo:Number.isFinite(suelo)?Math.round(suelo*100):null};
+  const radar=obtenerRadarActual(),visualGlobal=Math.round(fotosEscaneo.reduce((s,f)=>s+f.visual,0)/fotosEscaneo.length);
+  const combinado=Math.round(radar*.70+visualGlobal*.30),lat=Number($("lat").value),lon=Number($("lon").value);
+  const candidato=detectarCandidatoVisual($("fotoCamara"),fotosEscaneo[1]||fotosEscaneo[0]);
+  const escaneo={fecha:new Date().toISOString(),tipo:"3-fotos",lat:Number.isFinite(lat)?lat:null,lon:Number.isFinite(lon)?lon:null,resultado:combinado,visual:visualGlobal,radar,candidato:candidato.score,observacion:candidato.texto};
   guardarEscaneo(escaneo);
-  $("resultadoEscaner").innerHTML="<div class='notice'><b>🍄 Resultado del escaneo: "+combinado+"/100 · "+lectura+"</b><br><br>📷 Señal visual conjunta: <b>"+visualGlobal+"/100</b><br>🌦️ Radar ambiental: <b>"+radarVal+"/100</b>"+(Number.isFinite(habitat)?"<br>🌲 Hábitat cartográfico: <b>"+Math.round(habitat*100)+"/100</b>":"")+(Number.isFinite(suelo)?"<br>🌱 Suelo cartográfico: <b>"+Math.round(suelo*100)+"/100</b>":"")+(Number.isFinite(lat)&&Number.isFinite(lon)?"<br>📍 Punto analizado: "+lat.toFixed(4)+", "+lon.toFixed(4):"")+"<br><br><b>3 fotografías combinadas.</b> El resultado visual procede del conjunto, no de una sola imagen.<br><span class='muted'>Análisis experimental: no detecta níscalos ocultos ni identifica especies.</span></div>";
-  $("camaraEstado").innerHTML="<b>✅ Escaneo completo.</b> Las 3 fotografías se han combinado y el resultado se ha guardado.";
-  $("btnAbrirCamara").style.display="inline-block"; $("btnCerrarCamara").style.display="none";
-  mostrarEscaneos();
+  $("resultadoEscaner").innerHTML="<div class='notice'><b>🍄 Resultado del escaneo: "+combinado+"/100</b><br><br>📷 Señal visual conjunta: <b>"+visualGlobal+"/100</b><br>🌦️ Radar ambiental: <b>"+radar+"/100</b><br>🔎 Señal de candidato visual: <b>"+candidato.score+"/100</b><br><br><span class='muted'>Las tres fotografías se han combinado. El detector visual es experimental y no confirma una especie.</span></div>";
+  $("camaraEstado").innerHTML="<b>✅ Escaneo completo.</b> Resultado guardado.";
+  $("btnAbrirCamara").style.display="inline-block";$("btnCerrarCamara").style.display="none";mostrarEscaneos();
 }
 function obtenerEscaneos(){try{return JSON.parse(localStorage.getItem("radar_niscalo_escaneos")||"[]")}catch{return[]}}
-function guardarEscaneo(e){
-  const lista=obtenerEscaneos(); lista.unshift(e); localStorage.setItem("radar_niscalo_escaneos",JSON.stringify(lista.slice(0,50)));
-}
+function guardarEscaneo(e){const lista=obtenerEscaneos();lista.unshift(e);localStorage.setItem("radar_niscalo_escaneos",JSON.stringify(lista.slice(0,50)));}
 function mostrarEscaneos(){
-  const lista=obtenerEscaneos(), caja=$("listaEscaneos"); if(!caja)return;
+  const lista=obtenerEscaneos(),caja=$("listaEscaneos");if(!caja)return;
   if(!lista.length){caja.innerHTML="<span class='muted'>Todavía no hay escaneos guardados.</span>";return;}
-  caja.innerHTML=lista.map((e,i)=>"<div style='padding:9px 0;border-top:1px solid #e1e5df'><b>🍄 "+e.resultado+"/100</b> · "+new Date(e.fecha).toLocaleString("es-ES")+"<br><span class='muted'>Visual "+e.visual+" · Radar "+e.radar+(e.habitat!==null?" · Hábitat "+e.habitat:"")+(e.suelo!==null?" · Suelo "+e.suelo:"")+(e.lat!==null?" · "+Number(e.lat).toFixed(4)+", "+Number(e.lon).toFixed(4):"")+"</span></div>").join("");
+  caja.innerHTML=lista.map(e=>"<div style='padding:9px 0;border-top:1px solid #e1e5df'><b>🍄 "+(e.resultado??"--")+"/100</b> · "+new Date(e.fecha).toLocaleString("es-ES")+"<br><span class='muted'>Tipo "+escapar(e.tipo||"escaneo")+" · Visual "+(e.visual??"--")+" · Radar "+(e.radar??"--")+(e.candidato!=null?" · Candidato "+e.candidato:"")+(e.lat!=null?" · "+Number(e.lat).toFixed(4)+", "+Number(e.lon).toFixed(4):"")+"</span></div>").join("");
 }
-window.addEventListener("beforeunload",cerrarStreamCamara);
+window.addEventListener("beforeunload",()=>{detenerRadarVisual();cerrarStreamCamara();});
 
 /* ================= PREVISIÓN ================= */
 
