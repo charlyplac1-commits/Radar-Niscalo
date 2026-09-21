@@ -1638,31 +1638,34 @@ let datos=
 
 await respuesta.json();
 
-/* ALTITUD */
+/* ALTITUD
+   La altitud es un dato auxiliar: si este servicio falla,
+   NO debe impedir que aparezcan los datos meteorológicos.
+*/
 
-let elevacion=
+let altitud=0;
 
-await fetch(
+try{
 
+let elevacion=await fetch(
 `https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`
-
 );
 
-if(!elevacion.ok)
+if(elevacion.ok){
 
-throw new Error("Error altitud");
+let elevacionDatos=await elevacion.json();
 
-let elevacionDatos=
-
-await elevacion.json();
-
-let altitud=
-
-Math.round(
-
+altitud=Math.round(
 elevacionDatos.elevation?.[0] || 0
-
 );
+
+}
+
+}catch(e){
+
+console.warn("Altitud no disponible:",e);
+
+}
 
 /* DINÁMICA DE LLUVIA Y HUMEDAD */
 
@@ -1954,7 +1957,7 @@ $("ubicacionTexto").textContent=
 
 $("estado").textContent=
 
-"Datos actualizados correctamente.";
+"Datos meteorológicos actualizados. Consultando hábitat y fuentes adicionales…";
 
 }
 
