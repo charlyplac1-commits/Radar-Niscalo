@@ -1173,6 +1173,7 @@ Radar del Níscalo · Aplicación experimental
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
 
 <script>
 
@@ -2809,33 +2810,15 @@ function actualizarCandidatoLive(analisis,centro,combinado){
 
 async function analizarZonaLive(){
   if(!streamLive||!liveCanvas)return;
-  const video=$("liveVideo");
-  liveCtx.drawImage(video,0,0,liveCanvas.width,liveCanvas.height);
-  const analisis=analizarImagenBase(liveCanvas);
-  const centro=analisis.zonas.find(z=>z.fila===1&&z.col===1)?.visual||analisis.visual;
-  const radar=obtenerRadarActual();
-  const combinado=Math.round(radar*.55+analisis.visual*.45);
-  const candidato=detectarCandidatoVisual(liveCanvas,analisis);
+  const video=$("liveVideo"); liveCtx.drawImage(video,0,0,liveCanvas.width,liveCanvas.height);
+  const analisis=analizarImagenBase(liveCanvas), centro=analisis.zonas.find(z=>z.fila===1&&z.col===1)?.visual||analisis.visual;
+  const radar=obtenerRadarActual(), modelo=await puntuarConModeloNiscalo(liveCanvas);
+  const visualFusion=modelo==null?analisis.visual:Math.round(analisis.visual*.35+modelo*.65);
+  const combinado=Math.round(radar*.55+visualFusion*.45), candidato=detectarCandidatoVisual(liveCanvas,analisis);
+  const candidatoFinal=modelo==null?candidato.score:Math.round(candidato.score*.35+modelo*.65);
   const lat=Number($("lat").value),lon=Number($("lon").value);
-  const registro={
-    fecha:new Date().toISOString(),
-    tipo:"radar-visual",
-    lat:Number.isFinite(lat)?lat:null,
-    lon:Number.isFinite(lon)?lon:null,
-    resultado:combinado,
-    visual:analisis.visual,
-    centro,
-    radar,
-    candidato:candidato.score,
-    observacion:candidato.texto
-  };
-  guardarEscaneo(registro);
-  $("liveCandidate").innerHTML=
-    "<b>🎯 Análisis de zona</b><br>"+
-    "Señal combinada: <b>"+combinado+"/100</b><br>"+
-    "Visual: <b>"+analisis.visual+"/100</b> · Centro: <b>"+centro+"/100</b><br>"+
-    "🍄 Señal de candidato visual: <b>"+candidato.score+"/100</b><br>"+
-    "<span class='muted'>"+escapar(candidato.texto)+"</span>";
+  guardarEscaneo({fecha:new Date().toISOString(),tipo:"radar-visual",lat:Number.isFinite(lat)?lat:null,lon:Number.isFinite(lon)?lon:null,resultado:combinado,visual:visualFusion,heuristica:analisis.visual,modelo:modelo,centro,radar,candidato:candidatoFinal,observacion:candidato.texto});
+  $("liveCandidate").innerHTML="<b>🎯 Análisis de zona</b><br>Señal combinada: <b>"+combinado+"/100</b><br>Visual fusionada: <b>"+visualFusion+"/100</b> · Heurística "+analisis.visual+"/100"+(modelo!=null?" · IA entrenada "+modelo+"/100":" · IA en preparación")+"<br>🍄 Señal de candidato visual: <b>"+candidatoFinal+"/100</b><br><span class='muted'>"+escapar(candidato.texto)+"</span>";
   mostrarEscaneos();
 }
 
@@ -2949,6 +2932,37 @@ function mostrarEscaneos(){
   caja.innerHTML=lista.map(e=>"<div style='padding:9px 0;border-top:1px solid #e1e5df'><b>🍄 "+(e.resultado??"--")+"/100</b> · "+new Date(e.fecha).toLocaleString("es-ES")+"<br><span class='muted'>Tipo "+escapar(e.tipo||"escaneo")+" · Visual "+(e.visual??"--")+" · Radar "+(e.radar??"--")+(e.candidato!=null?" · Candidato "+e.candidato:"")+(e.lat!=null?" · "+Number(e.lat).toFixed(4)+", "+Number(e.lon).toFixed(4):"")+"</span></div>").join("");
 }
 window.addEventListener("beforeunload",()=>{detenerRadarVisual();cerrarStreamCamara();});
+
+
+/* ================= IA VISUAL ENTRENADA ================= */
+let modeloNiscalo=null;
+let modeloNiscaloCargando=null;
+let modeloNiscaloEstado="no disponible";
+async function cargarModeloNiscalo(){
+  if(modeloNiscalo||modeloNiscaloCargando) return modeloNiscaloCargando||modeloNiscalo;
+  if(typeof ort==="undefined"){modeloNiscaloEstado="ONNX Runtime no disponible";return null;}
+  modeloNiscaloCargando=(async()=>{
+    try{
+      ort.env.wasm.numThreads=1; ort.env.wasm.simd=true;
+      modeloNiscalo=await ort.InferenceSession.create("models/niscalo-detector/model.onnx",{executionProviders:["wasm"]});
+      modeloNiscaloEstado="modelo entrenado activo"; return modeloNiscalo;
+    }catch(e){console.warn("Modelo visual todavía no disponible:",e);modeloNiscaloEstado="modelo todavía no publicado";return null;}
+  })();
+  return modeloNiscaloCargando;
+}
+async function puntuarConModeloNiscalo(canvas){
+  const sesion=await cargarModeloNiscalo(); if(!sesion)return null;
+  try{
+    const size=224,tmp=document.createElement("canvas"); tmp.width=size;tmp.height=size;
+    const ctx=tmp.getContext("2d",{willReadFrequently:true}),w=canvas.width,h=canvas.height,lado=Math.min(w,h)*.62;
+    ctx.drawImage(canvas,(w-lado)/2,(h-lado)/2,lado,lado,0,0,size,size);
+    const d=ctx.getImageData(0,0,size,size).data,mean=[.485,.456,.406],std=[.229,.224,.225],arr=new Float32Array(3*size*size);
+    for(let y=0;y<size;y++)for(let x=0;x<size;x++){const p=(y*size+x)*4;for(let ch=0;ch<3;ch++)arr[ch*size*size+y*size+x]=(d[p+ch]/255-mean[ch])/std[ch];}
+    const out=await sesion.run({[sesion.inputNames[0]]:new ort.Tensor("float32",arr,[1,3,size,size])});
+    const logits=Array.from(out[sesion.outputNames[0]].data),m=Math.max(...logits),ex=logits.map(v=>Math.exp(v-m)),sum=ex.reduce((a,b)=>a+b,0);
+    return Math.round(((ex[1]||0)/sum)*100);
+  }catch(e){console.warn("Fallo inferencia ONNX:",e);return null;}
+}
 
 /* ================= PREVISIÓN ================= */
 
