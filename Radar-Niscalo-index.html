@@ -593,6 +593,8 @@ details.compact>summary{font-size:13px}
   #radar>.card.score .ring b{width:59px;height:59px}
   .metric-strip{gap:6px}
 }
+.radar-heat-zone{filter:blur(2px);transition:opacity .25s ease,fill-opacity .25s ease}
+.radar-heat-center{filter:blur(.8px)}
 </style>
 
 <script>
@@ -880,7 +882,10 @@ value="900">
 
 <div class="card">
 
-<h3>🗺️ Mapa de favorabilidad</h3>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+<h3 style="margin:0">🗺️ Mapa de favorabilidad</h3>
+<button type="button" id="btnVisionRadar" onclick="alternarVisionRadar()" style="padding:8px 12px;border-radius:12px;border:1px solid rgba(33,75,53,.2);background:#214b35;color:#fff;font-weight:700">👁️ Visión Radar: ON</button>
+</div>
 
 <div class="mapbox">
 
@@ -889,11 +894,12 @@ value="900">
 </div>
 
 <div class="muted" style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap">
-<span>🟢 80–100 Muy favorable</span>
-<span>🟡 60–79 Favorable</span>
-<span>🟠 40–59 Posible</span>
-<span>🔴 0–39 Baja</span>
+<span>🔴🔥 80–100 Muy favorable</span>
+<span>🟠 60–79 Favorable</span>
+<span>🟡 40–59 Posible</span>
+<span>🔵 0–39 Baja</span>
 </div>
+<div class="muted" style="margin-top:6px">La visión Radar sustituye la cuadrícula por una capa térmica difuminada sobre el mapa real.</div>
 
 <p class="muted">
 
@@ -1108,6 +1114,24 @@ let mapa;
 let marcador;
 
 let capasFavorabilidad=[];
+let visionRadarActiva=true;
+
+function alternarVisionRadar(){
+visionRadarActiva=!visionRadarActiva;
+capasFavorabilidad.forEach(capa=>{
+if(capa && capa.setStyle){
+capa.setStyle({
+opacity:visionRadarActiva?(capa.options._radarOuter?0.82:0.18):0,
+fillOpacity:visionRadarActiva?(capa.options._radarOuter?0.20:0.10):0
+});
+}
+});
+let boton=$("btnVisionRadar");
+if(boton){
+boton.textContent=visionRadarActiva?"👁️ Visión Radar: ON":"👁️ Visión Radar: OFF";
+boton.style.background=visionRadarActiva?"#214b35":"#6b7280";
+}
+}
 
 /* ================= PESTAÑAS ================= */
 
@@ -1343,24 +1367,10 @@ let centroLat=lat+y*paso;
 let centroLon=lon+x*paso;
 
 let color=
-score>=80?"#2e8b57":
-score>=60?"#f0c419":
-score>=40?"#f28c28":
-"#d63c32";
-
-let rect=L.rectangle(
-[
-[centroLat-paso/2,centroLon-paso/2],
-[centroLat+paso/2,centroLon+paso/2]
-],
-{
-color:color,
-weight:1,
-opacity:.7,
-fillColor:color,
-fillOpacity:.38
-}
-).addTo(mapa);
+score>=80?"#ff3b1f":
+score>=60?"#ff8a00":
+score>=40?"#ffd23f":
+"#3b82f6";
 
 let nivel=
 score>=80?"Muy favorable":
@@ -1368,7 +1378,51 @@ score>=60?"Favorable":
 score>=40?"Posible":
 "Baja";
 
-rect.bindPopup(
+/*
+  Visión térmica:
+  cada punto genera varios círculos concéntricos muy transparentes.
+  Al solaparse crean una nube continua, sin bordes de cuadrícula.
+*/
+const radios=[
+  4200,
+  3200,
+  2300,
+  1500
+];
+
+radios.forEach((radio,indice)=>{
+let calor=L.circle(
+[centroLat,centroLon],
+{
+radius:radio,
+stroke:false,
+color:color,
+fillColor:color,
+opacity:0.18+(indice*0.14),
+fillOpacity:0.055+(indice*0.035),
+interactive:false,
+className:"radar-heat-zone",
+_radarOuter:false
+}
+).addTo(mapa);
+capasFavorabilidad.push(calor);
+});
+
+let puntoRadar=L.circle(
+[centroLat,centroLon],
+{
+radius:900,
+color:color,
+weight:1,
+opacity:.82,
+fillColor:color,
+fillOpacity:.20,
+className:"radar-heat-zone radar-heat-center",
+_radarOuter:true
+}
+).addTo(mapa);
+
+puntoRadar.bindPopup(
 "<b>🍄 Favorabilidad: "+score+"/100</b>"+
 "<br>🍄 "+nivel+
 "<hr style='margin:7px 0'>"+
@@ -1382,7 +1436,7 @@ rect.bindPopup(
 "<br>⛰️ Altitud: "+Math.round(alt)+" m"
 );
 
-capasFavorabilidad.push(rect);
+capasFavorabilidad.push(puntoRadar);
 }
 }catch(error){
 console.error("Mapa de favorabilidad:",error);
