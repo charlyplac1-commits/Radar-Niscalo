@@ -1669,6 +1669,28 @@ body{
 #bibliotecaRecorridos h4{margin:0 0 4px;font-size:14px}.biblioteca-lista{display:grid;gap:8px;margin-top:9px}.recorrido-guardado{padding:10px;border-radius:13px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1)}.recorrido-meta{font-size:10px;color:#bfd0c3;margin-top:3px}.recorrido-acciones{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.recorrido-acciones button{margin:0;padding:7px 9px;font-size:10px;border-radius:9px}.ruta-ver{background:#315f43}.ruta-volver{background:#c77b32}.ruta-exportar{background:#536b5a}.ruta-borrar{background:#8f4039}#recorridoReproduccion{display:none;margin-top:9px;padding:9px;border-radius:12px;background:rgba(0,0,0,.22)}#recorridoReproduccion.activo{display:block}#recorridoPlaybackBar{height:5px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:7px}#recorridoPlaybackBar i{display:block;width:0;height:100%;background:#e6a253}
 
 
+/* ===== FONDO DECISIÓN DEL RADAR ===== */
+.decision-radar-card{
+  background:#173d29!important;
+  border-color:#28563d!important;
+  color:#fff;
+}
+.decision-radar-card h3{
+  color:#fff!important;
+}
+.decision-radar-card .notice{
+  background:rgba(8,30,19,.55);
+  color:#fff;
+  border-color:rgba(255,255,255,.18);
+}
+.decision-radar-card .muted{
+  color:rgba(255,255,255,.82)!important;
+}
+.decision-radar-card .badge{
+  background:rgba(255,255,255,.12);
+  color:#fff;
+}
+
 /* ===== FONDO FRUCTIFICACIÓN ===== */
 .fructificacion-card{
   position:relative;
@@ -2120,7 +2142,7 @@ style="margin-top:8px">
 <div><div class="big" id="diasSecos">--</div><div class="muted">Días desde la última lluvia</div></div>
 <div><div class="big" id="sueloProfundo">--</div><div class="muted">Humedad suelo 7–28 cm</div></div>
 </div>
-<div id="dinamicaFructificacion" class="notice" style="margin-top:10px">Calculando respuesta del suelo y de la lluvia…</div></div></details><div class="card" id="motorDecisionCard">
+<div id="dinamicaFructificacion" class="notice" style="margin-top:10px">Calculando respuesta del suelo y de la lluvia…</div></div></details><div class="card decision-radar-card" id="motorDecisionCard">
 <h3>🧭 Decisión del Radar</h3>
 <div id="decisionRadar" class="notice">Analizando las condiciones de la zona…</div>
 <div id="decisionFactores" style="margin-top:10px"></div>
