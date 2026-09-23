@@ -4166,7 +4166,8 @@ async function cargarDatos(){
           "&start_date="+iso(ini)+
           "&end_date="+iso(fin)+
           "&timezone=auto"+
-          "&daily=precipitation_sum";
+          "&daily=precipitation_sum"+
+          "&hourly=soil_moisture_0_to_7cm,soil_moisture_7_to_28cm";
         const archiveResp=await fetch(archiveUrl,{cache:"no-store"});
         if(archiveResp.ok){
           const archive=await archiveResp.json();
@@ -4190,7 +4191,34 @@ async function cargarDatos(){
             lluvia7=sumarArchivo(7);
             lluvia14=sumarArchivo(14);
             lluvia30=sumarArchivo(30);
-            historicoLluviaDisponible=true;
+            historicoLluviaDisponible=fechas.length>0;
+
+            /* También recuperamos humedad del suelo desde el archivo histórico.
+               El valor mostrado es el promedio de las últimas 24 h disponibles. */
+            const soilTimes=Array.isArray(archive?.hourly?.time)?archive.hourly.time:[];
+            const soil0=Array.isArray(archive?.hourly?.soil_moisture_0_to_7cm)
+              ?archive.hourly.soil_moisture_0_to_7cm:[];
+            const soil1=Array.isArray(archive?.hourly?.soil_moisture_7_to_28cm)
+              ?archive.hourly.soil_moisture_7_to_28cm:[];
+            const soilMuestras=[];
+            const soilMuestrasProf=[];
+            const ahoraMs=Date.now();
+            for(let i=0;i<soilTimes.length;i++){
+              const t=Date.parse(soilTimes[i]);
+              if(!Number.isFinite(t))continue;
+              if(ahoraMs-t>=0 && ahoraMs-t<=36*3600000){
+                const a=Number(soil0[i]);
+                const b=Number(soil1[i]);
+                if(Number.isFinite(a))soilMuestras.push(a*100);
+                if(Number.isFinite(b))soilMuestrasProf.push(b*100);
+              }
+            }
+            if(soilMuestras.length){
+              humedadSuelo=soilMuestras.reduce((a,b)=>a+b,0)/soilMuestras.length;
+            }
+            if(soilMuestrasProf.length){
+              sueloProfundo=soilMuestrasProf.reduce((a,b)=>a+b,0)/soilMuestrasProf.length;
+            }
           }
         }
       }catch(e){
@@ -4312,7 +4340,7 @@ async function cargarDatos(){
     $("lluvia30").textContent=historicoLluviaDisponible ? Math.round(lluvia30)+" mm" : "--";
     $("diasSecos").textContent=historicoLluviaDisponible ? diasSecos+" d" : "--";
     $("sueloProfundo").textContent=Number.isFinite(sueloProfundo)?Math.round(sueloProfundo)+"%":"--";
-    $("suelo").textContent=Number.isFinite(Number(humedadSuelo)) && humedadSuelo>0 ? humedadSuelo+"%" : "--";
+    $("suelo").textContent=Number.isFinite(Number(humedadSuelo)) && humedadSuelo>0 ? Math.round(humedadSuelo)+"%" : "--";
     $("temperatura").textContent=Number.isFinite(temperatura)?temperatura.toFixed(1)+" °C":"--";
     $("altitud").textContent=altitud+" m";
     $("humedad").textContent=Number.isFinite(humedad)?Math.round(humedad)+"%":"--";
