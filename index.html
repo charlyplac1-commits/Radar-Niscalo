@@ -1973,13 +1973,13 @@ window.addEventListener("unhandledrejection",function(e){
 
 <h2 id="nivel" style="margin:0">
 
-Cargando…
+Preparando radar…
 
 </h2>
 
 <div id="ventana">
 
-Calculando condiciones
+Esperando datos meteorológicos
 
 </div>
 
@@ -3691,6 +3691,32 @@ maximumAge:0
 
 }
 
+/* ================= CABECERA DEL RADAR ================= */
+function actualizarCabeceraRadar(lluvia,temp,suelo,alt){
+  const lluviaFactor=Math.exp(-Math.pow((lluvia-85)/55,2));
+  const tempFactor=Math.exp(-Math.pow((temp-15)/5,2));
+  const sueloFactor=Math.max(0,Math.min(1,suelo/100));
+  const altFactor=Math.exp(-Math.pow((alt-1000)/850,2));
+  const resultado=Math.max(0,Math.min(100,Math.round(
+    100*(0.34*lluviaFactor+0.24*tempFactor+0.24*sueloFactor+0.18*altFactor)
+  )));
+  $("score").textContent=resultado;
+  if(resultado>=80){
+    $("nivel").textContent="Muy favorable";
+    $("ventana").textContent="Condiciones muy favorables para el níscalo";
+  }else if(resultado>=60){
+    $("nivel").textContent="Favorable";
+    $("ventana").textContent="Condiciones favorables";
+  }else if(resultado>=40){
+    $("nivel").textContent="Posible";
+    $("ventana").textContent="Conviene vigilar lluvia y humedad";
+  }else{
+    $("nivel").textContent="Baja";
+    $("ventana").textContent="Condiciones poco favorables";
+  }
+  $("ring").style.background=`conic-gradient(#3e8b58 0 ${resultado}%,#e5e9e3 ${resultado}% 100%)`;
+}
+
 /* ================= DATOS METEOROLÓGICOS ================= */
 
 async function cargarDatos(){
@@ -4012,6 +4038,10 @@ window.diasDesdeLluvia=diasSecos;
 window.vpdActual=Number.isFinite(vpd24)?vpd24:0;
 window.et07Actual=et07;
 
+/* La cabecera se actualiza aquí, antes de cualquier consulta auxiliar.
+   Así no puede quedarse indefinidamente en "Calculando condiciones". */
+actualizarCabeceraRadar(lluvia14,temperatura,humedadSuelo,altitud);
+
 actualizarDinamicaFructificacion();
 pintarFavorabilidad();
 
@@ -4069,6 +4099,12 @@ $("estado").textContent=
 catch(error){
 
 console.error(error);
+
+$("nivel").textContent="Sin datos";
+$("ventana").textContent="No se pudieron obtener las condiciones meteorológicas";
+$("score").textContent="--";
+$("ring").style.background=
+"conic-gradient(#e5e9e3 0 100%)";
 
 $("estado").textContent=
 
