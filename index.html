@@ -1323,6 +1323,50 @@ body:after{
   }
 }
 
+/* ===== FONDO FOTOGRÁFICO · PINAR ===== */
+body{
+  background-color:#263a2b !important;
+  background-image:
+    linear-gradient(rgba(18,38,24,.28),rgba(18,38,24,.28)),
+    url("https://sierraespuna.com/wp-content/uploads/2019/05/espuroad_ruta3_3.jpg") !important;
+  background-size:cover !important;
+  background-position:center center !important;
+  background-repeat:no-repeat !important;
+  background-attachment:fixed !important;
+  min-height:100vh;
+}
+body:before,
+body:after{
+  display:none !important;
+}
+main{
+  background:transparent !important;
+}
+@media(min-width:760px){
+  #radar>.card:nth-of-type(n+4),
+  #radar>details.compact{
+    background:
+      linear-gradient(145deg,rgba(255,255,255,.95),rgba(239,246,239,.92)) !important;
+    border:1px solid rgba(255,255,255,.72) !important;
+    box-shadow:
+      0 12px 30px rgba(10,35,18,.22),
+      0 3px 8px rgba(10,35,18,.12),
+      inset 0 1px 0 rgba(255,255,255,.95) !important;
+    backdrop-filter:blur(5px);
+    -webkit-backdrop-filter:blur(5px);
+  }
+}
+@media(max-width:759px){
+  #radar>.card:nth-of-type(n+4),
+  #radar>details.compact{
+    background:rgba(248,250,246,.96) !important;
+    border-color:rgba(255,255,255,.72) !important;
+    box-shadow:
+      0 8px 20px rgba(10,35,18,.18),
+      inset 0 1px 0 rgba(255,255,255,.95) !important;
+  }
+}
+
 </style>
 
 <script>
