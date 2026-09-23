@@ -617,7 +617,7 @@ details.compact>summary{font-size:13px}
 @media(max-width:720px){.splash-copy{bottom:10%}.splash-title{font-size:23px}.splash-brand{font-size:11px}.splash-sub{font-size:10px}}
 
 /* ===== EXPERIENCIA APP · BOSQUE / INSTRUMENTO DE CAMPO ===== */
-#appSplash{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:radial-gradient(circle at 50% 35%,#315f43 0,#183b29 42%,#0d2418 100%);color:#fff;transition:opacity .55s ease,visibility .55s ease}
+#appSplash{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:radial-gradient(circle at 50% 35%,#315f43 0,#183b29 42%,#0d2418 100%);color:#fff;transition:opacity .55s ease,visibility .55s ease};display:none!important
 #appSplash.hide{opacity:0;visibility:hidden;pointer-events:none}
 .splash-inner{text-align:center;transform:translateY(-8px);animation:splashIn .7s ease both}
 .splash-mush{font-size:72px;filter:drop-shadow(0 8px 18px rgba(0,0,0,.28));animation:splashPulse 1.8s ease-in-out infinite}
@@ -695,7 +695,7 @@ header.app-header .brand,header.app-header .header-status{position:relative;z-in
   .quick-btn{font-size:10px;padding:9px 4px;min-height:42px}
 }
 
-#appSplash{position:fixed;inset:0;z-index:99999;background:#0b130d;overflow:hidden;opacity:1;visibility:visible;transition:opacity .65s ease,visibility .65s ease}
+#appSplash{position:fixed;inset:0;z-index:99999;background:#0b130d;overflow:hidden;opacity:1;visibility:visible;transition:opacity .65s ease,visibility .65s ease};display:none!important
 #appSplash.hide{opacity:0;visibility:hidden;pointer-events:none}
 .splash-real{position:relative;width:100%;height:100%;overflow:hidden;background:#0b130d}
 .splash-art{position:absolute;inset:0;width:100%;height:100%;display:block;transform:scale(1.015);animation:splashRealDrift 14s ease-in-out infinite alternate}
@@ -1898,6 +1898,38 @@ details.compact .notice{
   color:#fff !important;
 }
 </style>
+<style id="radar-proximidad-css">
+/* ===== RADAR DE PROXIMIDAD ===== */
+#proximidad{display:none}
+#proximidad .proximity-card{background:linear-gradient(145deg,#eef5ee,#fff)!important;border-color:#d5e3d7!important;color:#17231b!important}
+#proximidad .proximity-code-row{display:flex!important;gap:10px;align-items:flex-end;flex-wrap:wrap}
+#proximidad .proximity-code-row>div:first-child{display:block!important;flex:1 1 260px!important;min-width:220px!important}
+#proximidad #proxCode{display:block!important;visibility:visible!important;width:100%!important;height:44px!important;background:#fff!important;color:#17231b!important;border:2px solid #214b35!important;font-size:16px!important}
+#proximidad .proximity-code-row>div:last-child{display:flex!important;gap:7px;align-items:flex-end;flex-wrap:wrap}
+#proximidad .proximity-code-row button{display:inline-block!important;visibility:visible!important}
+.proximity-card{background:linear-gradient(145deg,#eef5ee,#fff);border-color:#d5e3d7}
+.proximity-mapbox{height:430px;margin-top:12px;border-radius:18px;overflow:hidden;border:1px solid #d8e1d9}
+#proximityMap{height:100%;width:100%}
+.proximity-code-row{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
+.proximity-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.proximity-person{padding:11px;border-radius:13px;background:#fff;border:1px solid #dce5dd}
+.proximity-person .big{font-size:16px}
+.proximity-distance{margin:10px 0;padding:13px;border-radius:13px;background:#214b35;color:#fff;font-weight:900;text-align:center}
+@media(max-width:720px){.proximity-mapbox{height:52vh;min-height:300px}.proximity-stats{grid-template-columns:1fr}.proximity-code-row>div:last-child{width:100%}.proximity-code-row button{flex:1}}
+</style><style id="correccion-inicio-definitiva">
+/* La portada no ocupa espacio ni aparece al cargar la aplicación. */
+#appSplash{
+  display:none !important;
+  visibility:hidden !important;
+  opacity:0 !important;
+  pointer-events:none !important;
+  position:absolute !important;
+  width:0 !important;
+  height:0 !important;
+  overflow:hidden !important;
+}
+body{margin:0 !important;padding-top:0 !important;}
+</style>
 </head>
 
 <body>
@@ -1910,90 +1942,6 @@ window.addEventListener("unhandledrejection",function(e){
 });
 </script>
 
-<div id="appSplash" aria-hidden="true">
-  <div class="splash-real">
-    <svg class="splash-art" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <defs>
-        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#142a1d"/><stop offset=".48" stop-color="#294a31"/><stop offset="1" stop-color="#101a11"/></linearGradient>
-        <linearGradient id="mist" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#dbe7c9" stop-opacity=".02"/><stop offset=".5" stop-color="#dbe7c9" stop-opacity=".16"/><stop offset="1" stop-color="#dbe7c9" stop-opacity=".02"/></linearGradient>
-        <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#34432b"/><stop offset=".35" stop-color="#24291a"/><stop offset="1" stop-color="#0c0e09"/></linearGradient>
-        <radialGradient id="cap" cx=".38" cy=".28" r=".8"><stop stop-color="#f3a35a"/><stop offset=".34" stop-color="#d87532"/><stop offset=".72" stop-color="#a94b24"/><stop offset="1" stop-color="#632819"/></radialGradient>
-        <linearGradient id="stem" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#eee2bf"/><stop offset=".55" stop-color="#c9b88c"/><stop offset="1" stop-color="#806d4d"/></linearGradient>
-        <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="4" seed="8"/><feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 .22 0"/><feBlend in="SourceGraphic" mode="soft-light"/></filter>
-        <filter id="soft"><feGaussianBlur stdDeviation="10"/></filter>
-        <filter id="shadow"><feGaussianBlur in="SourceAlpha" stdDeviation="9"/><feOffset dy="9"/><feComponentTransfer><feFuncA type="linear" slope=".55"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <filter id="glow"><feGaussianBlur stdDeviation="18" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-      </defs>
-      <rect width="1200" height="800" fill="url(#sky)"/>
-      <g opacity=".72">
-        <path d="M80 470V145l-70 90h55L-5 315h70L8 385h72v85z" fill="#0d1e14"/>
-        <path d="M240 480V100l-82 110h63L135 285h78l-83 95h92v100z" fill="#13271a"/>
-        <path d="M410 465V75l-88 125h68l-91 105h91l-84 100h104v60z" fill="#17311f"/>
-        <path d="M610 470V95l-80 120h61l-82 102h82l-73 99h92v54z" fill="#11271a"/>
-        <path d="M810 475V70l-90 128h68l-91 112h93l-77 99h97v66z" fill="#17301e"/>
-        <path d="M1030 475V105l-82 115h63l-86 107h88l-73 98h90v50z" fill="#0d2115"/>
-      </g>
-      <g opacity=".35" filter="url(#soft)">
-        <ellipse cx="600" cy="410" rx="420" ry="55" fill="#cbd7b7"/>
-        <ellipse cx="340" cy="470" rx="260" ry="40" fill="#d9dfc8"/>
-      </g>
-      <path d="M0 425 C170 395 260 445 390 420 S650 395 790 430 S1040 390 1200 425 L1200 800 L0 800Z" fill="url(#ground)"/>
-      <g opacity=".48" stroke="#566042" stroke-linecap="round">
-        <path d="M0 575l220-48M65 650l300-70M330 545l270-56M700 585l350-75M850 690l300-70" stroke-width="5"/>
-        <path d="M30 730l330-80M420 770l290-95M770 760l300-90" stroke-width="3"/>
-      </g>
-      <g opacity=".7" stroke="#87906a" stroke-width="2">
-        <path d="M70 600l-20-60m35 74l28-68m44 34l-18-55m130 90l30-80m32 96l-12-73m590 62l24-77m30 92l-12-65m68 88l31-78m60 98l-8-74"/>
-      </g>
-      <g filter="url(#shadow)">
-        <g transform="translate(475 520) scale(1.16)">
-          <ellipse cx="0" cy="45" rx="82" ry="18" fill="#080a06" opacity=".55"/>
-          <path d="M-20 38 C-18 3 -15 -4 0 -8 C16 -4 18 9 20 38Z" fill="url(#stem)"/>
-          <path d="M-76 4 C-62 -48 -25 -69 7 -64 C43 -60 70 -37 76 0 C53 18 20 24 -7 23 C-35 23 -58 18 -76 4Z" fill="url(#cap)"/>
-          <path d="M-53 -8 C-28 -26 22 -31 54 -8" fill="none" stroke="#f8bf78" stroke-opacity=".6" stroke-width="5"/>
-          <path d="M-32 -25c12 20 18 28 31 42M4 -29c-2 22-3 35-5 47M31 -22c-9 18-15 30-24 41" stroke="#7c301e" stroke-width="3" opacity=".65"/>
-        </g>
-        <g transform="translate(590 548) scale(.9) rotate(4)">
-          <ellipse cx="0" cy="40" rx="67" ry="15" fill="#080a06" opacity=".55"/>
-          <path d="M-17 36 C-15 5 -11 -5 0 -7 C13 -4 16 6 17 36Z" fill="url(#stem)"/>
-          <path d="M-62 2 C-51 -40 -22 -57 5 -54 C35 -51 58 -29 62 1 C43 16 18 19 -5 19 C-28 19 -46 14 -62 2Z" fill="url(#cap)"/>
-          <path d="M-38 -6c22-13 51-13 75 0" fill="none" stroke="#f4b56d" stroke-width="4" opacity=".55"/>
-        </g>
-        <g transform="translate(365 566) scale(.72) rotate(-7)">
-          <ellipse cx="0" cy="40" rx="58" ry="13" fill="#080a06" opacity=".55"/>
-          <path d="M-14 36C-12 6-10-3 0-6c11 3 13 12 14 42Z" fill="url(#stem)"/>
-          <path d="M-55 3C-45-35-18-50 5-47c27 3 49 20 55 47C42 14 20 18-3 18-24 18-42 14-55 3Z" fill="url(#cap)"/>
-        </g>
-        <g transform="translate(720 565) scale(.67) rotate(8)">
-          <ellipse cx="0" cy="38" rx="53" ry="12" fill="#080a06" opacity=".55"/>
-          <path d="M-13 35C-12 7-9-3 0-6c10 3 12 12 13 41Z" fill="url(#stem)"/>
-          <path d="M-51 3C-41-32-17-46 5-43c25 2 45 19 51 43C39 14 19 17-3 17-22 17-39 13-51 3Z" fill="url(#cap)"/>
-        </g>
-        <g transform="translate(815 595) scale(.48) rotate(5)">
-          <path d="M-10 32C-9 8-6 0 0-3c7 3 9 10 10 35Z" fill="url(#stem)"/>
-          <path d="M-40 3C-33-25-14-36 4-34c19 2 34 14 40 34C29 11 13 13-2 13-17 13-30 10-40 3Z" fill="url(#cap)"/>
-        </g>
-        <g transform="translate(285 610) scale(.42) rotate(-8)">
-          <path d="M-9 30C-8 7-5 0 0-3c7 3 8 10 9 33Z" fill="url(#stem)"/>
-          <path d="M-37 3C-30-23-13-33 4-31c17 2 31 13 37 30C28 10 12 12-2 12-16 12-28 9-37 3Z" fill="url(#cap)"/>
-        </g>
-      </g>
-      <g opacity=".8" stroke="#303a22" stroke-width="4" stroke-linecap="round">
-        <path d="M430 625l-45-48m56 58l32-62m-5 69l48-48m76 30l-34-59m48 71l43-60m-240 78l-65-36m310 48l54-39"/>
-      </g>
-      <g opacity=".5" filter="url(#grain)"><rect width="1200" height="800" fill="#fff"/></g>
-      <rect width="1200" height="800" fill="url(#mist)" opacity=".45"/>
-      <rect width="1200" height="800" fill="none" stroke="#000" stroke-opacity=".28" stroke-width="80"/>
-    </svg>
-    <div class="splash-real-vignette"></div>
-    <div class="splash-real-copy">
-      <div class="splash-brand">🍄 RADAR NÍSCALO</div>
-      <div class="splash-title">Preparando el radar del rebollón…</div>
-      <div class="splash-sub"><i>Lactarius deliciosus</i> · bosque · suelo · lluvia · IA</div>
-      <div class="splash-scan"><i></i></div>
-    </div>
-  </div>
-</div>
 <main>
 
 <div class="tabs app-nav">
@@ -2005,6 +1953,7 @@ window.addEventListener("unhandledrejection",function(e){
 
 
 <button onclick="tab('escanner',this)">📷<span> Escáner</span></button>
+<button onclick="tab('proximidad',this)">📍<span> Proximidad</span></button>
 
 </div>
 
@@ -2445,6 +2394,36 @@ style="overflow:auto;margin-top:12px">
 </div>
 </section>
 
+<!-- ================= RADAR DE PROXIMIDAD ================= -->
+<section id="proximidad" style="display:none">
+<div class="card proximity-card">
+<h2>📍 Radar de proximidad</h2>
+<p class="muted">Comparte tu posición con otra persona en tiempo real. Ambos móviles deben tener abierta esta pantalla.</p>
+<div class="proximity-code-row">
+  <div style="flex:1;min-width:180px">
+    <label>Código de encuentro</label>
+    <input id="proxCode" maxlength="20" placeholder="Ej. NISCALO4821" autocomplete="off">
+  </div>
+  <div style="display:flex;gap:7px;align-items:end;flex-wrap:wrap">
+    <button type="button" onclick="crearProximidad()">🟢 Crear sala</button>
+    <button type="button" class="secondary" onclick="unirProximidad()">🔵 Unirme</button>
+  </div>
+</div>
+<div id="proxEstado" class="notice" style="margin-top:10px">Introduce el mismo código en los dos móviles.</div>
+<div class="proximity-mapbox"><div id="proximityMap"></div></div>
+<div class="proximity-stats">
+  <div class="proximity-person me"><div class="big">🟢 <span id="proxYo">Tú</span></div><div id="proxYoCoord" class="muted">Esperando ubicación…</div></div>
+  <div class="proximity-person other"><div class="big">🔵 <span id="proxOtro">La otra persona</span></div><div id="proxOtroCoord" class="muted">Esperando conexión…</div></div>
+</div>
+<div class="proximity-distance" id="proxDistance">📏 Distancia: —</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button type="button" onclick="compartirProximidad()">📤 Compartir código</button>
+<button type="button" class="danger" onclick="salirProximidad()">✕ Salir</button>
+</div>
+<p class="muted" style="margin-top:10px">La posición se comparte solo mientras esta sala está activa. El navegador pedirá permiso de ubicación a cada móvil.</p>
+</div>
+</section>
+
 <!-- ================= ESCÁNER ================= -->
 
 
@@ -2547,11 +2526,11 @@ Radar del Níscalo · Aplicación experimental
     splash.classList.add("hide");
     setTimeout(()=>{splash.style.display="none";},900);
   };
-  const emergencyTimer=setTimeout(emergencyHide,8500);
+  const emergencyTimer=setTimeout(emergencyHide,2500);
   const canvas=document.getElementById("splash3D");
   if(!canvas || typeof THREE==="undefined"){
     clearTimeout(emergencyTimer);
-    setTimeout(emergencyHide,7500);
+    setTimeout(emergencyHide,2500);
     return;
   }
   let renderer;
@@ -2691,6 +2670,7 @@ Radar del Níscalo · Aplicación experimental
 </script>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 
@@ -3043,7 +3023,7 @@ boton.style.background=visionRadarActiva?"#214b35":"#6b7280";
 
 function tab(nombre,boton){
 
-["radar","historico","escanner"].forEach(id=>{
+["radar","historico","escanner","proximidad"].forEach(id=>{
 
 $(id).style.display =
 
@@ -3071,6 +3051,13 @@ mapa.invalidateSize();
 
 },100);
 
+}
+
+if(nombre==="proximidad"){
+  setTimeout(()=>{
+    iniciarMapaProximidad();
+    if(proxMap) proxMap.invalidateSize();
+  },100);
 }
 
 }
@@ -5940,6 +5927,85 @@ function enfocarRadar(){
   if(Number.isFinite(lat)&&Number.isFinite(lon)){
     setTimeout(()=>{ if(mapa) mapa.setView([lat,lon],13,{animate:true}); pintarMapaZonas(lat,lon); },350);
   }
+}
+
+/* ================= RADAR DE PROXIMIDAD ================= */
+let proxPeer=null,proxConn=null,proxWatch=null,proxMap=null,proxMeMarker=null,proxOtherMarker=null,proxMe=null,proxOther=null,proxRole="";
+function proxStatus(t){const e=$("proxEstado");if(e)e.innerHTML=t;}
+function proxCode(){return String($("proxCode")?.value||"").trim().toUpperCase().replace(/[^A-Z0-9_-]/g,"").slice(0,20);}
+function iniciarMapaProximidad(){
+  if(proxMap||typeof L==="undefined")return;
+  proxMap=L.map("proximityMap").setView([41.60,1.80],11);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(proxMap);
+}
+function marcadorProx(tipo,p){
+  if(!proxMap)return null;
+  const icon=L.divIcon({className:"",html:"<div style='width:28px;height:28px;border-radius:50%;background:"+(tipo==="me"?"#2f6b46":"#2877c7")+";border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.35);display:grid;place-items:center;color:#fff;font-size:13px'>"+(tipo==="me"?"●":"●")+"</div>",iconSize:[28,28],iconAnchor:[14,14]});
+  return L.marker(p,{icon}).addTo(proxMap).bindTooltip(tipo==="me"?"Tú":"La otra persona",{permanent:false});
+}
+function actualizarMarcadoresProx(){
+  if(!proxMap)return;
+  if(proxMe){if(!proxMeMarker)proxMeMarker=marcadorProx("me",[proxMe.lat,proxMe.lon]);else proxMeMarker.setLatLng([proxMe.lat,proxMe.lon]);$("proxYoCoord").textContent=proxMe.lat.toFixed(5)+", "+proxMe.lon.toFixed(5);}
+  if(proxOther){if(!proxOtherMarker)proxOtherMarker=marcadorProx("other",[proxOther.lat,proxOther.lon]);else proxOtherMarker.setLatLng([proxOther.lat,proxOther.lon]);$("proxOtroCoord").textContent=proxOther.lat.toFixed(5)+", "+proxOther.lon.toFixed(5);}
+  if(proxMe&&proxOther){
+    const d=haversineProx(proxMe.lat,proxMe.lon,proxOther.lat,proxOther.lon);
+    $("proxDistance").textContent="📏 Distancia: "+(d<1000?Math.round(d)+" m":(d/1000).toFixed(2)+" km");
+    proxMap.fitBounds([[proxMe.lat,proxMe.lon],[proxOther.lat,proxOther.lon]],{padding:[45,45],maxZoom:17});
+  }else if(proxMe) proxMap.setView([proxMe.lat,proxMe.lon],15);
+}
+function haversineProx(a,b,c,d){const R=6371000,rad=Math.PI/180,x=(c-a)*rad,y=(d-b)*rad;const q=Math.sin(x/2)**2+Math.cos(a*rad)*Math.cos(c*rad)*Math.sin(y/2)**2;return 2*R*Math.asin(Math.sqrt(q));}
+function emitirPosicionProx(){
+  if(!navigator.geolocation){proxStatus("Este navegador no permite geolocalización.");return;}
+  navigator.geolocation.getCurrentPosition(pos=>{
+    proxMe={lat:pos.coords.latitude,lon:pos.coords.longitude,accuracy:pos.coords.accuracy};
+    actualizarMarcadoresProx();
+    if(proxConn&&proxConn.open)proxConn.send({type:"position",lat:proxMe.lat,lon:proxMe.lon,accuracy:proxMe.accuracy});
+  },err=>proxStatus("Necesitamos permiso de ubicación para compartir tu posición. ("+err.message+")"),{enableHighAccuracy:true,maximumAge:5000,timeout:15000});
+}
+function empezarSeguimientoProx(){if(proxWatch!==null)navigator.geolocation.clearWatch(proxWatch);proxWatch=navigator.geolocation.watchPosition(pos=>{proxMe={lat:pos.coords.latitude,lon:pos.coords.longitude,accuracy:pos.coords.accuracy};actualizarMarcadoresProx();if(proxConn&&proxConn.open)proxConn.send({type:"position",lat:proxMe.lat,lon:proxMe.lon,accuracy:proxMe.accuracy});},()=>{}, {enableHighAccuracy:true,maximumAge:3000,timeout:15000});}
+function configurarConexionProx(conn){
+  proxConn=conn;
+  conn.on("open",()=>{proxStatus("<b>🟢 Conectados.</b> Ya podéis veros en el mapa.");emitirPosicionProx();if(proxMe)conn.send({type:"position",lat:proxMe.lat,lon:proxMe.lon,accuracy:proxMe.accuracy});});
+  conn.on("data",data=>{if(data?.type==="position"){proxOther={lat:Number(data.lat),lon:Number(data.lon),accuracy:Number(data.accuracy)||0};actualizarMarcadoresProx();}});
+  conn.on("close",()=>{proxOther=null;if(proxOtherMarker){proxMap.removeLayer(proxOtherMarker);proxOtherMarker=null;}$("proxOtroCoord").textContent="Conexión cerrada";$("proxDistance").textContent="📏 Distancia: —";proxStatus("La otra persona se ha desconectado.");});
+  conn.on("error",e=>proxStatus("Error de conexión: "+(e?.message||"comprueba el código.")));
+}
+function prepararPeerProx(id,onReady){
+  if(typeof Peer==="undefined"){proxStatus("No se ha podido cargar el sistema de conexión. Recarga la página.");return;}
+  if(proxPeer){try{proxPeer.destroy();}catch(e){}}
+  proxPeer=new Peer(id,{debug:1});
+  proxPeer.on("open",()=>onReady());
+  proxPeer.on("connection",conn=>{if(proxConn&&proxConn.open)proxConn.close();configurarConexionProx(conn);});
+  proxPeer.on("error",e=>proxStatus("No se pudo abrir la sala. Prueba otro código."));
+}
+function crearProximidad(){
+  const code=proxCode();if(code.length<4){proxStatus("Usa un código de al menos 4 caracteres.");return;}
+  $("proxCode").value=code;proxRole="host";iniciarMapaProximidad();
+  prepararPeerProx("radar-niscalo-"+code,()=>{proxStatus("<b>🟢 Sala creada.</b> Comparte el código <b>"+escapar(code)+"</b> con tu mujer y espera a que se una.");emitirPosicionProx();empezarSeguimientoProx();});
+}
+function unirProximidad(){
+  const code=proxCode();if(code.length<4){proxStatus("Introduce el código que te han enviado.");return;}
+  $("proxCode").value=code;proxRole="guest";iniciarMapaProximidad();
+  if(typeof Peer==="undefined"){proxStatus("No se ha podido cargar el sistema de conexión. Recarga la página.");return;}
+  if(proxPeer){try{proxPeer.destroy();}catch(e){}}
+  proxPeer=new Peer();
+  proxPeer.on("open",()=>{const conn=proxPeer.connect("radar-niscalo-"+code,{reliable:true});configurarConexionProx(conn);proxStatus("🔵 Conectando con la otra persona…");});
+  proxPeer.on("error",()=>proxStatus("No se encuentra esa sala. Comprueba el código."));
+  emitirPosicionProx();empezarSeguimientoProx();
+}
+async function compartirProximidad(){
+  const code=proxCode();if(!code){proxStatus("Primero crea una sala.");return;}
+  const texto="Únete a mi Radar de proximidad de Radar Níscalo. Código: "+code;
+  if(navigator.share){try{await navigator.share({title:"Radar Níscalo · Proximidad",text:texto});return;}catch(e){}}
+  if(navigator.clipboard){try{await navigator.clipboard.writeText(texto);proxStatus("📋 Código copiado para compartirlo.");return;}catch(e){}}
+  proxStatus("Código de la sala: <b>"+escapar(code)+"</b>");
+}
+function salirProximidad(){
+  if(proxWatch!==null&&navigator.geolocation)navigator.geolocation.clearWatch(proxWatch);proxWatch=null;
+  if(proxConn){try{proxConn.close();}catch(e){}} if(proxPeer){try{proxPeer.destroy();}catch(e){}}
+  proxConn=null;proxPeer=null;proxMe=null;proxOther=null;
+  if(proxMap){if(proxMeMarker){proxMap.removeLayer(proxMeMarker);proxMeMarker=null;}if(proxOtherMarker){proxMap.removeLayer(proxOtherMarker);proxOtherMarker=null;}proxMap.remove();}
+  proxMap=null;$("proxYoCoord").textContent="Esperando ubicación…";$("proxOtroCoord").textContent="Esperando conexión…";$("proxDistance").textContent="📏 Distancia: —";proxStatus("Sala cerrada.");
 }
 
 /* ================= INICIO ================= */
