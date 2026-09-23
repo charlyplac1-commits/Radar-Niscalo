@@ -1570,258 +1570,257 @@ marcador=L.marker(
 
 async function pintarMapaZonas(lat,lon){
 if(!mapa) return;
-
 capasFavorabilidad.forEach(capa=>mapa.removeLayer(capa));
 capasFavorabilidad=[];
 if(capaCalorRadar){mapa.removeLayer(capaCalorRadar);capaCalorRadar=null;}
 
 /*
-  MAPA DE FAVORABILIDAD LOCAL
-  - 7x7 = 49 puntos reales en vez de 25.
-  - Cada punto usa el mismo motor calcularPuntuacion() que el Radar principal.
-  - Se consultan meteorología, suelo, altitud y hábitat para cada punto.
-  - La interpolación solo suaviza la visualización; no crea datos nuevos.
+  Mapa local: 5x5 celdas.
+  Cada celda mide aproximadamente 4 km de lado.
+  Calculamos condiciones independientes para cada punto.
 */
-const paso=0.025;
-const radio=3;
-const columnas=7;
-const latitudes=[];
-const longitudes=[];
-const puntosRadar=[];
+const paso=0.04;
+const columnas=5;
+let latitudes=[];
+let longitudes=[];
+let puntosRadar=[];
 
-for(let y=-radio;y<=radio;y++){
-  for(let x=-radio;x<=radio;x++){
-    latitudes.push((lat+y*paso).toFixed(5));
-    longitudes.push((lon+x*paso).toFixed(5));
-  }
+for(let y=-2;y<=2;y++){
+for(let x=-2;x<=2;x++){
+latitudes.push((lat+y*paso).toFixed(4));
+longitudes.push((lon+x*paso).toFixed(4));
+}
 }
 
 try{
-  const consulta=
-    "https://api.open-meteo.com/v1/forecast?latitude="+latitudes.join(",")+
-    "&longitude="+longitudes.join(",")+
-    "&timezone=auto&past_days=30&forecast_days=7"+
-    "&current=temperature_2m,soil_moisture_0_to_7cm"+
-    "&hourly=temperature_2m,precipitation,soil_moisture_0_to_7cm";
+let consulta=
+"https://api.open-meteo.com/v1/forecast?latitude="+latitudes.join(",")+
+"&longitude="+longitudes.join(",")+
+"&timezone=auto&past_days=30&forecast_days=7"+
+"&current=temperature_2m,soil_moisture_0_to_7cm"+
+"&hourly=temperature_2m,precipitation,soil_moisture_0_to_7cm";
 
-  const respuesta=await fetch(consulta);
-  if(!respuesta.ok) throw new Error("Error en datos meteorológicos de zonas");
-  let datos=await respuesta.json();
-  if(!Array.isArray(datos)) datos=[datos];
+let respuesta=await fetch(consulta);
+if(!respuesta.ok) throw new Error("Error en datos de zonas");
 
-  const elev=await fetch(
-    "https://api.open-meteo.com/v1/elevation?latitude="+
-    latitudes.join(",")+"&longitude="+longitudes.join(",")
-  );
-  if(!elev.ok) throw new Error("Error en altitudes");
-  const elevData=await elev.json();
-  const elevaciones=Array.isArray(elevData.elevation)
-    ?elevData.elevation
-    :Array(elevData.elevation).fill(elevData.elevation);
+let datos=await respuesta.json();
+if(!Array.isArray(datos)) datos=[datos];
 
-  // Consultamos el hábitat en paralelo para no bloquear punto por punto.
-  const habitats=await Promise.all(latitudes.map(async(la,i)=>{
-    let habitatScore=0.5;
-    let habitatTexto="Sin clasificación forestal";
-    try{
-      const hurl=
-        `https://maps.icgc.cat/vector03/rest/services/RTT/Referencial_Topogr%C3%A1fic_Territorial/MapServer/4/query?where=1%3D1&geometry=${encodeURIComponent(JSON.stringify({x:Number(longitudes[i]),y:Number(la),spatialReference:{wkid:4326}}))}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=tipus&returnGeometry=false&f=json`;
-      const hr=await fetch(hurl);
-      if(hr.ok){
-        const hd=await hr.json();
-        const ht=String(hd.features?.[0]?.attributes?.tipus||"").toLowerCase();
-        if(/pi roig|pinus sylvestris/.test(ht)){
-          habitatScore=1.00; habitatTexto="Pinar de pi roig";
-        }else if(/pinassa|pinus nigra/.test(ht)){
-          habitatScore=0.95; habitatTexto="Pinar de pinassa";
-        }else if(/pi negre|pinus uncinata/.test(ht)){
-          habitatScore=0.90; habitatTexto="Pinar de pi negre";
-        }else if(/pi blanc|pinus halepensis/.test(ht)){
-          habitatScore=0.80; habitatTexto="Pinar de pi blanc";
-        }else if(/pi pinyer|pinus pinea/.test(ht)){
-          habitatScore=0.75; habitatTexto="Pinar de pi pinyer";
-        }else if(/pi|pinar|conífer|bosque|bosc|forest|arbrat/.test(ht)){
-          habitatScore=/pi|pinar/.test(ht)?0.88:0.75;
-          habitatTexto="Bosque de coníferas / arbolado";
-        }else if(/matorral|matollar|arbust/.test(ht)){
-          habitatScore=0.35; habitatTexto="Matorral";
-        }else if(/cultiu|agr|conreu|agrícola|agricola|urb|edific|industrial|carretera|vial|urban|aigua|riu|llac|embass/.test(ht)){
-          habitatScore=0.05; habitatTexto="Cobertura no forestal";
-        }else if(ht){
-          habitatScore=0.20; habitatTexto=ht;
-        }
-      }
-    }catch(e){}
-    return {score:habitatScore,texto:habitatTexto};
-  }));
+let elev=await fetch(
+"https://api.open-meteo.com/v1/elevation?latitude="+
+latitudes.join(",")+
+"&longitude="+
+longitudes.join(",")
+);
 
-  for(let i=0;i<datos.length;i++){
-    const d=datos[i];
-    if(!d || !d.current || !d.hourly) continue;
+if(!elev.ok) throw new Error("Error en altitudes");
 
-    const tiempos=d.hourly.time||[];
-    const precipitacion=d.hourly.precipitation||[];
-    const temperaturas=d.hourly.temperature_2m||[];
-    const humedadSuelo=d.hourly.soil_moisture_0_to_7cm||[];
+let elevData=await elev.json();
+let elevaciones=Array.isArray(elevData.elevation)
+?elevData.elevation
+:[elevData.elevation];
 
-    let indiceActual=tiempos.findIndex(t=>t>=d.current.time);
-    if(indiceActual<0) indiceActual=tiempos.length-1;
+for(let i=0;i<datos.length;i++){
+let d=datos[i];
+if(!d || !d.current || !d.hourly) continue;
 
-    const inicio7=Math.max(0,indiceActual-(7*24)+1);
-    const inicio14=Math.max(0,indiceActual-(14*24)+1);
-    const inicio30=Math.max(0,indiceActual-(30*24)+1);
+let tiempos=d.hourly.time||[];
+let precipitacion=d.hourly.precipitation||[];
+let temperaturas=d.hourly.temperature_2m||[];
+let humedadSuelo=d.hourly.soil_moisture_0_to_7cm||[];
 
-    let lluvia7=0,lluvia14=0,lluvia30=0;
-    const temp7=[];
-    const sueloReciente=[];
+let indiceActual=tiempos.findIndex(t=>t>=d.current.time);
+if(indiceActual<0) indiceActual=tiempos.length-1;
 
-    for(let j=inicio30;j<=indiceActual;j++){
-      const lluvia=Number(precipitacion[j]||0);
-      lluvia30+=lluvia;
-      if(j>=inicio14) lluvia14+=lluvia;
-      if(j>=inicio7){
-        lluvia7+=lluvia;
-        const t=Number(temperaturas[j]);
-        if(Number.isFinite(t)) temp7.push(t);
-      }
-    }
+let inicio7=Math.max(0,indiceActual-(7*24)+1);
+let inicio14=Math.max(0,indiceActual-(14*24)+1);
+let inicio30=Math.max(0,indiceActual-(30*24)+1);
 
-    for(let j=Math.max(0,indiceActual-24+1);j<=indiceActual;j++){
-      const s=Number(humedadSuelo[j]);
-      if(Number.isFinite(s)) sueloReciente.push(s*100);
-    }
+let lluvia7Pasada=0;
+let lluvia14=0;
+let lluvia30=0;
+let temp7=[];
+let sueloReciente=[];
 
-    const tempActual=Number(d.current.temperature_2m||0);
-    const tempMedia7=temp7.length
-      ?temp7.reduce((a,b)=>a+b,0)/temp7.length
-      :tempActual;
-    const suelo=sueloReciente.length
-      ?sueloReciente.reduce((a,b)=>a+b,0)/sueloReciente.length
-      :Number(d.current.soil_moisture_0_to_7cm||0)*100;
+for(let j=inicio30;j<=indiceActual;j++){
+let lluvia=Number(precipitacion[j]||0);
+lluvia30+=lluvia;
 
-    // Días desde la última lluvia apreciable.
-    let dryDays=0;
-    for(let j=indiceActual;j>=Math.max(0,indiceActual-30*24);j--){
-      if(Number(precipitacion[j]||0)>=0.2) break;
-      dryDays++;
-    }
-    dryDays=Math.min(30,Math.floor(dryDays/24));
+if(j>=inicio14) lluvia14+=lluvia;
+if(j>=inicio7){
+lluvia7Pasada+=lluvia;
+let t=Number(temperaturas[j]);
+if(Number.isFinite(t)) temp7.push(t);
+}
+}
 
-    const alt=Number(elevaciones[i]||0);
-    const habitat=habitats[i]?.score??0.5;
-    const habitatTexto=habitats[i]?.texto||"Sin clasificación forestal";
+for(let j=Math.max(0,indiceActual-24+1);j<=indiceActual;j++){
+let s=Number(humedadSuelo[j]);
+if(Number.isFinite(s)) sueloReciente.push(s*100);
+}
 
-    // MISMO MOTOR del Radar principal.
-    const score=calcularPuntuacion(
-      lluvia7,
-      lluvia14,
-      lluvia30,
-      tempActual,
-      tempMedia7,
-      suelo,
-      alt,
-      new Date().getMonth()+1,
-      0,
-      habitat,
-      dryDays,
-      suelo,
-      0
-    );
+let tempActual=Number(d.current.temperature_2m||0);
+let tempMedia7=temp7.length
+?temp7.reduce((a,b)=>a+b,0)/temp7.length
+:tempActual;
 
-    const y=Math.floor(i/columnas)-radio;
-    const x=(i%columnas)-radio;
-    const centroLat=lat+y*paso;
-    const centroLon=lon+x*paso;
+let suelo=sueloReciente.length
+?sueloReciente.reduce((a,b)=>a+b,0)/sueloReciente.length
+:Number(d.current.soil_moisture_0_to_7cm||0)*100;
 
-    const nivel=
-      score>=80?"Muy favorable":
-      score>=60?"Favorable":
-      score>=40?"Posible":"Baja";
+let alt=Number(elevaciones[i]||0);
 
-    const color=
-      score>=80?"#ff3b1f":
-      score>=60?"#ff8a00":
-      score>=40?"#ffd23f":"#3b82f6";
+let habitatScore=0.5;
+let habitatTexto="Sin clasificación forestal";
+try{
+let hurl=
+`https://maps.icgc.cat/vector03/rest/services/RTT/Referencial_Topogr%C3%A0fic_Territorial/MapServer/4/query?where=1%3D1&geometry=${encodeURIComponent(JSON.stringify({x:Number(longitudes[i]),y:Number(latitudes[i]),spatialReference:{wkid:4326}}))}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=tipus&returnGeometry=false&f=json`;
+let hr=await fetch(hurl);
+let hd=await hr.json();
+let ht=String(hd.features?.[0]?.attributes?.tipus||"").toLowerCase();
 
-    const popupHtml=
-      "<b>🍄 Favorabilidad: "+score+"/100</b>"+
-      "<br>🍄 "+nivel+
-      "<hr style='margin:7px 0'>"+
-      "🌧️ Últimos 7 días: "+Math.round(lluvia7)+" mm"+
-      "<br>🌧️ Últimos 14 días: "+Math.round(lluvia14)+" mm"+
-      "<br>🌧️ Últimos 30 días: "+Math.round(lluvia30)+" mm"+
-      "<br>🌡️ Temp. actual: "+tempActual.toFixed(1)+" °C"+
-      "<br>🌡️ Media 7 días: "+tempMedia7.toFixed(1)+" °C"+
-      "<br>💧 Suelo: "+Math.round(suelo)+"%"+
-      "<br>🌲 Hábitat: "+Math.round(habitat*100)+"/100"+
-      "<br>"+habitatTexto+
-      "<br>⛰️ Altitud: "+Math.round(alt)+" m"+
-      "<br>☀️ Días secos: "+dryDays;
+if(/pi roig|pinus sylvestris/.test(ht)){
+  habitatScore=1.00;
+  habitatTexto="Pinar de pi roig (Pinus sylvestris)";
+}else if(/pinassa|pinus nigra/.test(ht)){
+  habitatScore=0.95;
+  habitatTexto="Pinar de pinassa (Pinus nigra)";
+}else if(/pi negre|pinus uncinata/.test(ht)){
+  habitatScore=0.90;
+  habitatTexto="Pinar de pi negre (Pinus uncinata)";
+}else if(/pi blanc|pinus halepensis/.test(ht)){
+  habitatScore=0.80;
+  habitatTexto="Pinar de pi blanc (Pinus halepensis)";
+}else if(/pi pinyer|pinus pinea/.test(ht)){
+  habitatScore=0.75;
+  habitatTexto="Pinar de pi pinyer (Pinus pinea)";
+}else if(/pi|pinar|conífer|bosque|bosc|forest|arbrat/.test(ht)){
+  habitatScore=/pi|pinar/.test(ht)?0.88:0.75;
+  habitatTexto="Pinar o bosque de coníferas compatible";
+}else if(/matorral|matollar|arbust/.test(ht)){
+  habitatScore=0.35;
+  habitatTexto="Matorral / vegetación arbustiva";
+}else if(/cultiu|agr|conreu|agrícola|agricola|urb|edific|industrial|carretera|vial|urban|aigua|riu|llac|embass/.test(ht)){
+  habitatScore=0.05;
+  habitatTexto="Cobertura no forestal";
+}else if(ht){
+  habitatScore=0.20;
+  habitatTexto=ht;
+}
+}catch(e){}
+let score=calcularPuntuacion(
+lluvia7,
+lluvia14,
+lluvia30,
+tempActual,
+tempMedia7,
+suelo,
+alt,
+new Date().getMonth()+1,
+0,
+habitatScore,
+0,
+50,
+0
+);
 
-    puntosRadar.push({lat:centroLat,lon:centroLon,score});
+let y=Math.floor(i/columnas)-2;
+let x=(i%columnas)-2;
+let centroLat=lat+y*paso;
+let centroLon=lon+x*paso;
 
-    const puntoRadar=L.circleMarker([centroLat,centroLon],{
-      radius:7,
-      color:color,
-      weight:1,
-      opacity:0.15,
-      fillColor:color,
-      fillOpacity:0.08,
-      interactive:true
-    }).addTo(mapa);
+let color=
+score>=80?"#ff3b1f":
+score>=60?"#ff8a00":
+score>=40?"#ffd23f":
+"#3b82f6";
 
-    puntoRadar.bindPopup(popupHtml);
-    capasFavorabilidad.push(puntoRadar);
+let nivel=
+score>=80?"Muy favorable":
+score>=60?"Favorable":
+score>=40?"Posible":
+"Baja";
+
+let popupHtml=
+"<b>🍄 Favorabilidad: "+score+"/100</b>"+
+"<br>🍄 "+nivel+
+"<hr style='margin:7px 0'>"+
+"🌧️ Últimos 7 días: "+Math.round(lluvia7)+" mm"+
+"<br>🌧️ Últimos 14 días: "+Math.round(lluvia14)+" mm"+
+"<br>🌧️ Últimos 30 días: "+Math.round(lluvia30)+" mm"+
+"<br>🌡️ Temp. actual: "+tempActual.toFixed(1)+" °C"+
+"<br>🌡️ Media 7 días: "+tempMedia7.toFixed(1)+" °C"+
+"<br>💧 Suelo: "+Math.round(suelo)+"%"+
+"<br>🌲 Hábitat: "+Math.round(habitatScore*100)+"/100"+
+"<br>⛰️ Altitud: "+Math.round(alt)+" m";
+
+puntosRadar.push({lat:centroLat,lon:centroLon,score});
+
+let puntoRadar=L.circleMarker([centroLat,centroLon],{
+radius:8,
+opacity:0,
+fillOpacity:0,
+interactive:true
+}).addTo(mapa);
+puntoRadar.bindPopup(popupHtml);
+capasFavorabilidad.push(puntoRadar);
+}
+// Construimos una superficie térmica continua a partir de los 25 puntos reales.
+const puntosInterpolados=[];
+for(let gy=0;gy<=20;gy++){
+  const fy=gy/20*4-2;
+  for(let gx=0;gx<=20;gx++){
+    const fx=gx/20*4-2;
+    let suma=0,peso=0;
+    puntosRadar.forEach(p=>{
+      const py=(p.lat-lat)/paso,px=(p.lon-lon)/paso;
+      const dist2=(fx-px)*(fx-px)+(fy-py)*(fy-py);
+      const w=1/Math.pow(0.55+dist2,1.15);
+      suma+=p.score*w;peso+=w;
+    });
+    const valor=peso?suma/peso:0;
+    puntosInterpolados.push([
+      lat+fy*paso,
+      lon+fx*paso,
+      Math.max(.05,Math.min(1,valor/100))
+    ]);
   }
-
-  // Superficie visual interpolada a partir de los 49 puntos calculados.
-  if(puntosRadar.length && typeof L.heatLayer==="function"){
-    const puntosInterpolados=[];
-    for(let gy=0;gy<=42;gy++){
-      const fy=gy/42*(radio*2)-radio;
-      for(let gx=0;gx<=42;gx++){
-        const fx=gx/42*(radio*2)-radio;
-        let suma=0,peso=0;
-        puntosRadar.forEach(p=>{
-          const py=(p.lat-lat)/paso;
-          const px=(p.lon-lon)/paso;
-          const dist2=(fx-px)*(fx-px)+(fy-py)*(fy-py);
-          const w=1/Math.pow(0.40+dist2,1.08);
-          suma+=p.score*w;
-          peso+=w;
-        });
-        const valor=peso?suma/peso:0;
-        puntosInterpolados.push([
-          lat+fy*paso,
-          lon+fx*paso,
-          Math.max(.02,Math.min(1,valor/100))
-        ]);
-      }
+}
+if(puntosRadar.length){
+  /* Superficie continua: usamos más puntos interpolados y una capa más ancha
+     para que siga siendo visible incluso con el mapa alejado. */
+  const puntosInterpolados=[];
+  for(let gy=0;gy<=32;gy++){
+    const fy=gy/32*4-2;
+    for(let gx=0;gx<=32;gx++){
+      const fx=gx/32*4-2;
+      let suma=0,peso=0;
+      puntosRadar.forEach(p=>{
+        const py=(p.lat-lat)/paso,px=(p.lon-lon)/paso;
+        const dist2=(fx-px)*(fx-px)+(fy-py)*(fy-py);
+        const w=1/Math.pow(0.35+dist2,1.05);
+        suma+=p.score*w;peso+=w;
+      });
+      const valor=peso?suma/peso:0;
+      puntosInterpolados.push([lat+fy*paso,lon+fx*paso,Math.max(.02,Math.min(1,valor/100))]);
     }
-
+  }
+  if(typeof L.heatLayer==="function"){
     capaCalorRadar=L.heatLayer(puntosInterpolados,{
-      radius:55,
-      blur:58,
-      maxZoom:15,
-      minOpacity:.30,
-      max:.98,
+      radius:70,blur:72,maxZoom:14,minOpacity:.28,max:.98,
       gradient:{
-        0.02:"#07133d",
-        0.18:"#1239a6",
-        0.34:"#008fe8",
-        0.50:"#00cfa5",
-        0.64:"#8ee22b",
-        0.76:"#ffe000",
-        0.88:"#ff7900",
-        1:"#ff170d"
+        0.02:"#07133d",0.18:"#1239a6",0.34:"#008fe8",
+        0.50:"#00cfa5",0.64:"#8ee22b",0.76:"#ffe000",
+        0.88:"#ff7900",1:"#ff170d"
       }
     });
     if(visionRadarActiva)capaCalorRadar.addTo(mapa);
-  }else if(puntosRadar.length){
-    console.warn("Leaflet.heat no está disponible; se muestran los puntos de favorabilidad.");
+  }else{
+    console.warn("Leaflet.heat no está disponible; no se puede pintar la superficie radar.");
   }
+}
 }catch(error){
-  console.error("Mapa de favorabilidad:",error);
+console.error("Mapa de favorabilidad:",error);
 }
 }
 
@@ -3199,3 +3198,1234 @@ async function iniciarRadarVisual(){
     estado.innerHTML="Solicitando permiso para usar la cámara…";
     activarHUDScanner(true);
     const constraints={audio:false,video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}}};
+    try{
+      streamLive=await navigator.mediaDevices.getUserMedia(constraints);
+    }catch(firstError){
+      console.warn("Cámara con restricciones iniciales falló:",firstError);
+      streamLive=await navigator.mediaDevices.getUserMedia({audio:false,video:true});
+    }
+    video.muted=true;
+    video.autoplay=true;
+    video.playsInline=true;
+    video.setAttribute("playsinline","");
+    video.setAttribute("webkit-playsinline","");
+    video.srcObject=streamLive;
+    video.style.display="block";
+    $("livePlaceholder").style.display="none";
+    overlay.style.display="block";
+    await new Promise((resolve,reject)=>{
+      if(video.readyState>=2 && video.videoWidth>0){resolve();return;}
+      const timer=setTimeout(()=>reject(new Error("La cámara no entregó imagen al vídeo.")),5000);
+      video.addEventListener("loadedmetadata",()=>{clearTimeout(timer);resolve();},{once:true});
+    });
+    await video.play();
+    if(!video.videoWidth||!video.videoHeight) throw new Error("La cámara está activa pero no está entregando imagen.");
+    $("btnLiveStart").style.display="none";
+    $("btnLiveAnalyze").style.display="inline-block";
+    $("btnLiveStop").style.display="inline-block";
+    estado.innerHTML="<b>🎥 Radar visual activo.</b> Mueve lentamente la cámara por el suelo y el bosque.";
+    liveCanvas=document.createElement("canvas");
+    liveCanvas.width=320;
+    liveCanvas.height=240;
+    liveCtx=liveCanvas.getContext("2d",{willReadFrequently:true});
+    liveBucle(performance.now());
+  }catch(error){
+    console.error("Radar visual · cámara:",error);
+    let detalle="Comprueba el permiso de cámara y que estás usando HTTPS.";
+    if(error?.name==="NotAllowedError") detalle="Safari ha bloqueado el permiso de cámara. Actívalo en Ajustes → Safari → Cámara.";
+    else if(error?.name==="NotFoundError") detalle="No se ha encontrado una cámara disponible.";
+    else if(error?.name==="NotReadableError") detalle="La cámara está ocupada por otra aplicación.";
+    estado.innerHTML="<b>⚠️ No se pudo abrir la cámara.</b><br><span class='muted'>"+detalle+"</span>";
+    activarHUDScanner(false);
+  }
+}
+
+function detenerRadarVisual(){
+  activarHUDScanner(false);
+  if(liveAnim){cancelAnimationFrame(liveAnim);liveAnim=null;}
+  if(streamLive){streamLive.getTracks().forEach(t=>t.stop());streamLive=null;}
+  const video=$("liveVideo"),overlay=$("liveOverlay");
+  if(video){video.pause();video.srcObject=null;video.style.display="none";}
+  if(overlay){overlay.style.display="none";}
+  if($("livePlaceholder")) $("livePlaceholder").style.display="block";
+  if($("btnLiveStart")) $("btnLiveStart").style.display="inline-block";
+  if($("btnLiveAnalyze")) $("btnLiveAnalyze").style.display="none";
+  if($("btnLiveStop")) $("btnLiveStop").style.display="none";
+}
+
+function liveBucle(ahora){
+  if(!streamLive||!liveCanvas)return;
+  liveAnim=requestAnimationFrame(liveBucle);
+  if(ahora-liveUltimoAnalisis<140)return;
+  liveUltimoAnalisis=ahora;
+  const video=$("liveVideo");
+  if(!video.videoWidth||!video.videoHeight)return;
+  liveCtx.drawImage(video,0,0,liveCanvas.width,liveCanvas.height);
+  const analisis=analizarImagenBase(liveCanvas);
+  const radar=obtenerRadarActual();
+  const combinado=Math.round(radar*.55+analisis.visual*.45);
+  const centro=analisis.zonas.find(z=>z.fila===1&&z.col===1)?.visual||analisis.visual;
+  $("liveScore").textContent=analisis.visual;
+  $("liveCenter").textContent=centro;
+  $("liveRadar").textContent=radar;
+  $("liveCombined").textContent=combinado;
+  dibujarMapaLive(analisis,combinado);
+  actualizarCandidatoLive(analisis,centro,combinado);
+}
+
+function obtenerRadarActual(){
+  const n=Number(($("score")||{}).textContent);
+  return Number.isFinite(n)?Math.max(0,Math.min(100,n)):50;
+}
+
+function colorHeat(v){
+  if(v>=80)return "rgba(35,180,80,.45)";
+  if(v>=65)return "rgba(150,210,50,.40)";
+  if(v>=50)return "rgba(245,190,35,.42)";
+  if(v>=35)return "rgba(240,110,35,.42)";
+  return "rgba(210,45,45,.45)";
+}
+
+function dibujarMapaLive(analisis,combinado){
+  const overlay=$("liveOverlay"),video=$("liveVideo");
+  if(!overlay||!video.videoWidth)return;
+  const ow=Math.max(320,video.videoWidth>video.videoHeight?640:360);
+  const oh=Math.max(240,Math.round(ow*video.videoHeight/video.videoWidth));
+  if(overlay.width!==ow||overlay.height!==oh){overlay.width=ow;overlay.height=oh;}
+  const ctx=overlay.getContext("2d",{willReadFrequently:true});
+  ctx.clearRect(0,0,ow,oh);
+
+  if(visionTermicaLive){
+    /*
+      VISIÓN TÉRMICA INDEPENDIENTE:
+      no es un velo amarillo. Se convierte la imagen de cámara a una
+      paleta térmica de alto contraste y el Radar modula suavemente
+      la intensidad de las zonas favorables.
+    */
+    const src=liveCanvas;
+    if(src){
+      const smallW=480,smallH=Math.max(270,Math.round(480*video.videoHeight/video.videoWidth));
+      const tmp=document.createElement("canvas");
+      tmp.width=smallW;tmp.height=smallH;
+      const tctx=tmp.getContext("2d",{willReadFrequently:true});
+      tctx.drawImage(src,0,0,smallW,smallH);
+      const data=tctx.getImageData(0,0,smallW,smallH);
+      const d=data.data;
+      const zonas=analisis.zonas||[];
+      function zscore(px,py){
+        const col=Math.min(2,Math.floor(px*3));
+        const fila=Math.min(2,Math.floor(py*3));
+        const z=zonas.find(v=>v.col===col&&v.fila===fila);
+        return Number.isFinite(Number(z?.visual))?Number(z.visual):Number(combinado)||50;
+      }
+      function heatColor(v){
+        const stops=[
+          [0,[3,8,35]],[18,[8,35,120]],[35,[0,110,210]],
+          [50,[0,185,115]],[65,[150,220,25]],[78,[255,225,0]],
+          [88,[255,105,0]],[96,[235,20,0]],[100,[255,245,235]]
+        ];
+        const x=Math.max(0,Math.min(100,v));
+        let a=stops[0],b=stops[stops.length-1];
+        for(let i=0;i<stops.length-1;i++){if(x>=stops[i][0]&&x<=stops[i+1][0]){a=stops[i];b=stops[i+1];break;}}
+        const t=(x-a[0])/Math.max(1,b[0]-a[0]);
+        return [
+          a[1][0]+(b[1][0]-a[1][0])*t,
+          a[1][1]+(b[1][1]-a[1][1])*t,
+          a[1][2]+(b[1][2]-a[1][2])*t
+        ];
+      }
+      for(let y=0;y<smallH;y++){
+        const py=y/smallH;
+        for(let x=0;x<smallW;x++){
+          const i=(y*smallW+x)*4;
+          const r=d[i],g=d[i+1],b=d[i+2];
+          // Luminancia con contraste: la textura real del bosque permanece visible.
+          const lum=(0.2126*r+0.7152*g+0.0722*b)/255;
+          const contrast=Math.max(0,Math.min(1,(lum-.08)/.84));
+          // El radar no colorea toda la imagen: desplaza la lectura térmica de forma local.
+          const local=zscore(x/smallW,y/smallH);
+          const radarInfluence=(local-(Number(combinado)||50))*.16;
+          const thermal=Math.max(0,Math.min(100,(contrast*100)+radarInfluence));
+          const [hr,hg,hb]=heatColor(thermal);
+          // Mezcla mínima con luminancia para conservar relieve y detalle.
+          const detail=.88+.12*contrast;
+          d[i]=Math.round(hr*detail);
+          d[i+1]=Math.round(hg*detail);
+          d[i+2]=Math.round(hb*detail);
+          d[i+3]=255;
+        }
+      }
+      tctx.putImageData(data,0,0);
+      ctx.save();
+      ctx.imageSmoothingEnabled=true;
+      ctx.drawImage(tmp,0,0,ow,oh);
+      ctx.restore();
+    }
+  }
+
+  // Mira central limpia, siempre visible.
+  const cx=ow/2,cy=oh/2;
+  ctx.save();
+  ctx.strokeStyle="rgba(255,255,255,.92)";
+  ctx.lineWidth=2;
+  ctx.shadowColor="rgba(0,0,0,.65)";
+  ctx.shadowBlur=4;
+  ctx.beginPath();
+  ctx.moveTo(cx-22,cy);ctx.lineTo(cx+22,cy);
+  ctx.moveTo(cx,cy-22);ctx.lineTo(cx,cy+22);
+  ctx.stroke();
+  ctx.strokeStyle="rgba(255,255,255,.62)";
+  ctx.lineWidth=1;
+  ctx.beginPath();ctx.arc(cx,cy,30,0,Math.PI*2);ctx.stroke();
+  ctx.restore();
+
+  if(visionTermicaLive){
+    ctx.save();
+    ctx.font="700 10px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+    ctx.fillStyle="rgba(255,255,255,.92)";
+    ctx.shadowColor="rgba(0,0,0,.75)";ctx.shadowBlur=4;
+    ctx.fillText("THERMAL RADAR",12,18);
+    ctx.restore();
+  }
+}
+function actualizarCandidatoLive(analisis,centro,combinado){
+  const caja=$("liveCandidate");
+  const mejor=analisis.zonas.slice().sort((a,b)=>b.visual-a.visual)[0];
+  const visualFuerte=mejor&&mejor.visual>=78;
+  const contextoFavorable=combinado>=65;
+  if(visualFuerte&&contextoFavorable){
+    caja.innerHTML="<b>🍄 Candidato visual fuerte en esta zona.</b><br>Compatibilidad "+mejor.visual+"/100 · señal combinada "+combinado+"/100.<br><span class='muted'>Acércate y pulsa «Analizar zona» para hacer una comprobación más detallada. Esto no confirma que sea un níscalo.</span>";
+  }else if(visualFuerte){
+    caja.innerHTML="<b>🔎 Zona visualmente interesante.</b><br>Compatibilidad "+mejor.visual+"/100, pero el contexto ambiental todavía no es suficientemente fuerte.";
+  }else{
+    caja.innerHTML="Moviendo la cámara… <b>"+combinado+"/100</b> de señal combinada. Busca cambios claros de puntuación y zonas verdes.";
+  }
+}
+
+async function analizarZonaLive(){
+  if(!streamLive||!liveCanvas)return;
+  const video=$("liveVideo"); liveCtx.drawImage(video,0,0,liveCanvas.width,liveCanvas.height);
+  const analisis=analizarImagenBase(liveCanvas), centro=analisis.zonas.find(z=>z.fila===1&&z.col===1)?.visual||analisis.visual;
+  const radar=obtenerRadarActual(), modelo=await puntuarConModeloNiscalo(liveCanvas);
+  const visualFusion=modelo==null?analisis.visual:Math.round(analisis.visual*.35+modelo*.65);
+  const combinado=Math.round(radar*.55+visualFusion*.45), candidato=detectarCandidatoVisual(liveCanvas,analisis);
+  const candidatoFinal=modelo==null?candidato.score:Math.round(candidato.score*.35+modelo*.65);
+  const lat=Number($("lat").value),lon=Number($("lon").value);
+  guardarEscaneo({fecha:new Date().toISOString(),tipo:"radar-visual",lat:Number.isFinite(lat)?lat:null,lon:Number.isFinite(lon)?lon:null,resultado:combinado,visual:visualFusion,heuristica:analisis.visual,modelo:modelo,centro,radar,candidato:candidatoFinal,observacion:candidato.texto});
+  $("liveCandidate").innerHTML="<b>🎯 Análisis de zona</b><br>Señal combinada: <b>"+combinado+"/100</b><br>Visual fusionada: <b>"+visualFusion+"/100</b> · Heurística "+analisis.visual+"/100"+(modelo!=null?" · IA entrenada "+modelo+"/100":" · IA en preparación")+"<br>🍄 Señal de candidato visual: <b>"+candidatoFinal+"/100</b><br><span class='muted'>"+escapar(candidato.texto)+"</span>";
+  mostrarEscaneos();
+}
+
+function detectarCandidatoVisual(canvas,analisis){
+  const ctx=canvas.getContext("2d",{willReadFrequently:true});
+  const w=canvas.width,h=canvas.height;
+  const x0=Math.floor(w*.30),y0=Math.floor(h*.30),x1=Math.floor(w*.70),y1=Math.floor(h*.70);
+  const d=ctx.getImageData(x0,y0,x1-x0,y1-y0).data;
+  let n=0,naranja=0,rojo=0,marron=0,oscuro=0;
+  for(let i=0;i<d.length;i+=16){
+    const r=d[i],g=d[i+1],b=d[i+2],br=(r+g+b)/3;n++;
+    if(r>85&&r>g*1.18&&g>b*1.05&&g<150)naranja++;
+    if(r>80&&r>g*1.35&&r>b*1.25)rojo++;
+    if(r>45&&r>g*1.08&&g>b*1.03&&r<180)marron++;
+    if(br<90)oscuro++;
+  }
+  const pn=naranja/n,pr=rojo/n,pm=marron/n,po=oscuro/n;
+  const centro=analisis.zonas.find(z=>z.fila===1&&z.col===1)?.visual||50;
+  let score=centro*.45+Math.min(100,pn*700)*.25+Math.min(100,pm*240)*.15+Math.min(100,po*180)*.05+Math.min(100,pr*900)*.10;
+  score=Math.round(Math.max(0,Math.min(100,score)));
+  let texto=score>=75
+    ?"Hay una combinación de color/contraste compatible con un posible objeto de interés. Acércate antes de sacar conclusiones."
+    :score>=55
+    ?"Hay una señal visual moderada, pero no tiene suficiente fuerza para considerarla un candidato claro."
+    :"No aparece una señal visual suficientemente característica en la zona central.";
+  return {score,texto};
+}
+
+async function abrirCamara(){
+  const estado=$("camaraEstado"),video=$("videoCamara");
+  try{
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error("Cámara no disponible");
+    cerrarStreamCamara();
+    estado.innerHTML="Solicitando permiso para usar la cámara…";
+    let stream;
+    try{
+      stream=await navigator.mediaDevices.getUserMedia({
+        audio:false,
+        video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}}
+      });
+    }catch(firstError){
+      console.warn("Cámara fotográfica con restricciones iniciales falló:",firstError);
+      stream=await navigator.mediaDevices.getUserMedia({audio:false,video:true});
+    }
+    streamCamara=stream;
+    video.muted=true;
+    video.autoplay=true;
+    video.playsInline=true;
+    video.setAttribute("playsinline","");
+    video.setAttribute("webkit-playsinline","");
+    video.srcObject=stream;
+    video.style.display="block";
+    $("camaraPlaceholder").style.display="none";
+    $("guiaCamara").style.display="block";
+    await new Promise((resolve,reject)=>{
+      if(video.readyState>=2 && video.videoWidth>0){resolve();return;}
+      const timer=setTimeout(()=>reject(new Error("La cámara no entregó imagen al vídeo.")),5000);
+      const onMeta=()=>{
+        clearTimeout(timer);
+        video.removeEventListener("loadedmetadata",onMeta);
+        video.removeEventListener("error",onError);
+        resolve();
+      };
+      const onError=()=>{
+        clearTimeout(timer);
+        video.removeEventListener("loadedmetadata",onMeta);
+        video.removeEventListener("error",onError);
+        reject(new Error("El elemento de vídeo no pudo cargar la cámara."));
+      };
+      video.addEventListener("loadedmetadata",onMeta,{once:true});
+      video.addEventListener("error",onError,{once:true});
+    });
+    await video.play();
+    if(!video.videoWidth||!video.videoHeight) throw new Error("La cámara está activa pero no está entregando imagen.");
+    $("btnFotoCamara").style.display="inline-block";
+    $("btnCerrarCamara").style.display="inline-block";
+    $("btnAbrirCamara").style.display="none";
+    fotosEscaneo=[];
+    actualizarBotonFoto();
+    estado.innerHTML="<b>📷 Cámara activa.</b> Haz primero una vista general del bosque.";
+  }catch(error){
+    console.error("Cámara de fotos · cámara:",error);
+    let detalle="Comprueba el permiso de cámara y que estás usando HTTPS.";
+    if(error?.name==="NotAllowedError") detalle="Safari ha bloqueado el permiso de cámara. Actívalo en Ajustes → Safari → Cámara.";
+    else if(error?.name==="NotFoundError") detalle="No se ha encontrado una cámara disponible.";
+    else if(error?.name==="NotReadableError") detalle="La cámara está ocupada por otra aplicación.";
+    else if(error?.message) detalle=error.message;
+    estado.innerHTML="<b>⚠️ No se pudo abrir la cámara.</b><br><span class='muted'>"+detalle+"</span>";
+    cerrarStreamCamara();
+    video.srcObject=null;
+    video.style.display="none";
+    $("camaraPlaceholder").style.display="block";
+    $("guiaCamara").style.display="none";
+  }
+}
+function cerrarStreamCamara(){if(streamCamara){streamCamara.getTracks().forEach(track=>track.stop());streamCamara=null;}}
+function cerrarCamara(){
+  cerrarStreamCamara();const video=$("videoCamara");video.srcObject=null;video.style.display="none";$("fotoCamara").style.display="none";
+  $("camaraPlaceholder").style.display="block";$("guiaCamara").style.display="none";$("btnFotoCamara").style.display="none";$("btnCerrarCamara").style.display="none";$("btnAbrirCamara").style.display="inline-block";$("camaraEstado").textContent="Cámara cerrada.";fotosEscaneo=[];
+}
+function actualizarBotonFoto(){
+  $("btnFotoCamara").textContent="📸 Analizar foto "+(fotosEscaneo.length+1)+"/3";
+  if(fotosEscaneo.length===0)$("camaraEstado").innerHTML="<b>1/3 · Vista general.</b> Fotografía el conjunto del bosque.";
+  else if(fotosEscaneo.length===1)$("camaraEstado").innerHTML="<b>2/3 · Suelo.</b> Apunta hacia la hojarasca, pinocha y tierra.";
+  else if(fotosEscaneo.length===2)$("camaraEstado").innerHTML="<b>3/3 · Vista lateral.</b> Apunta a la vegetación y los árboles.";
+}
+function repetirFoto(){
+  $("fotoCamara").style.display="none";$("videoCamara").style.display="block";$("guiaCamara").style.display="block";$("btnFotoCamara").style.display="inline-block";actualizarBotonFoto();
+}
+async function hacerFoto(){
+  const video=$("videoCamara"),canvas=$("fotoCamara");
+  if(!video.videoWidth||!video.videoHeight){$("camaraEstado").textContent="Espera un momento a que la cámara esté lista.";return;}
+  canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+  const ctx=canvas.getContext("2d",{willReadFrequently:true});ctx.drawImage(video,0,0,canvas.width,canvas.height);
+  const analisis=analizarImagenBase(canvas);fotosEscaneo.push(analisis);
+  video.style.display="none";canvas.style.display="block";$("btnFotoCamara").style.display="none";
+  if(fotosEscaneo.length<MAX_FOTOS_ESCANEO){
+    $("btnRepetirCamara").style.display="inline-block";actualizarBotonFoto();
+    $("btnRepetirCamara").onclick=()=>{$("btnRepetirCamara").style.display="none";repetirFoto();};
+    $("camaraEstado").innerHTML="<b>✅ Foto "+fotosEscaneo.length+"/3 analizada.</b> Ahora prepara la siguiente.";
+    setTimeout(()=>{if(fotosEscaneo.length<3){$("videoCamara").style.display="block";$("fotoCamara").style.display="none";$("guiaCamara").style.display="block";$("btnFotoCamara").style.display="inline-block";$("btnRepetirCamara").style.display="none";actualizarBotonFoto();}},700);
+  }else{
+    cerrarStreamCamara();$("btnFotoCamara").style.display="none";$("btnRepetirCamara").style.display="none";await finalizarEscaneo();
+  }
+}
+function analizarImagenBase(canvas){
+  const ctx=canvas.getContext("2d",{willReadFrequently:true}),w=canvas.width,h=canvas.height;
+  const zonas=[];let suma=0;
+  for(let fila=0;fila<3;fila++)for(let col=0;col<3;col++){
+    const x0=Math.floor(col*w/3),y0=Math.floor(fila*h/3),x1=Math.floor((col+1)*w/3),y1=Math.floor((fila+1)*h/3);
+    const datos=ctx.getImageData(x0,y0,x1-x0,y1-y0).data;let verdes=0,marrones=0,oscuros=0,claros=0,total=0;
+    const paso=Math.max(4,Math.floor(Math.sqrt(((x1-x0)*(y1-y0))/9000)));
+    for(let y=0;y<y1-y0;y+=paso)for(let x=0;x<x1-x0;x+=paso){
+      const i=(y*(x1-x0)+x)*4,r=datos[i],g=datos[i+1],b=datos[i+2],brillo=(r+g+b)/3;total++;
+      if(g>r*1.08&&g>b*1.05)verdes++;
+      if(r>g*1.08&&g>b*1.05&&r>55&&g>35)marrones++;
+      if(brillo<75)oscuros++;if(brillo>195)claros++;
+    }
+    const pv=verdes/Math.max(1,total),pm=marrones/Math.max(1,total),po=oscuros/Math.max(1,total),pc=claros/Math.max(1,total);
+    let visual=50+Math.min(20,pv*45)+Math.min(18,pm*40)+Math.min(8,po*12)-Math.min(22,pc*28);
+    visual=Math.max(0,Math.min(100,Math.round(visual)));suma+=visual;zonas.push({fila,col,visual});
+  }
+  return {visual:Math.round(suma/zonas.length),zonas};
+}
+async function finalizarEscaneo(){
+  const radar=obtenerRadarActual(),visualGlobal=Math.round(fotosEscaneo.reduce((s,f)=>s+f.visual,0)/fotosEscaneo.length);
+  const combinado=Math.round(radar*.70+visualGlobal*.30),lat=Number($("lat").value),lon=Number($("lon").value);
+  const candidato=detectarCandidatoVisual($("fotoCamara"),fotosEscaneo[1]||fotosEscaneo[0]);
+  const escaneo={fecha:new Date().toISOString(),tipo:"3-fotos",lat:Number.isFinite(lat)?lat:null,lon:Number.isFinite(lon)?lon:null,resultado:combinado,visual:visualGlobal,radar,candidato:candidato.score,observacion:candidato.texto};
+  guardarEscaneo(escaneo);
+  $("resultadoEscaner").innerHTML="<div class='notice'><b>🍄 Resultado del escaneo: "+combinado+"/100</b><br><br>📷 Señal visual conjunta: <b>"+visualGlobal+"/100</b><br>🌦️ Radar ambiental: <b>"+radar+"/100</b><br>🔎 Señal de candidato visual: <b>"+candidato.score+"/100</b><br><br><span class='muted'>Las tres fotografías se han combinado. El detector visual es experimental y no confirma una especie.</span></div>";
+  $("camaraEstado").innerHTML="<b>✅ Escaneo completo.</b> Resultado guardado.";
+  $("btnAbrirCamara").style.display="inline-block";$("btnCerrarCamara").style.display="none";mostrarEscaneos();
+}
+function obtenerEscaneos(){try{return JSON.parse(localStorage.getItem("radar_niscalo_escaneos")||"[]")}catch{return[]}}
+function guardarEscaneo(e){const lista=obtenerEscaneos();lista.unshift(e);localStorage.setItem("radar_niscalo_escaneos",JSON.stringify(lista.slice(0,50)));}
+function mostrarEscaneos(){
+  const lista=obtenerEscaneos(),caja=$("listaEscaneos");if(!caja)return;
+  if(!lista.length){caja.innerHTML="<span class='muted'>Todavía no hay escaneos guardados.</span>";return;}
+  caja.innerHTML=lista.map(e=>"<div style='padding:9px 0;border-top:1px solid #e1e5df'><b>🍄 "+(e.resultado??"--")+"/100</b> · "+new Date(e.fecha).toLocaleString("es-ES")+"<br><span class='muted'>Tipo "+escapar(e.tipo||"escaneo")+" · Visual "+(e.visual??"--")+" · Radar "+(e.radar??"--")+(e.candidato!=null?" · Candidato "+e.candidato:"")+(e.lat!=null?" · "+Number(e.lat).toFixed(4)+", "+Number(e.lon).toFixed(4):"")+"</span></div>").join("");
+}
+window.addEventListener("beforeunload",()=>{detenerRadarVisual();cerrarStreamCamara();});
+
+
+/* ================= IA VISUAL ENTRENADA ================= */
+let modeloNiscalo=null;
+let modeloNiscaloCargando=null;
+let modeloNiscaloEstado="no disponible";
+async function cargarModeloNiscalo(){
+  if(modeloNiscalo||modeloNiscaloCargando) return modeloNiscaloCargando||modeloNiscalo;
+  if(typeof ort==="undefined"){modeloNiscaloEstado="ONNX Runtime no disponible";return null;}
+  modeloNiscaloCargando=(async()=>{
+    try{
+      ort.env.wasm.numThreads=1; ort.env.wasm.simd=true;
+      modeloNiscalo=await ort.InferenceSession.create("models/niscalo-detector/model.onnx",{executionProviders:["wasm"]});
+      modeloNiscaloEstado="modelo entrenado activo"; return modeloNiscalo;
+    }catch(e){console.warn("Modelo visual todavía no disponible:",e);modeloNiscaloEstado="modelo todavía no publicado";return null;}
+  })();
+  return modeloNiscaloCargando;
+}
+async function puntuarConModeloNiscalo(canvas){
+  const sesion=await cargarModeloNiscalo(); if(!sesion)return null;
+  try{
+    const size=224,tmp=document.createElement("canvas"); tmp.width=size;tmp.height=size;
+    const ctx=tmp.getContext("2d",{willReadFrequently:true}),w=canvas.width,h=canvas.height,lado=Math.min(w,h)*.62;
+    ctx.drawImage(canvas,(w-lado)/2,(h-lado)/2,lado,lado,0,0,size,size);
+    const d=ctx.getImageData(0,0,size,size).data,mean=[.485,.456,.406],std=[.229,.224,.225],arr=new Float32Array(3*size*size);
+    for(let y=0;y<size;y++)for(let x=0;x<size;x++){const p=(y*size+x)*4;for(let ch=0;ch<3;ch++)arr[ch*size*size+y*size+x]=(d[p+ch]/255-mean[ch])/std[ch];}
+    const out=await sesion.run({[sesion.inputNames[0]]:new ort.Tensor("float32",arr,[1,3,size,size])});
+    const logits=Array.from(out[sesion.outputNames[0]].data),m=Math.max(...logits),ex=logits.map(v=>Math.exp(v-m)),sum=ex.reduce((a,b)=>a+b,0);
+    return Math.round(((ex[1]||0)/sum)*100);
+  }catch(e){console.warn("Fallo inferencia ONNX:",e);return null;}
+}
+
+/* ================= PREVISIÓN ================= */
+
+function iconoTiempo(codigo){
+
+if(codigo===0)
+
+return "☀️";
+
+if(codigo<=2)
+
+return "🌤️";
+
+if(codigo===3)
+
+return "☁️";
+
+if(codigo<=67)
+
+return "🌧️";
+
+if(codigo<=77)
+
+return "❄️";
+
+return "⛈️";
+
+}
+
+function mostrarPrevision(diario){
+
+let caja=
+
+$("prevision");
+
+caja.innerHTML="";
+
+if(!diario || !diario.time){
+
+return;
+
+}
+
+diario.time.forEach(
+
+(fecha,i)=>{
+
+let div=
+
+document.createElement("div");
+
+div.className="day";
+
+let fechaReal=
+
+new Date(
+
+fecha+"T12:00:00"
+
+);
+
+let temperaturaDia=
+Number(
+  diario.temperature_2m_max?.[i] ?? diario.temperature_2m_mean?.[i] ?? 0
+);
+
+let lluviaDia=
+
+Number(
+
+diario.precipitation_sum?.[i] ?? 0
+
+);
+
+let probDia=
+
+Number(
+
+diario.precipitation_probability_max?.[i] ?? 0
+
+);
+
+div.innerHTML=`
+
+<b>
+
+${fechaReal.toLocaleDateString(
+
+"es-ES",
+
+{
+
+weekday:"short",
+
+day:"2-digit",
+
+month:"2-digit"
+
+}
+
+)}
+
+</b>
+
+<div class="ico">
+
+${iconoTiempo(
+
+Number(diario.weather_code?.[i]||0)
+
+)}
+
+</div>
+
+<strong>
+
+${Math.round(temperaturaDia)} °C máx.
+
+</strong>
+
+<div>
+
+🌧️ ${lluviaDia.toFixed(1)} mm
+
+</div>
+
+<div>
+
+💧 ${probDia}%
+
+</div>
+
+`;
+
+caja.appendChild(div);
+
+}
+
+);
+
+/* IMPORTANTE: cierre correcto de mostrarPrevision */
+
+}
+
+/* ================= HISTÓRICO ================= */
+
+async function cargarHistorico(){
+
+let lat=
+
+parseFloat($("lat").value);
+
+let lon=
+
+parseFloat($("lon").value);
+
+let ano=
+
+$("ano").value;
+
+if(!Number.isFinite(lat)||!Number.isFinite(lon)){
+
+$("historicoEstado").textContent="Introduce una latitud y longitud válidas.";
+
+return;
+
+}
+
+$("historicoEstado").textContent=
+
+"Cargando histórico…";
+
+$("tablaHistorico").innerHTML="";
+
+try{
+
+let fechaFin=ano===String(new Date().getFullYear())
+
+?new Date().toISOString().slice(0,10)
+
+:`${ano}-12-31`;
+
+let url=
+
+`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${ano}-01-01&end_date=${fechaFin}&timezone=auto&daily=temperature_2m_mean,precipitation_sum`;
+
+let respuesta=
+
+await fetch(url);
+
+if(!respuesta.ok)
+
+throw new Error();
+
+let datos=
+
+await respuesta.json();
+
+let totalLluvia=
+
+datos.daily
+
+.precipitation_sum
+
+.reduce(
+
+(a,b)=>a+Number(b||0),
+
+0
+
+);
+
+let temperaturas=
+
+datos.daily
+
+.temperature_2m_mean
+
+.filter(v=>v!==null);
+
+let media=
+
+temperaturas.length
+
+?
+
+temperaturas.reduce(
+
+(a,b)=>a+Number(b),
+
+0
+
+)/
+
+temperaturas.length
+
+:0;
+
+let filas=[];
+
+for(let mes=0;mes<12;mes++){
+
+let lluvia=0;
+
+let temps=[];
+
+datos.daily.time.forEach(
+
+(fecha,i)=>{
+
+let fechaReal=
+
+new Date(
+
+fecha+"T12:00:00"
+
+);
+
+if(
+
+fechaReal.getMonth()===mes
+
+){
+
+lluvia+=
+
+Number(
+
+datos.daily
+
+.precipitation_sum[i]||0
+
+);
+
+if(
+
+datos.daily
+
+.temperature_2m_mean[i]!==null
+
+){
+
+temps.push(
+
+Number(
+
+datos.daily
+
+.temperature_2m_mean[i]
+
+)
+
+);
+
+}
+
+}
+
+}
+
+);
+
+let tempMedia=
+
+temps.length
+
+?
+
+(
+
+temps.reduce(
+
+(a,b)=>a+b,
+
+0
+
+)/temps.length
+
+).toFixed(1)
+
+:"--";
+
+filas.push(`
+
+<tr>
+
+<td>
+
+${new Date(
+
+2020,
+
+mes,
+
+1
+
+).toLocaleDateString(
+
+"es-ES",
+
+{month:"long"}
+
+)}
+
+</td>
+
+<td>
+
+${lluvia.toFixed(1)} mm
+
+</td>
+
+<td>
+
+${tempMedia} °C
+
+</td>
+
+</tr>
+
+`);
+
+}
+
+$("historicoEstado").textContent=
+
+`${ano}: ${totalLluvia.toFixed(0)} mm de lluvia · ${media.toFixed(1)} °C de temperatura media`;
+
+$("tablaHistorico").innerHTML=`
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Mes</th>
+
+<th>Lluvia</th>
+
+<th>Temp. media</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+${filas.join("")}
+
+</tbody>
+
+</table>
+
+`;
+
+}
+
+catch(error){
+
+console.error(error);
+
+$("historicoEstado").textContent=
+
+"No se pudo cargar el histórico. Comprueba la conexión y vuelve a intentarlo.";
+
+}
+
+}
+
+/* ================= HALLAZGOS ================= */
+
+function obtenerHallazgos(){
+
+try{
+
+return JSON.parse(
+
+localStorage.getItem(
+
+"radar_niscalo_hallazgos"
+
+)||"[]"
+
+);
+
+}
+
+catch{
+
+return [];
+
+}
+
+}
+
+function guardarHallazgo(){
+
+let fecha=
+
+$("fechaHallazgo").value;
+
+let zona=
+
+$("zonaHallazgo").value.trim();
+
+let cantidad=
+
+parseInt(
+
+$("cantidadHallazgo").value,
+
+10
+
+);
+
+let notas=
+
+$("notasHallazgo").value.trim();
+
+if(
+
+!fecha ||
+
+!zona ||
+
+!Number.isFinite(cantidad) ||
+
+cantidad<1
+
+){
+
+alert(
+
+"Completa fecha, zona y cantidad."
+
+);
+
+return;
+
+}
+
+let hallazgos=
+
+obtenerHallazgos();
+
+hallazgos.unshift({
+
+fecha:fecha,
+
+zona:zona,
+
+cantidad:cantidad,
+
+notas:notas,
+
+lat:$("lat").value,
+
+lon:$("lon").value
+
+});
+
+localStorage.setItem(
+
+"radar_niscalo_hallazgos",
+
+JSON.stringify(hallazgos)
+
+);
+
+$("zonaHallazgo").value="";
+
+$("cantidadHallazgo").value="";
+
+$("notasHallazgo").value="";
+
+mostrarHallazgos();
+
+mostrarEstadisticas();
+
+}
+
+function mostrarHallazgos(){
+
+let hallazgos=
+
+obtenerHallazgos();
+
+let caja=
+
+$("listaHallazgos");
+
+if(!hallazgos.length){
+
+caja.innerHTML=
+
+'<span class="muted">Aún no hay hallazgos guardados.</span>';
+
+return;
+
+}
+
+caja.innerHTML=
+
+hallazgos
+
+.map(h=>`
+
+<div>
+
+🍄 <b>
+
+${escapar(h.zona)}
+
+</b>
+
+· ${escapar(h.fecha)}
+
+· <b>
+
+${h.cantidad}
+
+</b>
+
+ejemplares
+
+${h.notas
+
+?
+
+" · "+escapar(h.notas)
+
+:""}
+
+</div>
+
+`)
+
+.join("");
+
+}
+
+function mostrarRendimientoCampo(){
+const box=$("estadisticasCampo"); if(!box)return;
+let datos=[]; try{datos=JSON.parse(localStorage.getItem("radar_resultados_campo")||"[]")}catch(e){}
+if(!datos.length){box.innerHTML="Todavía no hay salidas registradas con el Radar.";return;}
+const total=datos.length, positivos=datos.filter(x=>x.outcome==="encontre").length, negativos=total-positivos;
+const pct=Math.round(positivos/total*100);
+const bandas=[["80–100",80,100],["60–79",60,79],["40–59",40,59],["0–39",0,39]];
+const filas=bandas.map(b=>{const v=datos.filter(x=>Number(x.score)>=b[1]&&Number(x.score)<=b[2]),p=v.filter(x=>x.outcome==="encontre").length;return "<span class='badge'><b>"+b[0]+"</b>: "+p+"/"+v.length+" positivas</span>"}).join("");
+const media=a=>a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length):"—";
+const ps=datos.filter(x=>x.outcome==="encontre").map(x=>Number(x.score)).filter(Number.isFinite);
+const ns=datos.filter(x=>x.outcome!=="encontre").map(x=>Number(x.score)).filter(Number.isFinite);
+box.innerHTML="<b>"+positivos+"/"+total+" salidas positivas · "+pct+"%</b><br><span class='muted'>"+negativos+" sin encontrar · media de puntuación: positivas "+media(ps)+" · negativas "+media(ns)+"</span><div style='margin-top:8px'>"+filas+"</div>";
+}
+
+function mostrarEstadisticas(){
+
+let hallazgos=
+
+obtenerHallazgos();
+
+if(!hallazgos.length){
+
+$("estadisticas").textContent=
+
+"Todavía no hay hallazgos guardados.";
+
+return;
+
+}
+
+let total=
+
+hallazgos.reduce(
+
+(s,h)=>
+
+s+Number(h.cantidad||0),
+
+0
+
+);
+
+let zonas=
+
+new Set(
+
+hallazgos.map(h=>h.zona)
+
+).size;
+
+let porAno={};
+
+hallazgos.forEach(h=>{
+
+let ano=
+
+h.fecha.substring(0,4);
+
+porAno[ano]=
+
+(porAno[ano]||0)+
+
+Number(h.cantidad||0);
+
+});
+
+$("estadisticas").innerHTML=
+
+`<b>
+
+${hallazgos.length}
+
+</b> registros ·
+
+<b>
+
+${total}
+
+</b> ejemplares ·
+
+<b>
+
+${zonas}
+
+</b> zonas
+
+<br><br>
+
+`+
+
+Object.entries(porAno)
+
+.sort(
+
+(a,b)=>b[0].localeCompare(a[0])
+
+)
+
+.map(
+
+([ano,cantidad])=>
+
+`<span class="badge">
+
+${ano}: ${cantidad} ejemplares
+
+</span>`
+
+)
+
+.join("");
+
+}
+
+function borrarHallazgos(){
+
+if(
+
+confirm(
+
+"¿Seguro que quieres borrar todos tus hallazgos?"
+
+)
+
+){
+
+localStorage.removeItem(
+
+"radar_niscalo_hallazgos"
+
+);
+
+mostrarHallazgos();
+
+mostrarEstadisticas();
+
+}
+
+}
+
+function escapar(texto){
+
+return String(texto)
+
+.replace(
+
+/[&<>"']/g,
+
+caracter=>({
+
+"&":"&amp;",
+
+"<":"&lt;",
+
+">":"&gt;",
+
+'"':"&quot;",
+
+"'":"&#039;"
+
+}[caracter])
+
+);
+
+}
+
+let temporizadorBusqueda;
+$("buscadorZona").addEventListener("input",()=>{
+clearTimeout(temporizadorBusqueda);
+temporizadorBusqueda=setTimeout(buscarZona,350);
+});
+document.addEventListener("click",e=>{
+if(!e.target.closest("#buscadorZona")&&!e.target.closest("#resultadosZona")) $("resultadosZona").innerHTML="";
+});
+
+function enfocarRadar(){
+  const lat=Number($("lat").value),lon=Number($("lon").value);
+  const mapEl=document.getElementById("map");
+  if(mapEl) mapEl.scrollIntoView({behavior:"smooth",block:"center"});
+  if(Number.isFinite(lat)&&Number.isFinite(lon)){
+    setTimeout(()=>{ if(mapa) mapa.setView([lat,lon],13,{animate:true}); pintarMapaZonas(lat,lon); },350);
+  }
+}
+
+/* ================= INICIO ================= */
+
+$("fechaHallazgo").value=
+new Date()
+.toISOString()
+.slice(0,10);
+
+[
+"rainSlider",
+"tempSlider",
+"soilSlider",
+"altSlider"
+].forEach(id=>{
+  $(id).addEventListener("input",pintarFavorabilidad);
+});
+
+/* ================= OCULTAR PORTADA ================= */
+
+(function(){
+  const s=document.getElementById("appSplash");
+  const hide=()=>{
+    if(!s) return;
+    s.classList.add("hide");
+    setTimeout(()=>{s.style.display="none"},800);
+  };
+
+  /* ================= ARRANQUE DE LA APLICACIÓN =================
+     Esta inicialización es imprescindible: sin ella el contenedor del mapa
+     existe, pero Leaflet no se crea y tampoco se cargan los datos iniciales.
+     Se mantiene aislada para que un servicio externo caído no deje la portada
+     bloqueando toda la aplicación.
+  */
+  const iniciarSeguro=(nombre,fn)=>{
+    try{
+      const r=fn();
+      if(r&&typeof r.catch==="function") r.catch(e=>console.error("Radar Níscalo · "+nombre,e));
+    }catch(e){ console.error("Radar Níscalo · "+nombre,e); }
+  };
+  iniciarSeguro("mapa",()=>iniciarMapa());
+  iniciarSeguro("hallazgos",()=>mostrarHallazgos());
+  iniciarSeguro("estadísticas",()=>mostrarEstadisticas());
+  iniciarSeguro("escaneos",()=>mostrarEscaneos());
+  iniciarSeguro("datos meteorológicos",()=>cargarDatos());
+
+  /* La portada es visual: nunca debe depender de que un proveedor externo
+     (mapa, meteorología, Leaflet, etc.) responda para desaparecer. */
+  if(document.readyState==="complete"){
+    setTimeout(hide,4000);
+  }else{
+    window.addEventListener("load",()=>setTimeout(hide,2800),{once:true});
+  }
+  setTimeout(hide,6000);
+})();
+
+</script>
+</body>
+</html>
