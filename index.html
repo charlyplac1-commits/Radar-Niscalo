@@ -3910,8 +3910,8 @@ async function cargarDatos(){
         if(Number.isFinite(lluvia))dia.suma+=Math.max(0,lluvia);
 
         const prob=Number(
-          one.probability_of_precipitation ??
           six.probability_of_precipitation ??
+          one.probability_of_precipitation ??
           0
         );
         if(Number.isFinite(prob))dia.prob=Math.max(dia.prob,prob);
@@ -3951,15 +3951,15 @@ async function cargarDatos(){
           ).toLowerCase();
 
           if(code.includes("thunder")) return 95;
-          if(code.includes("snowshowers") || code.includes("heavysnow")) return 85;
+          if(code.includes("heavysnow") || code.includes("snowshowers")) return 85;
           if(code.includes("snow")) return 73;
           if(code.includes("sleet")) return 67;
-          if(code.includes("rainshowers") || code.includes("heavyrain")) return 80;
+          if(code.includes("heavyrain") || code.includes("rainshowers")) return 80;
           if(code.includes("rain") || code.includes("drizzle")) return 61;
           if(code.includes("fog")) return 45;
           if(code.includes("partlycloudy")) return 2;
           if(code.includes("cloudy")) return 3;
-          if(code.includes("fair")) return 1;
+          if(code.includes("fair") || code.includes("clearsky")) return 1;
           return 0;
         }),
         et0_fao_evapotranspiration:[]
@@ -4099,21 +4099,54 @@ async function cargarDatos(){
     const tiempos=Array.isArray(datos.hourly.time)?datos.hourly.time:[];
     const precipitacion=Array.isArray(datos.hourly.precipitation)
       ?datos.hourly.precipitation:[];
-    let indiceActual=tiempos.findIndex(t=>t>=datos.current.time);
-    if(indiceActual<0) indiceActual=tiempos.length-1;
-    if(indiceActual<0) indiceActual=0;
 
-    const sumarLluviaHoras=(horas)=>{
-      const ini=Math.max(0,indiceActual-horas+1);
+    /* Elegimos la hora más cercana al momento actual. */
+    let indiceActual=0;
+    if(tiempos.length){
+      const ahoraMs=Date.parse(datos.current?.time||new Date().toISOString());
+      let mejor=Infinity;
+      tiempos.forEach((t,i)=>{
+        const ms=Date.parse(t);
+        if(!Number.isFinite(ms))return;
+        const d=Math.abs(ms-ahoraMs);
+        if(d<mejor){mejor=d;indiceActual=i;}
+      });
+    }
+
+    /* La lluvia acumulada se calcula con los valores diarios.
+       Es mucho más fiable que contar horas cuando la API devuelve
+       bloques históricos + previsión en una sola respuesta. */
+    const fechasDiarias=Array.isArray(datos.daily?.time)?datos.daily.time:[];
+    const lluviaDiariaRaw=Array.isArray(datos.daily?.precipitation_sum)
+      ?datos.daily.precipitation_sum:[];
+    const hoyRadar=new Date();
+    const hoyRadarClave=[
+      hoyRadar.getFullYear(),
+      String(hoyRadar.getMonth()+1).padStart(2,"0"),
+      String(hoyRadar.getDate()).padStart(2,"0")
+    ].join("-");
+
+    const sumarLluviaDias=(dias)=>{
       let suma=0;
-      for(let i=ini;i<=indiceActual;i++) suma+=Number(precipitacion[i]||0);
+      for(let i=0;i<fechasDiarias.length;i++){
+        const f=String(fechasDiarias[i]);
+        if(f<=hoyRadarClave && f>=fechaDiasAntes(hoyRadarClave,dias)){
+          suma+=Number(lluviaDiariaRaw[i]||0);
+        }
+      }
       return suma;
     };
 
-    let lluvia3=sumarLluviaHoras(72);
-    let lluvia7=sumarLluviaHoras(7*24);
-    let lluvia14=sumarLluviaHoras(14*24);
-    let lluvia30=sumarLluviaHoras(30*24);
+    const fechaDiasAntes=(clave,dias)=>{
+      const d=new Date(clave+"T12:00:00");
+      d.setDate(d.getDate()-dias+1);
+      return d.toISOString().slice(0,10);
+    };
+
+    let lluvia3=sumarLluviaDias(3);
+    let lluvia7=sumarLluviaDias(7);
+    let lluvia14=sumarLluviaDias(14);
+    let lluvia30=sumarLluviaDias(30);
 
     /* MET Norway no aporta histórico de 14/30 días. Usamos el último
        histórico válido guardado por Open-Meteo cuando existe. */
@@ -4176,7 +4209,19 @@ async function cargarDatos(){
       const soilProfundoArr=Array.isArray(datos.hourly?.soil_moisture_7_to_28cm)
         ?datos.hourly.soil_moisture_7_to_28cm:[];
 
-      const superficial=Number(soilSuperficial[indiceActual]);
+      let soilIndex=0;
+      if(tiempos.length && soilSuperficial.length){
+        const ahoraMs=Date.parse(datos.current?.time||new Date().toISOString());
+        let mejor=Infinity;
+        const limite=Math.min(tiempos.length,soilSuperficial.length);
+        for(let i=0;i<limite;i++){
+          const ms=Date.parse(tiempos[i]);
+          if(!Number.isFinite(ms))continue;
+          const d=Math.abs(ms-ahoraMs);
+          if(d<mejor){mejor=d;soilIndex=i;}
+        }
+      }
+      const superficial=Number(soilSuperficial[soilIndex]);
       if(Number.isFinite(superficial)){
         humedadSuelo=Math.round(superficial*100);
       }
@@ -4298,7 +4343,9 @@ async function cargarDatos(){
       "Lat "+lat.toFixed(4)+" · Lon "+lon.toFixed(4);
 
     $("estado").textContent=
-      "✅ Datos meteorológicos actualizados. Consultando hábitat y fuentes adicionales…";
+      window.meteorologiaRespaldo
+        ? "⚠️ Meteorología de respaldo actualizada. Consultando hábitat y fuentes adicionales…"
+        : "✅ Datos meteorológicos actualizados. Consultando hábitat y fuentes adicionales…";
 
   }catch(error){
 
