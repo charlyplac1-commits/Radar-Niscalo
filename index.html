@@ -1675,7 +1675,7 @@ body{
   overflow:hidden;
   background-image:
     linear-gradient(180deg,rgba(7,30,17,.38),rgba(4,24,13,.68)),
-    url('https://images.unsplash.com/photo-1698869628299-5d0e570142fb?auto=format&fit=crop&fm=jpg&q=88&w=1800&v=4') !important;
+    url('https://images.unsplash.com/photo-1498925008800-019c7d59d903?auto=format&fit=crop&fm=jpg&q=82&w=1800&v=6') !important;
   background-size:cover;
   background-position:center;
   border-color:#28563d!important;
@@ -1710,7 +1710,7 @@ body{
   background-color:#173d29!important;
   background-image:
     linear-gradient(180deg,rgba(7,30,17,.38),rgba(4,24,13,.68)),
-    url('https://images.unsplash.com/photo-1698869628299-5d0e570142fb?auto=format&fit=crop&fm=jpg&q=88&w=1800&v=4') !important;
+    url('https://images.unsplash.com/photo-1498925008800-019c7d59d903?auto=format&fit=crop&fm=jpg&q=82&w=1800&v=6') !important;
   background-size:cover!important;
   background-position:center!important;
 }
@@ -1721,24 +1721,32 @@ body{
   overflow:hidden;
   color:#fff;
   border:1px solid rgba(38,67,43,.35)!important;
-  background-image:
-    linear-gradient(180deg,rgba(2,18,7,.18),rgba(2,18,7,.48)),
-    url('https://images.unsplash.com/photo-1651560392928-85d70ee31739?auto=format&fit=crop&fm=jpg&q=88&w=1800&v=3');
+  background:#27452f!important;
+  box-shadow:0 5px 18px rgba(23,61,41,.16);
+}
+.fructificacion-card:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image:url("https://4.bp.blogspot.com/-B9W7reiVSec/VHueD2vc7KI/AAAAAAAACnc/cFJmkTCTCn8/s1600/lactarius%2Bdeliciosus%2B2.jpg");
   background-size:cover;
   background-position:center;
-  box-shadow:0 5px 18px rgba(23,61,41,.16);
+  opacity:1;
+  z-index:0;
+  pointer-events:none;
 }
 .fructificacion-card:before{
   content:"";
   position:absolute;
   inset:0;
-  background:linear-gradient(180deg,rgba(0,0,0,.02),rgba(0,0,0,.16));
+  background:linear-gradient(180deg,rgba(4,18,9,.18),rgba(3,14,7,.58));
   pointer-events:none;
+  z-index:1;
 }
 .fructificacion-card>summary,
 .fructificacion-card>.inside{
   position:relative;
-  z-index:1;
+  z-index:2;
 }
 .fructificacion-card>summary{
   color:#fff;
@@ -1761,7 +1769,22 @@ body{
 @media(max-width:720px){
   .fructificacion-card{background-position:center center;background-size:cover}
 }
-</style></style>
+</style>
+/* ===== FONDO METEOROLÓGICO ANIMADO · PREVISIÓN ===== */
+#previsionCard{position:relative;overflow:hidden;min-height:165px;isolation:isolate;background:#36543b!important}
+#previsionCard>.forecast,#previsionCard>h3{position:relative;z-index:5}
+#previsionCard:before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background-position:center;background-size:cover;background-repeat:no-repeat;opacity:0;transition:opacity .4s ease;transform:scale(1.04)}
+#previsionCard:after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0}
+#previsionCard.meteo-sol:before{opacity:1;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201200%20500%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22a%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%2355b9ee%22%2F%3E%3Cstop%20offset%3D%22.65%22%20stop-color%3D%22%23bde8f5%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23597d45%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%221200%22%20height%3D%22500%22%20fill%3D%22url(%23a)%22%2F%3E%3Ccircle%20cx%3D%22970%22%20cy%3D%22105%22%20r%3D%2262%22%20fill%3D%22%23ffe477%22%2F%3E%3Cpath%20d%3D%22M0%20390L220%20250%20390%20380%20570%20220%20760%20390%20930%20245%201200%20400V500H0Z%22%20fill%3D%22%2331553a%22%2F%3E%3Cpath%20d%3D%22M0%20435L260%20330%20430%20430%20650%20310%20850%20435%201050%20320%201200%20410V500H0Z%22%20fill%3D%22%23183822%22%2F%3E%3Cg%20fill%3D%22%23315f34%22%3E%3Cpath%20d%3D%22M80%20390l35-105%2035%20105zM170%20390l42-130%2042%20130zM1050%20390l40-125%2040%20125zM1110%20390l30-100%2030%20100z%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");animation:fotoMeteo 12s ease-in-out infinite alternate}
+#previsionCard.meteo-nubes:before{opacity:1;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201200%20500%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22b%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23687c84%22%2F%3E%3Cstop%20offset%3D%22.7%22%20stop-color%3D%22%23b7c5c6%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23506447%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%221200%22%20height%3D%22500%22%20fill%3D%22url(%23b)%22%2F%3E%3Cg%20fill%3D%22%23e8eeee%22%3E%3Cellipse%20cx%3D%22260%22%20cy%3D%22155%22%20rx%3D%22150%22%20ry%3D%2265%22%2F%3E%3Cellipse%20cx%3D%22390%22%20cy%3D%22130%22%20rx%3D%22125%22%20ry%3D%2275%22%2F%3E%3Cellipse%20cx%3D%22820%22%20cy%3D%22150%22%20rx%3D%22170%22%20ry%3D%2270%22%2F%3E%3Cellipse%20cx%3D%22970%22%20cy%3D%22125%22%20rx%3D%22125%22%20ry%3D%2270%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M0%20390L230%20265%20430%20390%20620%20240%20820%20390%201000%20255%201200%20390V500H0Z%22%20fill%3D%22%2336543b%22%2F%3E%3Cpath%20d%3D%22M0%20435L250%20340%20470%20435%20680%20320%20900%20440%201080%20330%201200%20390V500H0Z%22%20fill%3D%22%23193721%22%2F%3E%3C%2Fsvg%3E");animation:fotoMeteo 13s ease-in-out infinite alternate}
+#previsionCard.meteo-lluvia:before{opacity:1;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201200%20500%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22c%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23405963%22%2F%3E%3Cstop%20offset%3D%22.7%22%20stop-color%3D%22%23718b91%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23415d48%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%221200%22%20height%3D%22500%22%20fill%3D%22url(%23c)%22%2F%3E%3Cg%20fill%3D%22%23293940%22%3E%3Cellipse%20cx%3D%22250%22%20cy%3D%22135%22%20rx%3D%22190%22%20ry%3D%2275%22%2F%3E%3Cellipse%20cx%3D%22500%22%20cy%3D%22120%22%20rx%3D%22210%22%20ry%3D%2290%22%2F%3E%3Cellipse%20cx%3D%22850%22%20cy%3D%22145%22%20rx%3D%22230%22%20ry%3D%2280%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M0%20395L220%20275%20410%20390%20620%20245%20820%20390%201010%20260%201200%20395V500H0Z%22%20fill%3D%22%23284c35%22%2F%3E%3Cpath%20d%3D%22M0%20440L250%20345%20460%20440%20680%20330%20900%20440%201080%20340%201200%20400V500H0Z%22%20fill%3D%22%23142c1c%22%2F%3E%3Cg%20stroke%3D%22%23d8f2f7%22%20stroke-width%3D%227%22%20opacity%3D%22.75%22%3E%3Cpath%20d%3D%22M50%20210l-35%2085%22%2F%3E%3Cpath%20d%3D%22M115%20210l-35%2085%22%2F%3E%3Cpath%20d%3D%22M180%20210l-35%2085%22%2F%3E%3Cpath%20d%3D%22M245%20210l-35%2085%22%2F%3E%3Cpath%20d%3D%22M310%20210l-35%2085%22%2F%3E%3Cpath%20d%3D%22M375%20210l-35%2085%22%2F%3E%3Cpath%20d%3D%22M440%20210l-35%2085%22%2F%3E%3Cpath%20d%3D%22M505%20210l-35%2085%22%2F%3E%3Cpath%20d%3D%22M570%20210l-35%2085%22%2F%3E%3Cpath%20d%3D%22M635%20210l-35%2085%22%2F%3E%3Cpath%20d%3D%22M700%20210l-35%2085%22%2F%3E%3Cpath%20d%3D%22M765%20210l-35%2085%22%2F%3E%3Cpath%20d%3D%22M830%20210l-35%2085%22%2F%3E%3Cpath%20d%3D%22M895%20210l-35%2085%22%2F%3E%3Cpath%20d%3D%22M960%20210l-35%2085%22%2F%3E%3Cpath%20d%3D%22M1025%20210l-35%2085%22%2F%3E%3Cpath%20d%3D%22M1090%20210l-35%2085%22%2F%3E%3Cpath%20d%3D%22M1155%20210l-35%2085%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");animation:fotoMeteo 9s ease-in-out infinite alternate}
+#previsionCard.meteo-tormenta:before{opacity:1;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201200%20500%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22d%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%2317242d%22%2F%3E%3Cstop%20offset%3D%22.65%22%20stop-color%3D%22%233c515a%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23263d2c%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%221200%22%20height%3D%22500%22%20fill%3D%22url(%23d)%22%2F%3E%3Cg%20fill%3D%22%2310191f%22%3E%3Cellipse%20cx%3D%22230%22%20cy%3D%22120%22%20rx%3D%22210%22%20ry%3D%2285%22%2F%3E%3Cellipse%20cx%3D%22520%22%20cy%3D%22105%22%20rx%3D%22250%22%20ry%3D%22105%22%2F%3E%3Cellipse%20cx%3D%22850%22%20cy%3D%22125%22%20rx%3D%22240%22%20ry%3D%2290%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M0%20400L220%20270%20420%20395%20620%20235%20820%20395%201030%20250%201200%20400V500H0Z%22%20fill%3D%22%23183625%22%2F%3E%3Cpath%20d%3D%22M0%20445L250%20340%20470%20445%20690%20320%20900%20445%201090%20330%201200%20400V500H0Z%22%20fill%3D%22%230d2115%22%2F%3E%3Cpath%20d%3D%22M610%20125l-45%20105h40l-30%2090%2075-120h-43z%22%20fill%3D%22%23ffe86a%22%2F%3E%3Cg%20stroke%3D%22%23d8f2f7%22%20stroke-width%3D%227%22%20opacity%3D%22.8%22%3E%3Cpath%20d%3D%22M35%20205l-38%2090%22%2F%3E%3Cpath%20d%3D%22M110%20205l-38%2090%22%2F%3E%3Cpath%20d%3D%22M185%20205l-38%2090%22%2F%3E%3Cpath%20d%3D%22M260%20205l-38%2090%22%2F%3E%3Cpath%20d%3D%22M335%20205l-38%2090%22%2F%3E%3Cpath%20d%3D%22M410%20205l-38%2090%22%2F%3E%3Cpath%20d%3D%22M485%20205l-38%2090%22%2F%3E%3Cpath%20d%3D%22M560%20205l-38%2090%22%2F%3E%3Cpath%20d%3D%22M635%20205l-38%2090%22%2F%3E%3Cpath%20d%3D%22M710%20205l-38%2090%22%2F%3E%3Cpath%20d%3D%22M785%20205l-38%2090%22%2F%3E%3Cpath%20d%3D%22M860%20205l-38%2090%22%2F%3E%3Cpath%20d%3D%22M935%20205l-38%2090%22%2F%3E%3Cpath%20d%3D%22M1010%20205l-38%2090%22%2F%3E%3Cpath%20d%3D%22M1085%20205l-38%2090%22%2F%3E%3Cpath%20d%3D%22M1160%20205l-38%2090%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");animation:fotoMeteo 7s ease-in-out infinite alternate}
+#previsionCard.meteo-lluvia:after,#previsionCard.meteo-tormenta:after{opacity:.35;background:repeating-linear-gradient(105deg,transparent 0 13px,rgba(230,247,255,.72) 14px 16px,transparent 17px 31px);background-size:95px 120px;animation:lluviaCaer .5s linear infinite}
+#previsionCard .day{position:relative;z-index:6;background:rgba(20,35,25,.35);border:1px solid rgba(255,255,255,.3);backdrop-filter:blur(2px);color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.75)}
+#previsionCard h3{color:#fff;text-shadow:0 2px 5px rgba(0,0,0,.8)}
+@keyframes fotoMeteo{from{transform:scale(1.04) translateX(-1%)}to{transform:scale(1.10) translateX(1%)}}
+@keyframes lluviaCaer{from{background-position:0 -120px}to{background-position:38px 120px}}
+@media(max-width:720px){#previsionCard{min-height:155px}}</style>
 
 <script>
 if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});if("caches" in window){caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("radar-niscalo-")).map(k=>caches.delete(k)))).catch(()=>{});}}
@@ -1842,6 +1865,37 @@ details .muted,
 #datosActualesCard .metric .big{
   color:#fff;
   text-shadow:0 2px 8px rgba(0,0,0,.55);
+}
+</style>
+<style id="fondos-verdes-secciones">
+/* ===== SECCIONES / PESTAÑAS VERDES ===== */
+details.compact{
+  background:linear-gradient(145deg,#315f3b 0%,#244b2e 100%) !important;
+  border:1px solid rgba(255,255,255,.16) !important;
+  color:#fff !important;
+  box-shadow:0 5px 16px rgba(20,55,29,.18);
+}
+details.compact > summary{
+  color:#fff !important;
+  background:transparent !important;
+  text-shadow:0 1px 4px rgba(0,0,0,.45);
+}
+details.compact > summary:after{
+  color:#e4f2e5 !important;
+}
+details.compact > .inside{
+  color:#fff !important;
+}
+details.compact .muted{
+  color:#d8eadb !important;
+}
+details.compact label{
+  color:#f1f8f2 !important;
+}
+details.compact .notice{
+  background:rgba(255,255,255,.10) !important;
+  border-color:rgba(255,255,255,.16) !important;
+  color:#fff !important;
 }
 </style>
 </head>
@@ -2180,7 +2234,7 @@ style="margin-top:8px">
 <div class="muted" style="margin-top:8px">Estos datos son privados en este dispositivo. Sirven para medir y calibrar el Radar; no publican tu ubicación ni alimentan las observaciones públicas.</div>
 </div>
 
-<div class="card">
+<div class="card" id="previsionCard">
 
 <h3>🌦️ Previsión</h3>
 
@@ -5123,6 +5177,10 @@ function mostrarPrevision(diario){
 let caja=
 
 $("prevision");
+const tarjetaPrevision=document.getElementById("previsionCard");
+if(tarjetaPrevision){
+  tarjetaPrevision.classList.remove("meteo-sol","meteo-nubes","meteo-lluvia","meteo-tormenta");
+}
 
 caja.innerHTML="";
 
@@ -5154,7 +5212,16 @@ if(!aPasado&&!bPasado) return a.fecha.localeCompare(b.fecha);
 return aPasado ? -1 : 1;
 });
 
-indices.forEach(({fecha,i})=>{
+indices.forEach(({fecha,i},posicion)=>{
+
+if(posicion===0 && tarjetaPrevision){
+  const codigoActual=Number(diario.weather_code?.[i] ?? 0);
+  if(codigoActual===0 || codigoActual===1) tarjetaPrevision.classList.add("meteo-sol");
+  else if(codigoActual===2 || codigoActual===3 || (codigoActual>=45 && codigoActual<=48)) tarjetaPrevision.classList.add("meteo-nubes");
+  else if((codigoActual>=51 && codigoActual<=67) || (codigoActual>=80 && codigoActual<=82)) tarjetaPrevision.classList.add("meteo-lluvia");
+  else if(codigoActual>=95) tarjetaPrevision.classList.add("meteo-tormenta");
+  else tarjetaPrevision.classList.add("meteo-nubes");
+}
 
 let div=
 
