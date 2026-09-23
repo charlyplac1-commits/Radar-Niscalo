@@ -711,8 +711,14 @@ header.app-header .brand,header.app-header .header-status{position:relative;z-in
 /* iPhone/iPad: la portada se muestra unos segundos y después se retira sola.
    No se depende de servicios externos ni de la cámara para cerrarla. */
 #appSplash{display:grid !important;}
+#appSplash.hide{
+  display:none !important;
+  opacity:0 !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+}
 @media(max-width:720px){
-  #appSplash{display:grid !important;opacity:1;visibility:visible;pointer-events:auto;}
+  #appSplash:not(.hide){display:grid !important;opacity:1;visibility:visible;pointer-events:auto;}
 }
 
 /* ===== PESTAÑAS PREMIUM · RADAR NÍSCALO ===== */
