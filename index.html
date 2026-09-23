@@ -1535,61 +1535,29 @@ mapa.invalidateSize();
 function iniciarMapa(){
 
 mapa=L.map("map").setView(
-
 [41.60,1.80],
-
 8
-
 );
 
-/* Base moderna: CARTO Voyager. No cambia el motor Leaflet ni el resto del Radar. */
-const mapaModerno=L.tileLayer(
-
-"https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-
+/* Base fotográfica real: satélite. Sin API key y sin cambiar el resto del Radar. */
+const mapaSatelite=L.tileLayer(
+"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
 {
-
-maxZoom:20,
-
-attribution:"© OpenStreetMap © CARTO"
-
+maxZoom:19,
+attribution:"Tiles © Esri"
 }
-
 ).addTo(mapa);
 
-/* Alternativa satélite para comprobar el terreno real sin tocar el radar. */
-const mapaSatelite=L.tileLayer(
-
-"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-
-{
-
-maxZoom:19,
-
-attribution:"Tiles © Esri"
-
-}
-
-);
-
 L.control.layers(
-
-{"🗺️ Mapa moderno":mapaModerno,"🛰️ Satélite":mapaSatelite},
-
+{"🛰️ Satélite":mapaSatelite},
 null,
-
 {collapsed:true,position:"topright"}
-
 ).addTo(mapa);
 
 marcador=L.marker(
-
 [41.60,1.80]
-
 )
-
 .addTo(mapa)
-
 .bindPopup("Ubicación consultada");
 
 }
