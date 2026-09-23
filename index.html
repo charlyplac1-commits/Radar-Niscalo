@@ -3816,11 +3816,93 @@ async function cargarDatos(){
   }
 
   if(!datos){
-    console.error("Radar Níscalo · Open-Meteo:",errorMeteorologia);
-    $("estado").textContent=
-      "❌ Fallo meteorológico: "+
-      (errorMeteorologia?.message||"no se pudo consultar Open-Meteo.");
-    return;
+    /* =======================================================
+       RESPALDO METEOROLÓGICO
+       Si Open-Meteo no responde desde el navegador, usamos
+       wttr.in para que la aplicación siga mostrando al menos
+       temperatura, humedad, lluvia y viento. La respuesta de
+       wttr.in puede venir con o sin el contenedor "data".
+       ======================================================= */
+    try{
+      const respaldoUrl=
+        "https://wttr.in/"+encodeURIComponent(lat)+","+encodeURIComponent(lon)+
+        "?format=j1&lang=es";
+
+      const respaldoResp=await fetch(respaldoUrl,{cache:"no-store"});
+      const respaldoTexto=await respaldoResp.text();
+
+      if(!respaldoResp.ok){
+        throw new Error("Respaldo meteorológico HTTP "+respaldoResp.status);
+      }
+
+      const respaldoJson=JSON.parse(respaldoTexto);
+      const respaldo=respaldoJson?.data||respaldoJson;
+      const actual=respaldo?.current_condition?.[0];
+      const dias=Array.isArray(respaldo?.weather)?respaldo.weather:[];
+
+      if(!actual){
+        throw new Error("El respaldo meteorológico devolvió una respuesta incompleta.");
+      }
+
+      const ahora=new Date().toISOString();
+      const temp=Number(actual.temp_C);
+      const hum=Number(actual.humidity);
+      const viento=Number(actual.windspeedKmph);
+      const lluviaAhora=Number(actual.precipMM||0);
+
+      const daily={
+        time:dias.map(d=>d.date).filter(Boolean),
+        temperature_2m_max:dias.map(d=>Number(d.maxtempC)),
+        temperature_2m_min:dias.map(d=>Number(d.mintempC)),
+        temperature_2m_mean:dias.map(d=>Number(d.avgtempC)),
+        precipitation_sum:dias.map(d=>{
+          const horas=Array.isArray(d.hourly)?d.hourly:[];
+          return horas.reduce((s,h)=>s+Number(h.precipMM||0),0);
+        }),
+        precipitation_probability_max:dias.map(d=>{
+          const horas=Array.isArray(d.hourly)?d.hourly:[];
+          return horas.reduce((m,h)=>Math.max(m,Number(h.chanceofrain||0)),0);
+        }),
+        wind_gusts_10m_max:dias.map(d=>{
+          const horas=Array.isArray(d.hourly)?d.hourly:[];
+          return horas.reduce((m,h)=>Math.max(m,Number(h.windspeedKmph||0)),0);
+        }),
+        weather_code:dias.map(d=>Number(d.hourly?.[0]?.weatherCode||0)),
+        et0_fao_evapotranspiration:[]
+      };
+
+      datos={
+        current:{
+          time:ahora,
+          temperature_2m:temp,
+          relative_humidity_2m:hum,
+          wind_gusts_10m:viento
+        },
+        hourly:{
+          time:[ahora],
+          temperature_2m:[temp],
+          relative_humidity_2m:[hum],
+          precipitation:[lluviaAhora],
+          precipitation_probability:[Number(actual.chanceofrain||0)],
+          wind_gusts_10m:[viento],
+          vapour_pressure_deficit:[null]
+        },
+        daily
+      };
+
+      window.meteorologiaRespaldo=true;
+      console.warn("Radar Níscalo · usando wttr.in como respaldo.",errorMeteorologia);
+      $("estado").textContent="⚠️ Open-Meteo no responde. Mostrando datos meteorológicos de respaldo…";
+
+    }catch(respaldoError){
+      console.error("Radar Níscalo · Open-Meteo:",errorMeteorologia);
+      console.error("Radar Níscalo · respaldo:",respaldoError);
+      $("estado").textContent=
+        "❌ Fallo meteorológico. Open-Meteo: "+
+        (errorMeteorologia?.message||"sin respuesta")+\n        " · Respaldo: "+
+        (respaldoError?.message||"sin respuesta");
+      return;
+    }
   }
 
   try{
