@@ -2042,6 +2042,47 @@ pintarFavorabilidad();
 
 /* ================= UBICACIÓN ================= */
 
+async function mostrarDireccionUbicacion(lat,lon){
+
+try{
+
+const respuesta=await fetch(
+`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`,
+{
+headers:{
+"Accept":"application/json"
+}
+}
+);
+
+if(!respuesta.ok) throw new Error("No se pudo obtener la dirección");
+
+const datos=await respuesta.json();
+
+const buscador=$("buscadorZona");
+
+if(buscador){
+
+buscador.value=datos.display_name||"Ubicación actual";
+
+}
+
+}catch(error){
+
+console.warn("Dirección no disponible:",error);
+
+const buscador=$("buscadorZona");
+
+if(buscador){
+
+buscador.value="Ubicación actual";
+
+}
+
+}
+
+}
+
 function usarUbicacion(){
 
 if(!navigator.geolocation){
@@ -2064,9 +2105,14 @@ navigator.geolocation.getCurrentPosition(
 
 pos=>{
 
-$("lat").value=pos.coords.latitude.toFixed(6);
+const lat=pos.coords.latitude.toFixed(6);
+const lon=pos.coords.longitude.toFixed(6);
 
-$("lon").value=pos.coords.longitude.toFixed(6);
+$("lat").value=lat;
+
+$("lon").value=lon;
+
+mostrarDireccionUbicacion(lat,lon);
 
 $("estado").textContent="Ubicación obtenida. Cargando datos…";
 
