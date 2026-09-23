@@ -1695,7 +1695,28 @@ details .muted,
 #bibliotecaRecorridos .muted{
   color:#c7d7ca !important;
 }
-</style></head>
+</style><style id="fondo-ubicacion-vivo">
+/* ===== UBICACIÓN EN VIVO · FONDO SATÉLITE ===== */
+#ubicacionCard{
+  position:relative;
+  overflow:hidden;
+  color:#fff;
+  border:1px solid rgba(255,255,255,.16);
+  background:
+    linear-gradient(180deg,rgba(7,25,16,.52),rgba(7,20,13,.82)),
+    url("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/7/48/64")
+    center/cover no-repeat;
+  box-shadow:0 10px 28px rgba(0,0,0,.24);
+}
+#ubicacionCard > *{position:relative;z-index:1}
+#ubicacionCard h3{color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.7)}
+#ubicacionCard label{color:#eef7ef;text-shadow:0 1px 5px rgba(0,0,0,.6)}
+#ubicacionCard .muted{color:#d9e7dc !important;text-shadow:0 1px 5px rgba(0,0,0,.7)}
+#ubicacionCard input{background:rgba(255,255,255,.94);color:#17231b;border-color:rgba(255,255,255,.7)}
+#ubicacionCard button{box-shadow:0 5px 14px rgba(0,0,0,.22)}
+#ubicacionCard #resultadosZona{color:#17231b}
+</style>
+</head>
 
 <body>
 <script>
@@ -1922,7 +1943,7 @@ Pulsa «Comenzar recorrido» cuando entres al bosque. Mantén la ubicación del 
 <div id="recorridoReproduccion"><div style="display:flex;justify-content:space-between;align-items:center"><b>▶️ Reproducción</b><button type="button" class="secondary" onclick="detenerReproduccionRecorrido()" style="margin:0;padding:6px 8px;font-size:10px">⏹️ Parar</button></div><div id="recorridoPlaybackTexto" class="recorrido-meta">Preparando…</div><div id="recorridoPlaybackBar"><i id="recorridoPlaybackFill"></i></div></div>
 </div>
 
-<div class="card">
+<div class="card" id="ubicacionCard">
 
 <h3>📍 Ubicación</h3>
 <label>🔎 Buscar zona, municipio o lugar</label>
