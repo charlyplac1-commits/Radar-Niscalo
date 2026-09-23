@@ -5394,6 +5394,229 @@ function enfocarRadar(){
   }
 }
 
+
+/* ================= CÁMARA Y ESCÁNER ================= */
+let scannerStream=null, scannerFotoN=0, scannerFotosData=[], liveVisionMode="normal", liveAnim=null;
+
+function estadoCamara(t){const e=$("camaraEstado");if(e)e.innerHTML=t;}
+function estadoLive(t){const e=$("liveEstado");if(e)e.innerHTML=t;}
+
+function pararStreamScanner(){
+  if(scannerStream){scannerStream.getTracks().forEach(t=>{try{t.stop()}catch(e){}});scannerStream=null;}
+}
+
+async function abrirStreamScanner(videoEl, facingMode="environment"){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    throw new Error("El navegador no permite acceder a la cámara.");
+  }
+  pararStreamScanner();
+  const base={audio:false,video:{facingMode:{ideal:facingMode},width:{ideal:1280},height:{ideal:720}}};
+  try{
+    scannerStream=await navigator.mediaDevices.getUserMedia(base);
+  }catch(e){
+    scannerStream=await navigator.mediaDevices.getUserMedia({audio:false,video:true});
+  }
+  videoEl.srcObject=scannerStream;
+  await videoEl.play().catch(()=>{});
+  return scannerStream;
+}
+
+function errorCamara(e){
+  if(e?.name==="NotAllowedError"||e?.name==="PermissionDeniedError") return "El navegador ha bloqueado el acceso a la cámara. Permite la cámara para este sitio y vuelve a pulsar.";
+  if(e?.name==="NotFoundError") return "No se ha encontrado ninguna cámara disponible en este dispositivo.";
+  if(e?.name==="NotReadableError") return "La cámara está siendo usada por otra aplicación. Ciérrala y vuelve a intentarlo.";
+  if(location.protocol!=="https:" && location.hostname!=="localhost") return "La cámara necesita una conexión segura (HTTPS).";
+  return "No se pudo abrir la cámara. Comprueba los permisos del navegador y vuelve a intentarlo.";
+}
+
+async function iniciarRadarVisual(){
+  const video=$("liveVideo"), placeholder=$("livePlaceholder"), overlay=$("liveOverlay");
+  try{
+    if(!video)return;
+    await abrirStreamScanner(video,"environment");
+    video.style.display="block";
+    if(placeholder)placeholder.style.display="none";
+    if(overlay){overlay.style.display="block";ajustarOverlayLive();dibujarOverlayLive();}
+    $("btnLiveStart").style.display="none";
+    $("btnLiveAnalyze").style.display="";
+    $("btnLiveStop").style.display="";
+    $("liveCandidate").innerHTML="🟢 Cámara activa. Recorre el bosque y pulsa «Analizar zona».";
+    estadoLive("<b>🟢 Radar visual activo.</b> La imagen procede de la cámara del móvil.");
+    const s=$("scannerLive");if(s)s.classList.add("scanning");
+  }catch(e){
+    console.error(e);estadoLive("⚠️ "+errorCamara(e));
+  }
+}
+
+function ajustarOverlayLive(){
+  const v=$("liveVideo"),c=$("liveOverlay");if(!v||!c)return;
+  const w=v.videoWidth||640,h=v.videoHeight||360;c.width=w;c.height=h;
+}
+
+function dibujarOverlayLive(){
+  const v=$("liveVideo"),c=$("liveOverlay");if(!v||!c||!scannerStream)return;
+  ajustarOverlayLive();
+  const x=c.getContext("2d"),w=c.width,h=c.height;
+  x.clearRect(0,0,w,h);
+  if(liveVisionMode==="thermal"){
+    const temp=document.createElement("canvas");temp.width=w;temp.height=h;
+    const tx=temp.getContext("2d");tx.drawImage(v,0,0,w,h);
+    const im=tx.getImageData(0,0,w,h),d=im.data;
+    for(let i=0;i<d.length;i+=4){
+      const g=.299*d[i]+.587*d[i+1]+.114*d[i+2],q=g/255;
+      d[i]=Math.min(255,255*q*1.8);
+      d[i+1]=Math.min(255,255*Math.max(0,1-Math.abs(q-.55)*2.1));
+      d[i+2]=Math.min(255,255*(1-q)*1.7);
+    }
+    x.putImageData(im,0,0);x.globalAlpha=.42;x.fillStyle="rgba(8,12,20,.45)";x.fillRect(0,0,w,h);x.globalAlpha=1;
+  }
+  x.strokeStyle="rgba(233,163,75,.85)";x.lineWidth=Math.max(2,w/320);
+  x.strokeRect(w*.12,h*.12,w*.76,h*.76);
+  x.strokeStyle="rgba(255,255,255,.45)";x.lineWidth=1;
+  x.beginPath();x.moveTo(w/3,h*.12);x.lineTo(w/3,h*.88);x.moveTo(w*2/3,h*.12);x.lineTo(w*2/3,h*.88);x.moveTo(w*.12,h*.5);x.lineTo(w*.88,h*.5);x.stroke();
+  liveAnim=requestAnimationFrame(dibujarOverlayLive);
+}
+
+function analizarZonaLive(){
+  const v=$("liveVideo"),c=document.createElement("canvas");
+  if(!v||!v.videoWidth){estadoLive("Primero activa la cámara.");return;}
+  c.width=320;c.height=Math.round(320*v.videoHeight/v.videoWidth);
+  const x=c.getContext("2d");x.drawImage(v,0,0,c.width,c.height);
+  const im=x.getImageData(0,0,c.width,c.height).data;
+  let verde=0,lum=0,orange=0,n=0;
+  for(let i=0;i<im.length;i+=16){
+    const r=im[i],g=im[i+1],b=im[i+2],l=(r+g+b)/3;
+    if(g>r*1.05&&g>b*.9)verde++;
+    if(r>g*1.18&&g>b*1.15&&r>90)orange++;
+    lum+=l;n++;
+  }
+  const vPct=Math.round(verde/n*100),oPct=Math.round(orange/n*100),lAvg=lum/n;
+  const visual=Math.max(0,Math.min(100,Math.round(vPct*.65+oPct*2.2+Math.max(0,55-Math.abs(lAvg-75))*.18)));
+  const ambiental=Number(window.scoreActual)||Number($("score")?.textContent)||50;
+  const radar=Math.max(0,Math.min(100,Math.round(ambiental)));
+  const combinado=Math.round(visual*.45+radar*.55);
+  $("liveScore").textContent=visual+"/100";
+  $("liveCenter").textContent=(oPct>=1?"🍄 señal":"—");
+  $("liveRadar").textContent=radar+"/100";
+  $("liveCombined").textContent=combinado+"/100";
+  $("liveCandidate").innerHTML="<b>🎯 Lectura de zona: "+combinado+"/100</b><br><span class='muted'>Señal visual aproximada: vegetación "+vPct+"% · tonos cálidos "+oPct+"%. No identifica una especie por sí sola.</span>";
+}
+
+function seleccionarVisionLive(modo){
+  liveVisionMode=modo==="thermal"?"thermal":"normal";
+  const btnN=$("btnLiveNormal"),btnT=$("btnLiveThermal");
+  if(btnN)btnN.className=liveVisionMode==="normal"?"":"secondary";
+  if(btnT)btnT.className=liveVisionMode==="thermal"?"":"secondary";
+  estadoLive(liveVisionMode==="thermal"?"🌡️ Visión térmica visual activada (no es infrarrojo real).":"📷 Cámara normal activada.");
+}
+
+function detenerRadarVisual(){
+  if(liveAnim)cancelAnimationFrame(liveAnim);liveAnim=null;
+  const s=$("scannerLive");if(s)s.classList.remove("scanning");
+  pararStreamScanner();
+  const v=$("liveVideo"),o=$("liveOverlay"),p=$("livePlaceholder");
+  if(v){v.pause();v.srcObject=null;v.style.display="none";}
+  if(o){o.style.display="none";const x=o.getContext("2d");x.clearRect(0,0,o.width,o.height);}
+  if(p)p.style.display="block";
+  $("btnLiveStart").style.display="";
+  $("btnLiveAnalyze").style.display="none";
+  $("btnLiveStop").style.display="none";
+  estadoLive("Pulsa «Iniciar radar visual» para activar la cámara.");
+}
+
+function cambiarModoScanner(modo,boton){
+  if(modo==="fotos"){
+    detenerRadarVisual();
+    $("scannerLive").style.display="none";$("scannerFotos").style.display="";
+    $("modoLiveBtn").classList.remove("on");$("modoFotosBtn").classList.add("on");
+  }else{
+    cerrarCamara();
+    $("scannerFotos").style.display="none";$("scannerLive").style.display="";
+    $("modoFotosBtn").classList.remove("on");$("modoLiveBtn").classList.add("on");
+  }
+}
+
+async function abrirCamara(){
+  const v=$("videoCamara");
+  try{
+    await abrirStreamScanner(v,"environment");
+    v.style.display="block";$("camaraPlaceholder").style.display="none";$("guiaCamara").style.display="block";
+    $("btnAbrirCamara").style.display="none";$("btnFotoCamara").style.display="";
+    $("btnCerrarCamara").style.display="";
+    scannerFotoN=0;scannerFotosData=[];
+    $("btnFotoCamara").textContent="📸 Analizar foto 1/3";
+    $("resultadoEscaner").innerHTML="";
+    estadoCamara("<b>🟢 Cámara abierta.</b> Haz tres fotografías: bosque, suelo y una vista cercana.");
+  }catch(e){console.error(e);estadoCamara("⚠️ "+errorCamara(e));}
+}
+
+function hacerFoto(){
+  const v=$("videoCamara"),c=$("fotoCamara");
+  if(!v||!v.videoWidth){estadoCamara("Primero abre la cámara.");return;}
+  c.width=v.videoWidth;c.height=v.videoHeight;c.getContext("2d").drawImage(v,0,0,c.width,c.height);
+  const data=c.getContext("2d").getImageData(0,0,c.width,c.height).data;
+  let verde=0,tierra=0,lum=0,n=0;
+  for(let i=0;i<data.length;i+=20){
+    const r=data[i],g=data[i+1],b=data[i+2],l=(r+g+b)/3;
+    if(g>r*1.06&&g>b*.95)verde++;
+    if(r>g*1.08&&r>b*1.12&&g>45)tierra++;
+    lum+=l;n++;
+  }
+  const señal=Math.max(0,Math.min(100,Math.round(verde/n*45+tierra/n*35+Math.max(0,50-Math.abs(lum/n-80))*.4)));
+  scannerFotosData.push({senal:señal,fecha:new Date().toISOString()});
+  scannerFotoN++;
+  $("fotoCamara").style.display="block";
+  $("fotoCamara").style.maxHeight="520px";
+  $("videoCamara").style.display="none";
+  $("guiaCamara").style.display="none";
+  if(scannerFotoN<3){
+    $("btnFotoCamara").style.display="none";$("btnRepetirCamara").style.display="";
+    estadoCamara("📸 Vista "+scannerFotoN+"/3 capturada. Pulsa «Repetir» si quieres rehacerla o vuelve a abrir la cámara para la siguiente.");
+    $("resultadoEscaner").innerHTML="<b>Vista "+scannerFotoN+"/3:</b> señal visual "+señal+"/100.";
+  }else{
+    const total=Math.round(scannerFotosData.reduce((s,x)=>s+x.senal,0)/scannerFotosData.length);
+    $("btnFotoCamara").style.display="none";$("btnRepetirCamara").style.display="none";
+    $("btnCerrarCamara").style.display="";
+    $("resultadoEscaner").innerHTML="<b>🍄 Escaneo completado: "+total+"/100</b><br><span class='muted'>Resultado experimental basado en las tres vistas. No constituye identificación de especie.</span>";
+    guardarEscaneoLocal(total,scannerFotosData.length);
+  }
+  pararStreamScanner();v.srcObject=null;
+}
+
+async function repetirFoto(){
+  if(scannerFotoN<1){abrirCamara();return;}
+  scannerFotosData.pop();scannerFotoN=Math.max(0,scannerFotoN-1);
+  await abrirCamara();
+  estadoCamara("🔄 Repite la vista "+(scannerFotoN+1)+"/3.");
+}
+
+function cerrarCamara(){
+  pararStreamScanner();
+  const v=$("videoCamara");if(v){v.pause();v.srcObject=null;v.style.display="none";}
+  if($("fotoCamara"))$("fotoCamara").style.display="none";
+  if($("guiaCamara"))$("guiaCamara").style.display="none";
+  if($("camaraPlaceholder"))$("camaraPlaceholder").style.display="block";
+  if($("btnAbrirCamara"))$("btnAbrirCamara").style.display="";
+  if($("btnFotoCamara"))$("btnFotoCamara").style.display="none";
+  if($("btnRepetirCamara"))$("btnRepetirCamara").style.display="none";
+  if($("btnCerrarCamara"))$("btnCerrarCamara").style.display="none";
+  estadoCamara("Pulsa «Abrir cámara» para empezar.");
+}
+
+function guardarEscaneoLocal(score,vistas){
+  let arr=[];try{arr=JSON.parse(localStorage.getItem("radar_niscalo_escaneos")||"[]")}catch(e){}
+  arr.unshift({fecha:new Date().toISOString(),score:Number(score),vistas:Number(vistas)});
+  localStorage.setItem("radar_niscalo_escaneos",JSON.stringify(arr.slice(0,30)));
+  mostrarEscaneos();
+}
+
+function mostrarEscaneos(){
+  const box=$("listaEscaneos");if(!box)return;
+  let arr=[];try{arr=JSON.parse(localStorage.getItem("radar_niscalo_escaneos")||"[]")}catch(e){}
+  if(!arr.length){box.innerHTML="<span class='muted'>Todavía no hay escaneos guardados.</span>";return;}
+  box.innerHTML=arr.map(x=>"<div>🍄 <b>"+Number(x.score)+"/100</b> · "+new Date(x.fecha).toLocaleString("es-ES")+" · "+Number(x.vistas)+" vistas</div>").join("");
+}
+
 /* ================= RADAR DE PROXIMIDAD ================= */
 let proxPeer=null,proxConn=null,proxWatch=null,proxMap=null,proxMeMarker=null,proxOtherMarker=null,proxMe=null,proxOther=null,proxRole="";
 function proxStatus(t){const e=$("proxEstado");if(e)e.innerHTML=t;}
