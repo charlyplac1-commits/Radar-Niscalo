@@ -5791,7 +5791,11 @@ new Date()
   const hide=()=>{
     if(!s) return;
     s.classList.add("hide");
-    setTimeout(()=>{s.style.display="none"},800);
+    setTimeout(()=>{
+      s.style.display="none";
+      try{history.scrollRestoration="manual";window.scrollTo(0,0);}catch(e){window.scrollTo(0,0);}
+      requestAnimationFrame(()=>window.scrollTo(0,0));
+    },800);
   };
 
   /* ================= ARRANQUE DE LA APLICACIÓN =================
