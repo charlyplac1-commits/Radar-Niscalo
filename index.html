@@ -1509,6 +1509,103 @@ body{
   }
 }
 
+/* ===== PREVISIÓN PREMIUM · TARJETAS EN RELIEVE ===== */
+.forecast{
+  gap:9px !important;
+  padding:3px 2px 10px !important;
+  scrollbar-width:thin;
+}
+.forecast .day{
+  position:relative;
+  overflow:hidden;
+  min-width:112px !important;
+  padding:10px 9px 11px !important;
+  border-radius:16px !important;
+  color:#eef5ef !important;
+  background:
+    radial-gradient(circle at 85% 8%,rgba(103,159,111,.24),transparent 38%),
+    linear-gradient(145deg,#294333 0%,#1b2c22 58%,#132018 100%) !important;
+  border:1px solid rgba(145,190,151,.24) !important;
+  box-shadow:
+    0 9px 18px rgba(0,0,0,.30),
+    0 2px 4px rgba(0,0,0,.20),
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 0 -1px 0 rgba(0,0,0,.22) !important;
+  transform:translateY(0);
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+.forecast .day:before{
+  content:"";
+  position:absolute;
+  left:10px;
+  right:10px;
+  top:0;
+  height:3px;
+  border-radius:0 0 8px 8px;
+  background:linear-gradient(90deg,#e7a34b,#77b878,#e7a34b);
+  opacity:.9;
+}
+.forecast .day:after{
+  content:"";
+  position:absolute;
+  width:70px;
+  height:70px;
+  right:-28px;
+  top:-30px;
+  border-radius:50%;
+  background:rgba(255,255,255,.07);
+  filter:blur(2px);
+}
+.forecast .day:hover{
+  transform:translateY(-3px);
+  box-shadow:
+    0 14px 24px rgba(0,0,0,.34),
+    0 4px 8px rgba(0,0,0,.20),
+    inset 0 1px 0 rgba(255,255,255,.14);
+}
+.forecast .day b{
+  position:relative;
+  z-index:1;
+  color:#fff !important;
+  font-size:12px;
+  text-transform:capitalize;
+}
+.forecast .day .ico{
+  position:relative;
+  z-index:1;
+  font-size:29px !important;
+  margin:6px 0 !important;
+  filter:drop-shadow(0 3px 4px rgba(0,0,0,.30));
+}
+.forecast .day strong{
+  position:relative;
+  z-index:1;
+  display:block;
+  color:#f7d89e !important;
+  font-size:12px;
+  margin-bottom:5px;
+}
+.forecast .day div:not(.ico){
+  position:relative;
+  z-index:1;
+  color:#c9d7cc !important;
+  font-size:11px;
+  margin-top:3px;
+}
+@media(max-width:759px){
+  .forecast{
+    gap:8px !important;
+    padding-bottom:9px !important;
+  }
+  .forecast .day{
+    min-width:108px !important;
+    border-radius:15px !important;
+    box-shadow:
+      0 8px 16px rgba(0,0,0,.28),
+      inset 0 1px 0 rgba(255,255,255,.10) !important;
+  }
+}
+
 </style>
 
 <script>
