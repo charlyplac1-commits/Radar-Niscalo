@@ -1542,17 +1542,43 @@ mapa=L.map("map").setView(
 
 );
 
-L.tileLayer(
+/* Base moderna: CARTO Voyager. No cambia el motor Leaflet ni el resto del Radar. */
+const mapaModerno=L.tileLayer(
 
-"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+"https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+
+{
+
+maxZoom:20,
+
+attribution:"© OpenStreetMap © CARTO"
+
+}
+
+).addTo(mapa);
+
+/* Alternativa satélite para comprobar el terreno real sin tocar el radar. */
+const mapaSatelite=L.tileLayer(
+
+"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
 
 {
 
 maxZoom:19,
 
-attribution:"© OpenStreetMap"
+attribution:"Tiles © Esri"
 
 }
+
+);
+
+L.control.layers(
+
+{"🗺️ Mapa moderno":mapaModerno,"🛰️ Satélite":mapaSatelite},
+
+null,
+
+{collapsed:true,position:"topright"}
 
 ).addTo(mapa);
 
