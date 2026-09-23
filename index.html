@@ -3899,7 +3899,8 @@ async function cargarDatos(){
       console.error("Radar Níscalo · respaldo:",respaldoError);
       $("estado").textContent=
         "❌ Fallo meteorológico. Open-Meteo: "+
-        (errorMeteorologia?.message||"sin respuesta")+\\n        " · Respaldo: "+
+        (errorMeteorologia?.message||"sin respuesta")+"\\n"+
+        " · Respaldo: "+
         (respaldoError?.message||"sin respuesta");
       return;
     }
