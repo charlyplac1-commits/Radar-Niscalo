@@ -1664,7 +1664,10 @@ body{
   }
 }
 
-</style>
+<style id="biblioteca-recorridos-style">
+#bibliotecaRecorridos{margin-top:10px;padding:12px;border-radius:16px;background:linear-gradient(145deg,#14241a,#20382a);border:1px solid rgba(137,181,145,.2);color:#eef5ef;box-shadow:0 8px 20px rgba(0,0,0,.22)}
+#bibliotecaRecorridos h4{margin:0 0 4px;font-size:14px}.biblioteca-lista{display:grid;gap:8px;margin-top:9px}.recorrido-guardado{padding:10px;border-radius:13px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1)}.recorrido-meta{font-size:10px;color:#bfd0c3;margin-top:3px}.recorrido-acciones{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.recorrido-acciones button{margin:0;padding:7px 9px;font-size:10px;border-radius:9px}.ruta-ver{background:#315f43}.ruta-volver{background:#c77b32}.ruta-exportar{background:#536b5a}.ruta-borrar{background:#8f4039}#recorridoReproduccion{display:none;margin-top:9px;padding:9px;border-radius:12px;background:rgba(0,0,0,.22)}#recorridoReproduccion.activo{display:block}#recorridoPlaybackBar{height:5px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:7px}#recorridoPlaybackBar i{display:block;width:0;height:100%;background:#e6a253}
+</style></style>
 
 <script>
 if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});if("caches" in window){caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("radar-niscalo-")).map(k=>caches.delete(k)))).catch(()=>{});}}
@@ -1888,6 +1891,13 @@ Pulsa «Comenzar recorrido» cuando entres al bosque. Mantén la ubicación del 
 
 </div>
 
+
+<div id="bibliotecaRecorridos">
+<h4>📂 Mis recorridos</h4>
+<div class="muted" style="color:#bfd0c3">Tus rutas quedan guardadas dentro de la aplicación para volver a abrirlas cuando quieras.</div>
+<div id="listaRecorridosGuardados" class="biblioteca-lista"><span class="muted" style="color:#bfd0c3">Todavía no hay recorridos guardados.</span></div>
+<div id="recorridoReproduccion"><div style="display:flex;justify-content:space-between;align-items:center"><b>▶️ Reproducción</b><button type="button" class="secondary" onclick="detenerReproduccionRecorrido()" style="margin:0;padding:6px 8px;font-size:10px">⏹️ Parar</button></div><div id="recorridoPlaybackTexto" class="recorrido-meta">Preparando…</div><div id="recorridoPlaybackBar"><i id="recorridoPlaybackFill"></i></div></div>
+</div>
 
 <div class="card">
 
@@ -2536,15 +2546,13 @@ lineJoin:"round"
 
 function guardarRecorridoLocal(){
 try{
-localStorage.setItem("radar_niscalo_recorrido",JSON.stringify({
-puntos:recorridoPuntos,
-distancia:recorridoDistancia,
-inicio:recorridoInicio||null,
-fecha:new Date().toISOString()
-}));
-}catch(e){
-console.warn("No se pudo guardar el recorrido:",e);
+const ahora=new Date();
+localStorage.setItem("radar_niscalo_recorrido",JSON.stringify({puntos:recorridoPuntos,distancia:recorridoDistancia,inicio:recorridoInicio||null,fecha:ahora.toISOString()}));
+if(recorridoPuntos.length>=2){
+ const nombre=prompt("Pon un nombre para este recorrido:","Recorrido "+ahora.toLocaleDateString("es-ES"));
+ if(nombre!==null) guardarRecorridoBiblioteca({nombre:nombre.trim()||("Recorrido "+ahora.toLocaleDateString("es-ES")),fechaInicio:recorridoInicio?new Date(recorridoInicio).toISOString():ahora.toISOString(),fechaFin:ahora.toISOString(),duracionMs:recorridoInicio?Math.max(0,ahora.getTime()-recorridoInicio):0,distancia:Number(recorridoDistancia)||0,puntos:recorridoPuntos.map(p=>({lat:Number(p.lat),lon:Number(p.lon),accuracy:Number(p.accuracy)||0,timestamp:Number(p.timestamp)||Date.now()})),version:1});
 }
+}catch(e){console.warn("No se pudo guardar el recorrido:",e);}
 }
 
 function cargarRecorridoGuardado(){
@@ -2768,6 +2776,26 @@ if(parar) parar.style.display="none";
 const aviso=$("recorridoAviso");
 if(aviso) aviso.textContent="Pulsa «Comenzar recorrido» cuando entres al bosque. Mantén la ubicación del teléfono activada.";
 }
+
+
+/* ===== BIBLIOTECA AVANZADA DE RECORRIDOS ===== */
+const DB_RECORRIDOS="RadarNiscaloDB",STORE_RECORRIDOS="recorridos";let dbRecorridos=null,reproduccionRecorridoTimer=null,seguirRecorridoWatchId=null,recorridoSeguido=null;
+function abrirDBRecorridos(){return new Promise((ok,no)=>{if(!indexedDB){no(new Error("IndexedDB no disponible"));return}if(dbRecorridos){ok(dbRecorridos);return}const q=indexedDB.open(DB_RECORRIDOS,1);q.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains(STORE_RECORRIDOS))d.createObjectStore(STORE_RECORRIDOS,{keyPath:"id",autoIncrement:true})};q.onsuccess=e=>{dbRecorridos=e.target.result;ok(dbRecorridos)};q.onerror=()=>no(q.error)})}
+async function guardarRecorridoBiblioteca(r){try{const d=await abrirDBRecorridos();await new Promise((ok,no)=>{const t=d.transaction(STORE_RECORRIDOS,"readwrite");t.objectStore(STORE_RECORRIDOS).add(r);t.oncomplete=ok;t.onerror=()=>no(t.error)});mostrarBibliotecaRecorridos();const a=$("recorridoAviso");if(a)a.textContent="✅ Recorrido guardado en «Mis recorridos»."}catch(e){try{const l=JSON.parse(localStorage.getItem("radar_niscalo_recorridos")||"[]");l.unshift({...r,id:"ls_"+Date.now()});localStorage.setItem("radar_niscalo_recorridos",JSON.stringify(l.slice(0,100)));mostrarBibliotecaRecorridos()}catch(x){console.warn(e)}}}
+async function obtenerRecorridosBiblioteca(){try{const d=await abrirDBRecorridos();return await new Promise((ok,no)=>{const t=d.transaction(STORE_RECORRIDOS,"readonly"),q=t.objectStore(STORE_RECORRIDOS).getAll();q.onsuccess=()=>ok((q.result||[]).sort((a,b)=>String(b.fechaFin).localeCompare(String(a.fechaFin))));q.onerror=()=>no(q.error)})}catch(e){try{return JSON.parse(localStorage.getItem("radar_niscalo_recorridos")||"[]")}catch{return[]}}}
+function formatearDuracionGuardada(ms){const s=Math.round(Number(ms||0)/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h?String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(x).padStart(2,"0"):String(m).padStart(2,"0")+":"+String(x).padStart(2,"0")}
+async function mostrarBibliotecaRecorridos(){const b=$("listaRecorridosGuardados");if(!b)return;const l=await obtenerRecorridosBiblioteca();if(!l.length){b.innerHTML='<span class="muted" style="color:#bfd0c3">Todavía no hay recorridos guardados.</span>';return}b.innerHTML=l.map(r=>{const id=JSON.stringify(String(r.id)),f=r.fechaFin?new Date(r.fechaFin).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"Sin fecha";return '<div class="recorrido-guardado"><b>🧭 '+escapar(r.nombre||"Recorrido")+'</b><div class="recorrido-meta">📅 '+f+' · 📏 '+formatearDistanciaRecorrido(r.distancia||0)+' · ⏱️ '+formatearDuracionGuardada(r.duracionMs)+' · 📍 '+(r.puntos?.length||0)+' puntos</div><div class="recorrido-acciones"><button type="button" class="ruta-ver" onclick="abrirRecorridoBiblioteca('+id+')">🗺️ Ver</button><button type="button" class="ruta-ver" onclick="reproducirRecorridoBiblioteca('+id+')">▶️ Reproducir</button><button type="button" class="ruta-volver" onclick="seguirRecorridoBiblioteca('+id+')">🧭 Volver</button><button type="button" class="ruta-exportar" onclick="exportarRecorridoGPX('+id+')">📤 GPX</button><button type="button" class="ruta-borrar" onclick="borrarRecorridoBiblioteca('+id+')">🗑️</button></div></div>'}).join("")}
+async function cargarRecorridoBiblioteca(id){const l=await obtenerRecorridosBiblioteca(),r=l.find(x=>String(x.id)===String(id));return r&&r.puntos?.length>1?r:null}
+function dibujarRutaBiblioteca(r){if(!mapa||!r)return;if(lineaRecorrido)mapa.removeLayer(lineaRecorrido);lineaRecorrido=L.polyline(r.puntos.map(p=>[+p.lat,+p.lon]),{color:"#e68a35",weight:5,opacity:.92,lineCap:"round",lineJoin:"round"}).addTo(mapa);mapa.fitBounds(lineaRecorrido.getBounds(),{padding:[30,30],maxZoom:16});const a=$("recorridoAviso");if(a)a.textContent="Ruta «"+(r.nombre||"sin nombre")+"» cargada."}
+async function abrirRecorridoBiblioteca(id){detenerReproduccionRecorrido();detenerSeguirRecorrido();const r=await cargarRecorridoBiblioteca(id);if(!r)return;recorridoPuntos=r.puntos;recorridoDistancia=+r.distancia||0;recorridoInicio=0;dibujarRutaBiblioteca(r);actualizarPanelRecorrido()}
+async function reproducirRecorridoBiblioteca(id){detenerReproduccionRecorrido();detenerSeguirRecorrido();const r=await cargarRecorridoBiblioteca(id);if(!r||!mapa)return;dibujarRutaBiblioteca(r);const p=r.puntos,m=L.circleMarker([p[0].lat,p[0].lon],{radius:8,color:"#fff",weight:2,fillColor:"#e6a253",fillOpacity:1}).addTo(mapa),panel=$("recorridoReproduccion"),txt=$("recorridoPlaybackTexto"),fill=$("recorridoPlaybackFill"),dur=Math.max(8000,Math.min(45000,p.length*350)),ini=performance.now();if(panel)panel.classList.add("activo");reproduccionRecorridoTimer=setInterval(()=>{const t=Math.min(1,(performance.now()-ini)/dur),x=t*(p.length-1),a=Math.floor(x),b=Math.min(p.length-1,a+1),f=x-a,lat=+p[a].lat+(+p[b].lat-+p[a].lat)*f,lon=+p[a].lon+(+p[b].lon-+p[a].lon)*f;m.setLatLng([lat,lon]);if(txt)txt.textContent=(r.nombre||"Recorrido")+" · "+Math.round(t*100)+"%";if(fill)fill.style.width=Math.round(t*100)+"%";if(t>=1){clearInterval(reproduccionRecorridoTimer);reproduccionRecorridoTimer=null;setTimeout(()=>mapa&&mapa.hasLayer(m)&&mapa.removeLayer(m),700)}},40)}
+function detenerReproduccionRecorrido(){if(reproduccionRecorridoTimer){clearInterval(reproduccionRecorridoTimer);reproduccionRecorridoTimer=null}const p=$("recorridoReproduccion");if(p)p.classList.remove("activo")}
+async function seguirRecorridoBiblioteca(id){detenerReproduccionRecorrido();if(recorridoActivo){alert("Primero termina el recorrido que estás grabando.");return}const r=await cargarRecorridoBiblioteca(id);if(!r)return;dibujarRutaBiblioteca(r);recorridoSeguido=r;if(seguirRecorridoWatchId!==null)navigator.geolocation.clearWatch(seguirRecorridoWatchId);seguirRecorridoWatchId=navigator.geolocation.watchPosition(actualizarPosicionSeguirRecorrido,errorRecorrido,{enableHighAccuracy:true,timeout:15000,maximumAge:1000});const a=$("recorridoAviso");if(a)a.textContent="🧭 Sigue la línea naranja. La app te avisará si te alejas del camino."}
+function distanciaTrazado(lat,lon,r){let m=Infinity;for(const p of r.puntos){const R=6371000,rad=Math.PI/180,x=(+p.lon-lon)*rad*Math.cos((lat+ +p.lat)*rad/2),y=(+p.lat-lat)*rad,d=Math.sqrt(x*x+y*y)*R;if(d<m)m=d}return m}
+function actualizarPosicionSeguirRecorrido(pos){const lat=pos.coords.latitude,lon=pos.coords.longitude;if(!mapa||!recorridoSeguido)return;if(!marcadorRecorrido)marcadorRecorrido=L.circleMarker([lat,lon],{radius:7,color:"#fff",weight:2,fillColor:"#2878e8",fillOpacity:1}).addTo(mapa);else marcadorRecorrido.setLatLng([lat,lon]);const d=distanciaTrazado(lat,lon,recorridoSeguido),a=$("recorridoAviso");if(a)a.textContent=d<20?"🧭 En el camino · sigue la línea naranja":"⚠️ Te has alejado "+Math.round(d)+" m del camino guardado."}
+function detenerSeguirRecorrido(){if(seguirRecorridoWatchId!==null){navigator.geolocation.clearWatch(seguirRecorridoWatchId);seguirRecorridoWatchId=null}recorridoSeguido=null}
+async function borrarRecorridoBiblioteca(id){if(!confirm("¿Borrar este recorrido de «Mis recorridos»?"))return;try{const d=await abrirDBRecorridos();await new Promise((ok,no)=>{const t=d.transaction(STORE_RECORRIDOS,"readwrite");t.objectStore(STORE_RECORRIDOS).delete(id);t.oncomplete=ok;t.onerror=()=>no(t.error)})}catch(e){try{const l=JSON.parse(localStorage.getItem("radar_niscalo_recorridos")||"[]");localStorage.setItem("radar_niscalo_recorridos",JSON.stringify(l.filter(x=>String(x.id)!==String(id))))}catch(x){}}mostrarBibliotecaRecorridos()}
+async function exportarRecorridoGPX(id){const r=await cargarRecorridoBiblioteca(id);if(!r)return;const pts=r.puntos.map(p=>'<trkpt lat="'+(+p.lat).toFixed(7)+'" lon="'+(+p.lon).toFixed(7)+'">'+(p.timestamp?'<time>'+new Date(p.timestamp).toISOString()+'</time>':'')+'</trkpt>').join(""),g='<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="Radar Níscalo" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>'+escapar(r.nombre||"Recorrido")+'</name><trkseg>'+pts+'</trkseg></trk></gpx>',u=URL.createObjectURL(new Blob([g],{type:"application/gpx+xml"})),a=document.createElement("a");a.href=u;a.download=(r.nombre||"recorrido").replace(/[^a-z0-9áéíóúüñ_-]+/gi,"_")+".gpx";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)}
 
 let capaCalorRadar=null;
 let visionRadarActiva=true;
@@ -5715,6 +5743,7 @@ new Date()
   };
   iniciarSeguro("mapa",()=>iniciarMapa());
   iniciarSeguro("recorrido",()=>cargarRecorridoGuardado());
+  iniciarSeguro("biblioteca de recorridos",()=>mostrarBibliotecaRecorridos());
   iniciarSeguro("hallazgos",()=>mostrarHallazgos());
   iniciarSeguro("estadísticas",()=>mostrarEstadisticas());
   iniciarSeguro("escaneos",()=>mostrarEscaneos());
