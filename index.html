@@ -1367,6 +1367,90 @@ main{
   }
 }
 
+/* ===== COMPACTAR INTERFAZ · MÁS APP, MENOS PÁGINA ===== */
+main{
+  max-width:1040px;
+  margin-left:auto;
+  margin-right:auto;
+}
+.card{
+  padding:11px !important;
+  margin:8px 0 !important;
+  border-radius:14px !important;
+}
+.card h3{
+  margin-top:2px !important;
+  margin-bottom:7px !important;
+  font-size:15px !important;
+}
+.card p{
+  margin:5px 0 !important;
+}
+.quick-actions{
+  gap:6px !important;
+  margin:7px 0 !important;
+}
+.metric-strip{
+  gap:5px !important;
+  margin:7px 0 !important;
+}
+.metric{
+  padding:6px 5px !important;
+}
+.metric .big{
+  font-size:18px !important;
+}
+details.compact{
+  margin:6px 0 !important;
+}
+details.compact summary{
+  padding:9px 10px !important;
+}
+details.compact .inside{
+  padding:0 9px 9px !important;
+}
+#radar>.card:nth-of-type(n+4){
+  padding:9px !important;
+  margin:6px 0 !important;
+  border-radius:14px !important;
+}
+#radar>.card:nth-of-type(n+4) h3{
+  margin-bottom:5px !important;
+  font-size:13px !important;
+}
+#radar>details.compact{
+  margin:6px 0 !important;
+}
+#radar>details.compact summary{
+  font-size:12px !important;
+}
+@media(min-width:760px){
+  #radar>.card:nth-of-type(n+4),
+  #radar>details.compact{
+    margin:5px 0 !important;
+  }
+  #radar>.card:nth-of-type(n+4),
+  #radar>details.compact{
+    min-height:0 !important;
+  }
+}
+@media(max-width:759px){
+  main{
+    padding-left:7px !important;
+    padding-right:7px !important;
+  }
+  .card{
+    padding:9px !important;
+    margin:6px 0 !important;
+  }
+  .card h3{
+    font-size:14px !important;
+  }
+  #radar>.card:nth-of-type(n+4){
+    padding:8px !important;
+  }
+}
+
 </style>
 
 <script>
