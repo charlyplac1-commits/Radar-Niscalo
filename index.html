@@ -1238,6 +1238,91 @@ main:before{
   mask-image:linear-gradient(to top,black,transparent);
 }
 
+/* ===== ACABADO VISUAL · VENTANAS Y FONDO ===== */
+body{
+  background:
+    radial-gradient(circle at 8% 8%,rgba(116,151,105,.22),transparent 30%),
+    radial-gradient(circle at 92% 18%,rgba(63,105,72,.16),transparent 32%),
+    linear-gradient(145deg,#e8eee5 0%,#f3f0e7 52%,#e5ebe2 100%);
+  background-attachment:fixed;
+}
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-2;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 50% 110%,rgba(74,103,67,.16),transparent 42%),
+    linear-gradient(120deg,transparent 0 65%,rgba(255,255,255,.28) 78%,transparent 92%);
+}
+body:after{
+  content:"";
+  position:fixed;
+  width:520px;
+  height:520px;
+  right:-250px;
+  bottom:-220px;
+  z-index:-1;
+  pointer-events:none;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(57,98,65,.14),transparent 68%);
+  animation:ambienteSuave 14s ease-in-out infinite alternate;
+}
+@keyframes ambienteSuave{
+  from{transform:translate3d(0,0,0) scale(1)}
+  to{transform:translate3d(-20px,-12px,0) scale(1.08)}
+}
+
+@media(min-width:760px){
+  #radar>.card:nth-of-type(n+4),
+  #radar>details.compact{
+    background:
+      linear-gradient(145deg,rgba(255,255,255,.93),rgba(239,245,238,.90)),
+      radial-gradient(circle at 100% 0%,rgba(102,143,91,.12),transparent 45%);
+    border:1px solid rgba(57,96,66,.16);
+    box-shadow:
+      0 12px 28px rgba(31,60,38,.12),
+      0 3px 8px rgba(31,60,38,.06),
+      inset 0 1px 0 rgba(255,255,255,.95);
+    backdrop-filter:blur(7px);
+    -webkit-backdrop-filter:blur(7px);
+  }
+  #radar>.card:nth-of-type(n+4){
+    border-radius:18px;
+    padding:12px;
+    transform:translateY(0);
+    transition:transform .2s ease,box-shadow .2s ease;
+  }
+  #radar>.card:nth-of-type(n+4):hover{
+    transform:translateY(-2px);
+    box-shadow:
+      0 15px 32px rgba(31,60,38,.15),
+      0 4px 9px rgba(31,60,38,.07),
+      inset 0 1px 0 rgba(255,255,255,.98);
+  }
+  #radar>details.compact{
+    border-radius:17px;
+    overflow:hidden;
+  }
+  #radar>details.compact>summary{
+    background:linear-gradient(135deg,rgba(255,255,255,.72),rgba(232,241,232,.72));
+  }
+  #radar>.card:nth-of-type(n+4) h3{
+    color:#173d29;
+  }
+}
+@media(max-width:759px){
+  #radar>.card:nth-of-type(n+4),
+  #radar>details.compact{
+    background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(239,245,238,.94));
+    border-color:rgba(57,96,66,.15);
+    box-shadow:
+      0 7px 18px rgba(31,60,38,.09),
+      inset 0 1px 0 rgba(255,255,255,.95);
+  }
+}
+
 </style>
 
 <script>
