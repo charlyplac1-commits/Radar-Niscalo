@@ -3,6 +3,7 @@
 <html lang="es">
 
 <head>
+<!-- RADAR-NISCALO-BUILD-2026-09-23-RECUPERACION -->
 
 <meta charset="UTF-8">
 
@@ -1787,7 +1788,28 @@ body{
 @media(max-width:720px){#previsionCard{min-height:155px}}</style>
 
 <script>
-if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});if("caches" in window){caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("radar-niscalo-")).map(k=>caches.delete(k)))).catch(()=>{});}}
+/* LIMPIEZA DE VERSIONES ANTIGUAS: evita que un Service Worker/caché viejo
+   pueda mantener una portada negra o una versión anterior de la aplicación. */
+(async()=>{
+  try{
+    let habiaRegistro=false;
+    if("serviceWorker" in navigator){
+      const registros=await navigator.serviceWorker.getRegistrations();
+      habiaRegistro=registros.length>0;
+      await Promise.all(registros.map(reg=>reg.unregister()));
+    }
+    if("caches" in window){
+      const claves=await caches.keys();
+      await Promise.all(claves.map(clave=>caches.delete(clave)));
+    }
+    if(habiaRegistro && !sessionStorage.getItem("radar-niscalo-cache-limpiada")){
+      sessionStorage.setItem("radar-niscalo-cache-limpiada","1");
+      location.reload();
+    }
+  }catch(e){
+    console.warn("Radar Níscalo · limpieza de caché:",e);
+  }
+})();
 </script>
 <style id="mejora-legibilidad-textos">
 /* ===== LEGIBILIDAD GENERAL ===== */
