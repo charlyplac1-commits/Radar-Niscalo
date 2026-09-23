@@ -1094,6 +1094,86 @@ button:not(.app-nav button):focus-visible{
   }
 }
 
+
+/* ===== VENTANAS FLOTANTES · RADAR NÍSCALO ===== */
+@media(min-width:760px){
+  #radar>.card:nth-of-type(n+4),
+  #radar>details.compact{
+    display:inline-block;
+    vertical-align:top;
+    width:calc(50% - 7px);
+    box-sizing:border-box;
+    margin:8px 0;
+  }
+  #radar>.card:nth-of-type(n+4) h3,
+  #radar>details.compact summary{
+    font-size:13px;
+  }
+  #radar>details.compact{
+    padding:0;
+    border:1px solid rgba(47,107,70,.13);
+    border-radius:15px;
+    background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(247,250,247,.94));
+    box-shadow:
+      0 5px 16px rgba(23,61,41,.08),
+      0 1px 3px rgba(23,61,41,.05),
+      inset 0 1px 0 rgba(255,255,255,.95);
+    overflow:hidden;
+  }
+  #radar>details.compact summary{
+    padding:11px 12px;
+    font-weight:900;
+    color:#173d29;
+    cursor:pointer;
+    list-style:none;
+  }
+  #radar>details.compact summary::-webkit-details-marker{display:none}
+  #radar>details.compact summary:after{
+    content:"＋";
+    float:right;
+    color:#e56f32;
+    font-size:16px;
+    line-height:12px;
+    transition:transform .2s ease;
+  }
+  #radar>details.compact[open] summary:after{
+    content:"−";
+  }
+  #radar>details.compact .inside{
+    padding:0 11px 11px;
+  }
+  #radar>.card:nth-of-type(n+4){
+    padding:11px;
+    border-radius:15px;
+    border:1px solid rgba(47,107,70,.13);
+    background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(247,250,247,.94));
+    box-shadow:
+      0 5px 16px rgba(23,61,41,.08),
+      0 1px 3px rgba(23,61,41,.05),
+      inset 0 1px 0 rgba(255,255,255,.95);
+  }
+  #radar>.card:nth-of-type(n+4) .metric-strip{
+    gap:6px;
+  }
+  #radar>.card:nth-of-type(n+4) .metric{
+    padding:6px 5px;
+    border-radius:10px;
+  }
+}
+@media(max-width:759px){
+  #radar>details.compact{
+    margin:8px 0;
+    border-radius:14px;
+  }
+  #radar>details.compact summary{
+    padding:11px 12px;
+    font-size:12px;
+  }
+  #radar>details.compact .inside{
+    padding:0 10px 10px;
+  }
+}
+
 </style>
 
 <script>
