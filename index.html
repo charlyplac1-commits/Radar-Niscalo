@@ -3587,23 +3587,39 @@ $("ring").style.background=
 function actualizarDinamicaFructificacion(){
   const caja=$("dinamicaFructificacion");
   if(!caja) return;
-  const r3=Number(window.lluvia3Actual||0);
-  const r7=Number(window.lluvia7Actual||0);
-  const r14=Number(window.lluvia14Actual||0);
-  const secos=Number(window.diasDesdeLluvia||0);
-  const s0=Number(window.humedadSueloActual||0);
-  const s1=Number(window.sueloProfundoActual||s0);
-  const vpd=Number(window.vpdActual||0);
-  let indice=0;
-  indice += factorCampana(r3,18,22)*35;
-  indice += factorCampana(r7,35,30)*25;
-  indice += factorCampana(r14,60,50)*15;
-  indice += factorCampana(s0,60,28)*10;
-  indice += factorCampana(s1,55,28)*10;
-  indice += (secos<=1?.35:secos<=10?1:secos<=16?.55:.15)*5;
-  indice=Math.round(Math.max(0,Math.min(100,indice)));
+
+  /* No confundimos un dato no disponible con un cero real. */
+  const numDisponible=v=>{
+    const n=Number(v);
+    return Number.isFinite(n);
+  };
+  const r3=numDisponible(window.lluvia3Actual)?Number(window.lluvia3Actual):null;
+  const r7=numDisponible(window.lluvia7Actual)?Number(window.lluvia7Actual):null;
+  const r14=numDisponible(window.lluvia14Actual)?Number(window.lluvia14Actual):null;
+  const secos=numDisponible(window.diasDesdeLluvia)?Number(window.diasDesdeLluvia):null;
+  const s0=numDisponible(window.humedadSueloActual)?Number(window.humedadSueloActual):null;
+  const s1=numDisponible(window.sueloProfundoActual)?Number(window.sueloProfundoActual):null;
+  const vpd=numDisponible(window.vpdActual)?Number(window.vpdActual):null;
+
+  const factores=[];
+  if(r3!==null) factores.push([factorCampana(r3,18,22),35]);
+  if(r7!==null) factores.push([factorCampana(r7,35,30),25]);
+  if(r14!==null) factores.push([factorCampana(r14,60,50),15]);
+  if(s0!==null && s0>0) factores.push([factorCampana(s0,60,28),10]);
+  if(s1!==null && s1>0) factores.push([factorCampana(s1,55,28),10]);
+  if(secos!==null) factores.push([(secos<=1?.35:secos<=10?1:secos<=16?.55:.15),5]);
+
+  /* VPD solo ajusta si existe un valor real. */
+  if(vpd!==null && vpd>0) factores.push([factorCampana(vpd,0.9,0.9),5]);
+
+  const pesoTotal=factores.reduce((a,b)=>a+b[1],0);
+  const indice=pesoTotal
+    ? Math.round(Math.max(0,Math.min(100,100*factores.reduce((a,b)=>a+b[0]*b[1],0)/pesoTotal)))
+    : 0;
+
   const estado=indice>=75?"🍄 Ventana dinámica favorable":indice>=55?"🟡 Ventana dinámica posible":"⚪ Ventana dinámica débil";
-  caja.innerHTML="<b>"+estado+"</b> · "+indice+"/100<br><span class='muted'>Lluvia 3/7/14 días: "+Math.round(r3)+"/"+Math.round(r7)+"/"+Math.round(r14)+" mm · suelo 0–7 / 7–28 cm: "+Math.round(s0)+"% / "+Math.round(s1)+"% · "+secos+" días secos"+(vpd?" · VPD 24h "+vpd.toFixed(2)+" kPa":"")+"</span>";
+  const fmt=v=>v===null?"--":Math.round(v);
+  caja.innerHTML="<b>"+estado+"</b> · "+indice+"/100<br><span class='muted'>Lluvia 3/7/14 días: "+fmt(r3)+"/"+fmt(r7)+"/"+fmt(r14)+" mm · suelo 0–7 / 7–28 cm: "+fmt(s0)+"% / "+fmt(s1)+"% · "+(secos===null?"--":Math.round(secos))+" días secos"+(vpd!==null&&vpd>0?" · VPD 24h "+vpd.toFixed(2)+" kPa":"")+"</span>";
 }
 
 function actualizarMotorDecision(score){
@@ -4367,11 +4383,11 @@ async function cargarDatos(){
         localStorage.setItem("radar_lluvia30",String(lluvia30));
       }catch(e){}
     }
-    window.lluviaActual=historicoLluviaDisponible?lluvia14:0;
+    window.lluviaActual=historicoLluviaDisponible?lluvia14:null;
     window.tempActual=Number.isFinite(temperatura)?temperatura:15;
-    window.humedadSueloActual=(Number.isFinite(Number(humedadSuelo))&&humedadSuelo>0)?humedadSuelo:0;
+    window.humedadSueloActual=(Number.isFinite(Number(humedadSuelo))&&humedadSuelo>0)?humedadSuelo:null;
     window.sueloProfundoActual=Number.isFinite(sueloProfundo)?sueloProfundo:window.humedadSueloActual;
-    window.diasDesdeLluvia=historicoLluviaDisponible?diasSecos:30;
+    window.diasDesdeLluvia=historicoLluviaDisponible?diasSecos:null;
     window.vpdActual=vpd24;
     window.et07Actual=et07;
 
