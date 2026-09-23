@@ -1753,60 +1753,9 @@ interactive:true
 puntoRadar.bindPopup(popupHtml);
 capasFavorabilidad.push(puntoRadar);
 }
-// Construimos una superficie térmica continua a partir de los 25 puntos reales.
-const puntosInterpolados=[];
-for(let gy=0;gy<=20;gy++){
-  const fy=gy/20*4-2;
-  for(let gx=0;gx<=20;gx++){
-    const fx=gx/20*4-2;
-    let suma=0,peso=0;
-    puntosRadar.forEach(p=>{
-      const py=(p.lat-lat)/paso,px=(p.lon-lon)/paso;
-      const dist2=(fx-px)*(fx-px)+(fy-py)*(fy-py);
-      const w=1/Math.pow(0.55+dist2,1.15);
-      suma+=p.score*w;peso+=w;
-    });
-    const valor=peso?suma/peso:0;
-    puntosInterpolados.push([
-      lat+fy*paso,
-      lon+fx*paso,
-      Math.max(.05,Math.min(1,valor/100))
-    ]);
-  }
-}
-if(puntosRadar.length){
-  /* Superficie continua: usamos más puntos interpolados y una capa más ancha
-     para que siga siendo visible incluso con el mapa alejado. */
-  const puntosInterpolados=[];
-  for(let gy=0;gy<=32;gy++){
-    const fy=gy/32*4-2;
-    for(let gx=0;gx<=32;gx++){
-      const fx=gx/32*4-2;
-      let suma=0,peso=0;
-      puntosRadar.forEach(p=>{
-        const py=(p.lat-lat)/paso,px=(p.lon-lon)/paso;
-        const dist2=(fx-px)*(fx-px)+(fy-py)*(fy-py);
-        const w=1/Math.pow(0.35+dist2,1.05);
-        suma+=p.score*w;peso+=w;
-      });
-      const valor=peso?suma/peso:0;
-      puntosInterpolados.push([lat+fy*paso,lon+fx*paso,Math.max(.02,Math.min(1,valor/100))]);
-    }
-  }
-  if(typeof L.heatLayer==="function"){
-    capaCalorRadar=L.heatLayer(puntosInterpolados,{
-      radius:70,blur:72,maxZoom:14,minOpacity:.28,max:.98,
-      gradient:{
-        0.02:"#07133d",0.18:"#1239a6",0.34:"#008fe8",
-        0.50:"#00cfa5",0.64:"#8ee22b",0.76:"#ffe000",
-        0.88:"#ff7900",1:"#ff170d"
-      }
-    });
-    if(visionRadarActiva)capaCalorRadar.addTo(mapa);
-  }else{
-    console.warn("Leaflet.heat no está disponible; no se puede pintar la superficie radar.");
-  }
-}
+// La favorabilidad sigue calculándose en los 25 puntos reales,
+// pero no se dibuja como superficie térmica sobre la fotografía aérea.
+// Los puntos permanecen disponibles para consultar sus datos al tocarlos.
 }catch(error){
 console.error("Mapa de favorabilidad:",error);
 }
