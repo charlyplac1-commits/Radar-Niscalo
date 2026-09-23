@@ -1769,6 +1769,11 @@ body{
 @media(max-width:720px){
   .fructificacion-card{background-position:center center;background-size:cover}
 }
+
+/* ===== AJUSTE FINAL DE ENCUADRE · NO TOCAR FUNCIONES ===== */
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+main{width:100%;max-width:1100px;margin-left:auto !important;margin-right:auto !important}
+@media(max-width:720px){main{width:100%;max-width:none;margin-left:auto !important;margin-right:auto !important}}
 </style>
 /* ===== FONDO METEOROLÓGICO ANIMADO · PREVISIÓN ===== */
 #previsionCard{position:relative;overflow:hidden;min-height:165px;isolation:isolate;background:#36543b!important}
@@ -5698,6 +5703,15 @@ function salirProximidad(){
   if(proxMap){if(proxMeMarker){proxMap.removeLayer(proxMeMarker);proxMeMarker=null;}if(proxOtherMarker){proxMap.removeLayer(proxOtherMarker);proxOtherMarker=null;}proxMap.remove();}
   proxMap=null;$("proxYoCoord").textContent="Esperando ubicación…";$("proxOtroCoord").textContent="Esperando conexión…";$("proxDistance").textContent="📏 Distancia: —";proxStatus("Sala cerrada.");
 }
+
+
+/* ===== ARRANQUE EN LA PARTE SUPERIOR ===== */
+(function(){
+  function radarIrArriba(){try{window.scrollTo({top:0,left:0,behavior:"auto"});}catch(e){window.scrollTo(0,0);}}
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",radarIrArriba,{once:true}); else radarIrArriba();
+  window.addEventListener("load",radarIrArriba,{once:true});
+  window.addEventListener("pageshow",radarIrArriba);
+})();
 
 /* ================= INICIO ================= */
 
