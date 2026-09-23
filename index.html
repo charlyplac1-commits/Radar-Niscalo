@@ -3791,17 +3791,31 @@ let url=
 
 `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&timezone=auto&past_days=30&forecast_days=7&current=temperature_2m,relative_humidity_2m,wind_gusts_10m,soil_moisture_0_to_7cm&hourly=temperature_2m,relative_humidity_2m,precipitation,precipitation_probability,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm,wind_gusts_10m,vapour_pressure_deficit&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code,et0_fao_evapotranspiration`;
 
-let respuesta=
+let respuesta;
+let datos=null;
+let ultimoError=null;
 
-await fetch(url);
+/* Carga robusta: reintenta una vez y evita dejar todo en blanco por un fallo puntual. */
+for(let intento=1;intento<=2;intento++){
+  try{
+    let urlIntento=intento===1
+      ? url
+      : "https://api.open-meteo.com/v1/forecast?latitude="+lat+"&longitude="+lon+"&timezone=auto&past_days=30&forecast_days=7&current=temperature_2m,relative_humidity_2m,wind_gusts_10m,soil_moisture_0_to_7cm&hourly=temperature_2m,relative_humidity_2m,precipitation,precipitation_probability,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm,wind_gusts_10m,vapour_pressure_deficit&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code,et0_fao_evapotranspiration&cell_selection=land";
+    respuesta=await fetch(urlIntento,{cache:"no-store"});
+    if(!respuesta.ok) throw new Error("HTTP "+respuesta.status);
+    let datosRespuesta=await respuesta.json();
+    if(!datosRespuesta || !datosRespuesta.current || !datosRespuesta.hourly || !datosRespuesta.daily){
+      throw new Error("Respuesta meteorológica incompleta");
+    }
+    datos=datosRespuesta;
+    break;
+  }catch(e){
+    ultimoError=e;
+    if(intento===1) await new Promise(resolve=>setTimeout(resolve,900));
+  }
+}
 
-if(!respuesta.ok)
-
-throw new Error("Error Open-Meteo");
-
-let datos=
-
-await respuesta.json();
+if(!datos) throw ultimoError || new Error("No se pudo conectar con Open-Meteo");
 
 /* ALTITUD
    La altitud es un dato auxiliar: si este servicio falla,
