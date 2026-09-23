@@ -2494,14 +2494,14 @@ style="overflow:auto;margin-top:12px">
 <div class="proximity-code-row">
   <div style="flex:1;min-width:180px">
     <label>Código de encuentro</label>
-    <input id="proxCode" maxlength="20" placeholder="Ej. NISCALO4821" autocomplete="off">
+    <input id="proxCode" maxlength="20" placeholder="Se genera automáticamente al crear la sala" autocomplete="off">
   </div>
   <div style="display:flex;gap:7px;align-items:end;flex-wrap:wrap">
     <button type="button" onclick="crearProximidad()">🟢 Crear sala</button>
     <button type="button" class="secondary" onclick="unirProximidad()">🔵 Unirme</button>
   </div>
 </div>
-<div id="proxEstado" class="notice" style="margin-top:10px">Introduce el mismo código en los dos móviles.</div>
+<div id="proxEstado" class="notice" style="margin-top:10px">Pulsa <b>Crear sala</b> y la aplicación generará automáticamente tu código.</div>
 <div class="proximity-mapbox"><div id="proximityMap"></div></div>
 <div class="proximity-stats">
   <div class="proximity-person me"><div class="big">🟢 <span id="proxYo">Tú</span></div><div id="proxYoCoord" class="muted">Esperando ubicación…</div></div>
@@ -5398,6 +5398,7 @@ function enfocarRadar(){
 let proxPeer=null,proxConn=null,proxWatch=null,proxMap=null,proxMeMarker=null,proxOtherMarker=null,proxMe=null,proxOther=null,proxRole="";
 function proxStatus(t){const e=$("proxEstado");if(e)e.innerHTML=t;}
 function proxCode(){return String($("proxCode")?.value||"").trim().toUpperCase().replace(/[^A-Z0-9_-]/g,"").slice(0,20);}
+function generarCodigoProx(){const letras=Math.random().toString(36).slice(2,6).toUpperCase();const numero=Math.floor(1000+Math.random()*9000);return "NISCALO-"+letras+numero;}
 function iniciarMapaProximidad(){
   if(proxMap||typeof L==="undefined")return;
   proxMap=L.map("proximityMap").setView([41.60,1.80],11);
@@ -5444,7 +5445,9 @@ function prepararPeerProx(id,onReady){
   proxPeer.on("error",e=>proxStatus("No se pudo abrir la sala. Prueba otro código."));
 }
 function crearProximidad(){
-  const code=proxCode();if(code.length<4){proxStatus("Usa un código de al menos 4 caracteres.");return;}
+  let code=proxCode();
+  if(!code){code=generarCodigoProx();$("proxCode").value=code;}
+  if(code.length<4){proxStatus("Usa un código de al menos 4 caracteres.");return;}
   $("proxCode").value=code;proxRole="host";iniciarMapaProximidad();
   prepararPeerProx("radar-niscalo-"+code,()=>{proxStatus("<b>🟢 Sala creada.</b> Comparte el código <b>"+escapar(code)+"</b> con tu mujer y espera a que se una.");emitirPosicionProx();empezarSeguimientoProx();});
 }
