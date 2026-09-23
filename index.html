@@ -714,6 +714,106 @@ header.app-header .brand,header.app-header .header-status{position:relative;z-in
 @media(max-width:720px){
   #appSplash{display:grid !important;opacity:1;visibility:visible;pointer-events:auto;}
 }
+
+/* ===== PESTAÑAS PREMIUM · RADAR NÍSCALO ===== */
+.app-nav{
+  display:flex;
+  align-items:stretch;
+  gap:6px;
+  padding:6px;
+  background:rgba(255,255,255,.88);
+  border:1px solid rgba(47,107,70,.16);
+  box-shadow:0 5px 18px rgba(23,61,41,.10);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+.app-nav button{
+  position:relative;
+  flex:1;
+  min-height:44px;
+  margin:0;
+  padding:9px 10px;
+  border:1px solid transparent;
+  border-radius:12px;
+  background:transparent;
+  color:#536057;
+  font-size:12px;
+  font-weight:850;
+  letter-spacing:.1px;
+  box-shadow:none;
+  transition:
+    transform .16s ease,
+    color .2s ease,
+    background .2s ease,
+    box-shadow .2s ease,
+    border-color .2s ease;
+}
+.app-nav button span{
+  font-weight:850;
+}
+.app-nav button:before{
+  content:"";
+  position:absolute;
+  left:20%;
+  right:20%;
+  bottom:4px;
+  height:3px;
+  border-radius:4px;
+  background:#e56f32;
+  transform:scaleX(0);
+  opacity:0;
+  transition:transform .22s ease,opacity .22s ease;
+}
+.app-nav button:hover{
+  color:#173d29;
+  background:rgba(233,241,233,.72);
+  transform:translateY(-1px);
+}
+.app-nav button:active{
+  transform:scale(.96);
+}
+.app-nav button.on{
+  color:#fff;
+  background:linear-gradient(135deg,#173d29,#34734d);
+  border-color:rgba(255,255,255,.10);
+  box-shadow:
+    0 4px 12px rgba(23,61,41,.22),
+    inset 0 1px 0 rgba(255,255,255,.12);
+}
+.app-nav button.on:before{
+  transform:scaleX(1);
+  opacity:1;
+}
+.app-nav button.on span{
+  color:#fff;
+}
+@media(max-width:720px){
+  .app-nav{
+    gap:4px;
+    padding:5px;
+  }
+  .app-nav button{
+    min-height:48px;
+    padding:7px 4px 8px;
+    border-radius:13px;
+    font-size:10px;
+    flex-direction:column;
+    line-height:1.05;
+  }
+  .app-nav button:first-letter{
+    font-size:18px;
+  }
+  .app-nav button span{
+    font-size:10px;
+    margin-top:2px;
+  }
+  .app-nav button:before{
+    left:28%;
+    right:28%;
+    bottom:3px;
+  }
+}
+
 </style>
 
 <script>
