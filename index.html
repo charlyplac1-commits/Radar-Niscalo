@@ -814,6 +814,137 @@ header.app-header .brand,header.app-header .header-status{position:relative;z-in
   }
 }
 
+
+/* ===== PESTAÑAS PREMIUM+ · RADAR NÍSCALO ===== */
+.app-nav{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  padding:6px;
+  border-radius:18px;
+  background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(241,246,241,.78));
+  border:1px solid rgba(47,107,70,.18);
+  box-shadow:
+    0 8px 24px rgba(23,61,41,.12),
+    inset 0 1px 0 rgba(255,255,255,.95);
+}
+.app-nav:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(105deg,transparent 25%,rgba(255,255,255,.55) 50%,transparent 75%);
+  transform:translateX(-120%);
+  animation:navSheen 9s ease-in-out infinite;
+  pointer-events:none;
+  z-index:-1;
+}
+@keyframes navSheen{
+  0%,62%{transform:translateX(-120%)}
+  78%,100%{transform:translateX(120%)}
+}
+.app-nav button{
+  position:relative;
+  overflow:hidden;
+  min-height:46px;
+  border:1px solid transparent;
+  border-radius:14px;
+  background:transparent;
+  color:#59645d;
+  font-weight:850;
+  transition:
+    transform .18s cubic-bezier(.2,.8,.2,1),
+    background .22s ease,
+    color .22s ease,
+    box-shadow .22s ease,
+    border-color .22s ease;
+}
+.app-nav button:after{
+  content:"";
+  position:absolute;
+  width:80px;
+  height:80px;
+  left:50%;
+  top:50%;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.28),transparent 68%);
+  transform:translate(-50%,-50%) scale(.3);
+  opacity:0;
+  pointer-events:none;
+}
+.app-nav button:active:after{
+  animation:navTap .38s ease-out;
+}
+@keyframes navTap{
+  0%{transform:translate(-50%,-50%) scale(.3);opacity:.65}
+  100%{transform:translate(-50%,-50%) scale(1.5);opacity:0}
+}
+.app-nav button:hover{
+  color:#173d29;
+  background:rgba(233,241,233,.72);
+  transform:translateY(-1px);
+}
+.app-nav button.on{
+  color:#fff;
+  background:
+    linear-gradient(135deg,#153a27,#34784e);
+  border-color:rgba(255,255,255,.18);
+  box-shadow:
+    0 6px 16px rgba(23,61,41,.24),
+    0 0 0 1px rgba(47,107,70,.08),
+    inset 0 1px 0 rgba(255,255,255,.18);
+}
+.app-nav button.on:before{
+  content:"";
+  position:absolute;
+  left:18%;
+  right:18%;
+  bottom:4px;
+  height:3px;
+  border-radius:10px;
+  background:linear-gradient(90deg,transparent,#e9a34b,transparent);
+  box-shadow:0 0 9px rgba(233,163,75,.55);
+  animation:navActive .28s ease-out both;
+}
+@keyframes navActive{
+  from{transform:scaleX(.25);opacity:0}
+  to{transform:scaleX(1);opacity:1}
+}
+.app-nav button.on span{
+  color:#fff;
+}
+@media(max-width:720px){
+  .app-nav{
+    left:7px;
+    right:7px;
+    bottom:7px;
+    padding:5px;
+    border-radius:20px;
+    box-shadow:
+      0 10px 30px rgba(0,0,0,.20),
+      inset 0 1px 0 rgba(255,255,255,.95);
+  }
+  .app-nav button{
+    min-height:49px;
+    padding:7px 4px 8px;
+    border-radius:15px;
+    font-size:10px;
+    flex-direction:column;
+    gap:1px;
+  }
+  .app-nav button:first-letter{
+    font-size:19px;
+  }
+  .app-nav button span{
+    font-size:10px;
+    margin-top:2px;
+  }
+  .app-nav button:before{
+    left:25%;
+    right:25%;
+    bottom:3px;
+  }
+}
+
 </style>
 
 <script>
