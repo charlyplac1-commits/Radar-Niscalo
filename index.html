@@ -524,8 +524,8 @@ button{border-radius:12px}
   --naranja:#e56f32;
   --texto:#17231b;
 }
-html,body{scroll-behavior:auto;scroll-padding-top:0}
-body{overflow-x:hidden}
+html,body{scroll-behavior:auto;scroll-padding-top:0;overflow-anchor:none}
+body{overflow-x:hidden;overflow-anchor:none}
 body{background:var(--crema)}
 .app-header{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
@@ -5474,7 +5474,11 @@ new Date()
     document.body.scrollTop=0;
   };
   irArriba();
+  /* Evita que el navegador desplace la página cuando mapa, imágenes o
+     meteorología terminan de cargar y cambian la altura del contenido. */
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",irArriba,{once:true});
   window.addEventListener("pageshow",irArriba);
+  window.addEventListener("load",()=>{irArriba();setTimeout(irArriba,100);setTimeout(irArriba,500);setTimeout(irArriba,1500);},{once:true});
   const hide=()=>{
     if(!s) return;
     irArriba();
