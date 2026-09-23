@@ -3809,24 +3809,40 @@ function mostrarValoracionProvisional(){
     $("soilValue").textContent=Math.round(suelo);
     $("altValue").textContent=Math.round(alt);
 
-    const provisional=Math.max(0,Math.min(100,Math.round(
-      calcularPuntuacion(
-        lluvia*0.35,
-        lluvia,
-        lluvia*1.55,
-        temp,
-        temp,
-        suelo,
-        alt,
-        new Date().getMonth()+1,
-        0,
-        0.5,
-        0,
-        suelo,
-        0
-      )
-    )));
+    let provisional=null;
+    try{
+      if(typeof calcularPuntuacion==="function"){
+        provisional=calcularPuntuacion(
+          lluvia*0.35,
+          lluvia,
+          lluvia*1.55,
+          temp,
+          temp,
+          suelo,
+          alt,
+          new Date().getMonth()+1,
+          0,
+          0.5,
+          0,
+          suelo,
+          0
+        );
+      }
+    }catch(e){
+      console.warn("Radar Níscalo · cálculo meteorológico provisional:",e);
+    }
 
+    /* Último recurso: cálculo local, sin ninguna API externa ni función secundaria.
+       Así el radar siempre puede mostrar un resultado aunque falle otro bloque JS. */
+    if(!Number.isFinite(Number(provisional))){
+      const lluviaScore=Math.max(0,100-Math.abs(lluvia-60)*1.15);
+      const tempScore=Math.max(0,100-Math.abs(temp-15)*5);
+      const sueloScore=Math.max(0,100-Math.abs(suelo-55)*1.6);
+      const altScore=Math.max(0,100-Math.abs(alt-800)*0.08);
+      provisional=Math.round(lluviaScore*0.40+tempScore*0.25+sueloScore*0.25+altScore*0.10);
+    }
+
+    provisional=Math.max(0,Math.min(100,Math.round(Number(provisional))));
     $("score").textContent=provisional;
     $("nivel").textContent=
       provisional>=80?"Muy favorable":
@@ -3838,6 +3854,11 @@ function mostrarValoracionProvisional(){
     return provisional;
   }catch(e){
     console.error("Radar Níscalo · valoración provisional:",e);
+    try{
+      $("score").textContent="--";
+      $("nivel").textContent="Preparando…";
+      $("ventana").textContent="Analizando condiciones del terreno y meteorología";
+    }catch(_){}
     return null;
   }
 }
@@ -5466,6 +5487,11 @@ new Date()
   iniciarSeguro("hallazgos",()=>mostrarHallazgos());
   iniciarSeguro("estadísticas",()=>mostrarEstadisticas());
   iniciarSeguro("escaneos",()=>mostrarEscaneos());
+
+  /* Resultado inicial inmediato: no depende de Internet.
+     La meteorología real lo sustituirá cuando termine. */
+  try{ mostrarValoracionProvisional(); }catch(e){ console.error("Radar Níscalo · inicio provisional",e); }
+
   iniciarSeguro("datos meteorológicos",()=>cargarDatos());
 
   /* La portada es visual: nunca debe depender de que un proveedor externo
