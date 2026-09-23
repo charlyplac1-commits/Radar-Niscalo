@@ -1020,6 +1020,80 @@ button:not(.app-nav button):focus-visible{
   }
 }
 
+
+/* ===== PANELIZACIÓN · RADAR NÍSCALO ===== */
+#radar{
+  padding-bottom:18px;
+}
+#radar>.card:nth-of-type(n+4){
+  padding:12px;
+  margin:9px 0;
+  border-radius:15px;
+  border:1px solid rgba(47,107,70,.13);
+  background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(247,250,247,.94));
+  box-shadow:
+    0 5px 16px rgba(23,61,41,.08),
+    0 1px 3px rgba(23,61,41,.05),
+    inset 0 1px 0 rgba(255,255,255,.95);
+}
+#radar>.card:nth-of-type(n+4) h2,
+#radar>.card:nth-of-type(n+4) h3{
+  margin-top:0;
+  margin-bottom:8px;
+  font-size:14px;
+  line-height:1.2;
+}
+#radar>.card:nth-of-type(n+4) .muted{
+  font-size:11px;
+  line-height:1.35;
+}
+#radar>.card:nth-of-type(n+4) .metric-strip{
+  gap:6px;
+}
+#radar>.card:nth-of-type(n+4) .metric{
+  padding:7px 6px;
+  border-radius:11px;
+}
+#radar>.card:nth-of-type(n+4) .metric .big{
+  font-size:16px;
+}
+#radar>.card:nth-of-type(n+4) button{
+  padding:8px 10px;
+  margin-top:5px;
+  font-size:11px;
+  border-radius:11px;
+}
+#radar>.card:nth-of-type(n+4) input,
+#radar>.card:nth-of-type(n+4) select{
+  min-height:36px;
+  font-size:12px;
+}
+@media(min-width:760px){
+  #radar>.card:nth-of-type(n+4){
+    display:inline-block;
+    vertical-align:top;
+    width:calc(50% - 5px);
+    box-sizing:border-box;
+  }
+  #radar>.card:nth-of-type(n+4):nth-of-type(2n){
+    margin-right:6px;
+  }
+  #radar>.card:nth-of-type(n+4):nth-of-type(2n+1){
+    margin-left:6px;
+  }
+  #radar>.card:nth-of-type(4){
+    width:100%;
+    margin-left:0;
+    margin-right:0;
+  }
+}
+@media(max-width:759px){
+  #radar>.card:nth-of-type(n+4){
+    margin:8px 0;
+    padding:11px;
+  }
+}
+
 </style>
 
 <script>
