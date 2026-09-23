@@ -470,9 +470,10 @@ height:330px;
 body{background:#eef1ec;padding-bottom:0}
 header{
   background:linear-gradient(135deg,#183b29,#2b6545);
-  padding:12px 16px 14px;
-  box-shadow:0 3px 14px rgba(0,0,0,.16);
+  padding:6px 12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.10);
 }
+@media(max-width:720px){header{display:none}}
 header b{font-size:20px;letter-spacing:-.2px}
 header small{font-size:11px;margin-top:2px}
 main{max-width:1100px;padding:10px 10px 24px}
@@ -4065,20 +4066,17 @@ lon
 
 pintarMapaZonas(lat,lon);
 
-/* HÁBITAT FORESTAL */
-consultarHabitat(lat,lon);
-/* TERRENO: MDT oficial ICGC */
-consultarTerreno(lat,lon);
-consultarSueloGeologia(lat,lon);
+/* FUENTES AUXILIARES AISLADAS: nunca deben borrar los datos meteorológicos */
+try{ consultarHabitat(lat,lon); }catch(e){ console.warn("Hábitat:",e); }
+try{ consultarTerreno(lat,lon); }catch(e){ console.warn("Terreno:",e); }
+try{ consultarSueloGeologia(lat,lon); }catch(e){ console.warn("Suelo/geología:",e); }
 window.ultimaLat=lat; window.ultimaLon=lon;
-consultarEstructuraArbolado(lat,lon);
-consultarEstructuraAvanzada(lat,lon);
-consultarNDVI(lat,lon);
-
-/* EVIDENCIA PÚBLICA */
-cargarEvidenciaPublica(lat,lon);
-cargarHistorialBiologico(lat,lon);
-construirModeloHistorico(lat,lon);
+try{ consultarEstructuraArbolado(lat,lon); }catch(e){ console.warn("Arbolado:",e); }
+try{ consultarEstructuraAvanzada(lat,lon); }catch(e){ console.warn("Estructura avanzada:",e); }
+try{ consultarNDVI(lat,lon); }catch(e){ console.warn("NDVI:",e); }
+try{ cargarEvidenciaPublica(lat,lon); }catch(e){ console.warn("Evidencia pública:",e); }
+try{ cargarHistorialBiologico(lat,lon); }catch(e){ console.warn("Historial biológico:",e); }
+try{ construirModeloHistorico(lat,lon); }catch(e){ console.warn("Modelo histórico:",e); }
 
 /* WINDY */
 
