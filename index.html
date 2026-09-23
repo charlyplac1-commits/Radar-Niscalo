@@ -5465,19 +5465,26 @@ new Date()
 
 (function(){
   const s=document.getElementById("appSplash");
-  const hide=()=>{
-    if(!s) return;
-    /* Al terminar la portada siempre arrancamos la app desde arriba.
-       Evita que el navegador conserve una posición de desplazamiento anterior. */
-    window.scrollTo(0,0);
+  /* La app SIEMPRE debe abrir en el inicio, aunque Safari/Chrome haya
+     restaurado una posición anterior o haya conservado un ancla de URL. */
+  try{history.scrollRestoration="manual";}catch(e){}
+  const irArriba=()=>{
+    try{window.scrollTo({top:0,left:0,behavior:"auto"});}catch(e){window.scrollTo(0,0);}
     document.documentElement.scrollTop=0;
     document.body.scrollTop=0;
+  };
+  irArriba();
+  window.addEventListener("pageshow",irArriba);
+  const hide=()=>{
+    if(!s) return;
+    irArriba();
     s.classList.add("hide");
+    /* Repetimos la orden durante la retirada de la portada para impedir que
+       el navegador restaure el scroll justo cuando cambia la visibilidad. */
+    [50,150,350,800,1200].forEach(ms=>setTimeout(irArriba,ms));
     setTimeout(()=>{
       s.style.display="none";
-      window.scrollTo(0,0);
-      document.documentElement.scrollTop=0;
-      document.body.scrollTop=0;
+      irArriba();
     },800);
   };
 
