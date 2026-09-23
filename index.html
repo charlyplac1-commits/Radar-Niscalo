@@ -1670,7 +1670,6 @@ body{
   }
 }
 
-
 #bibliotecaRecorridos{margin-top:10px;padding:12px;border-radius:16px;background:linear-gradient(145deg,#14241a,#20382a);border:1px solid rgba(137,181,145,.2);color:#eef5ef;box-shadow:0 8px 20px rgba(0,0,0,.22)}
 #bibliotecaRecorridos h4{margin:0 0 4px;font-size:14px}.biblioteca-lista{display:grid;gap:8px;margin-top:9px}.recorrido-guardado{padding:10px;border-radius:13px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1)}.recorrido-meta{font-size:10px;color:#bfd0c3;margin-top:3px}.recorrido-acciones{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.recorrido-acciones button{margin:0;padding:7px 9px;font-size:10px;border-radius:9px}.ruta-ver{background:#315f43}.ruta-volver{background:#c77b32}.ruta-exportar{background:#536b5a}.ruta-borrar{background:#8f4039}#recorridoReproduccion{display:none;margin-top:9px;padding:9px;border-radius:12px;background:rgba(0,0,0,.22)}#recorridoReproduccion.activo{display:block}#recorridoPlaybackBar{height:5px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:7px}#recorridoPlaybackBar i{display:block;width:0;height:100%;background:#e6a253}
 
@@ -1780,6 +1779,7 @@ body{
 html,body{width:100%;max-width:100%;overflow-x:hidden}
 main{width:100%;max-width:1100px;margin-left:auto !important;margin-right:auto !important}
 @media(max-width:720px){main{width:100%;max-width:none;margin-left:auto !important;margin-right:auto !important}}
+</style>
 /* ===== FONDO METEOROLÓGICO ANIMADO · PREVISIÓN ===== */
 #previsionCard{position:relative;overflow:hidden;min-height:165px;isolation:isolate;background:#36543b!important}
 #previsionCard>.forecast,#previsionCard>h3{position:relative;z-index:5}
@@ -2098,3 +2098,3738 @@ window.addEventListener("unhandledrejection",function(e){
 <div class="card score">
 
 <div id="ring" class="ring">
+
+<b id="score">--</b>
+
+</div>
+
+<div>
+
+<h2 id="nivel" style="margin:0">
+
+Preparando…
+
+</h2>
+
+<div id="ventana">
+
+Analizando condiciones del terreno y meteorología
+
+</div>
+
+<div class="muted" id="ubicacionTexto">
+
+Selecciona una ubicación
+
+</div>
+
+</div>
+
+</div>
+
+<div class="quick-actions" aria-label="Acciones rápidas">
+  <button class="quick-btn pulse-btn" onclick="usarUbicacion()">📍 Mi ubicación</button>
+  <button class="quick-btn hot-btn" onclick="enfocarRadar()">🔥 Zonas calientes</button>
+  <button class="quick-btn" onclick="cargarDatos()">🔄 Actualizar</button>
+</div>
+
+<div class="card">
+
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+<h3 style="margin:0">🗺️ Mapa de favorabilidad</h3>
+<button type="button" id="btnVisionRadar" onclick="alternarVisionRadar()" style="padding:8px 12px;border-radius:12px;border:1px solid rgba(33,75,53,.2);background:#214b35;color:#fff;font-weight:700">👁️ Visión Radar: ON</button>
+</div>
+
+<div class="mapbox">
+
+<div id="map"></div>
+
+</div>
+
+<div class="muted" style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap">
+<span>🔴🔥 80–100 Muy favorable</span>
+<span>🟠 60–79 Favorable</span>
+<span>🟡 40–59 Posible</span>
+<span>🔵 0–39 Baja</span>
+</div>
+<div class="muted" style="margin-top:6px">La visión Radar sustituye la cuadrícula por una capa térmica difuminada sobre el mapa real.</div>
+
+<p class="muted">
+
+La favorabilidad se calcula automáticamente con meteorología reciente y prevista, humedad del suelo, temperatura, altitud y evidencia pública reciente. Las observaciones personales de «Mis hallazgos» son privadas y no modifican el radar.
+
+</p>
+
+<div class="card" id="recorridoCard">
+
+<h3>🧭 Marca tu recorrido</h3>
+
+<div class="muted" style="margin-bottom:8px">
+Graba por dónde caminas para poder volver al punto de inicio siguiendo el mismo camino.
+</div>
+
+<div class="metric-strip">
+<div class="metric">
+<div class="big" id="recorridoDistancia">0 m</div>
+<div class="muted">Distancia</div>
+</div>
+<div class="metric">
+<div class="big" id="recorridoTiempo">00:00</div>
+<div class="muted">Tiempo</div>
+</div>
+<div class="metric">
+<div class="big" id="recorridoPuntos">0</div>
+<div class="muted">Puntos GPS</div>
+</div>
+<div class="metric">
+<div class="big" id="recorridoEstado">Parado</div>
+<div class="muted">Estado</div>
+</div>
+</div>
+
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button type="button" id="btnComenzarRecorrido" onclick="comenzarRecorrido()">🧭 Comenzar recorrido</button>
+<button type="button" id="btnPararRecorrido" class="secondary" onclick="pararRecorrido()" style="display:none">⏹️ Parar y guardar</button>
+<button type="button" id="btnCentrarRecorrido" class="secondary" onclick="centrarRecorrido()">📍 Centrar</button>
+<button type="button" id="btnBorrarRecorrido" class="danger" onclick="borrarRecorrido()">🗑️ Borrar ruta</button>
+</div>
+
+<div id="recorridoAviso" class="muted" style="margin-top:8px">
+Pulsa «Comenzar recorrido» cuando entres al bosque. Mantén la ubicación del teléfono activada.
+</div>
+
+</div>
+
+
+<div id="bibliotecaRecorridos">
+<h4>📂 Mis recorridos</h4>
+<div class="muted" style="color:#bfd0c3">Tus rutas quedan guardadas dentro de la aplicación para volver a abrirlas cuando quieras.</div>
+<div id="listaRecorridosGuardados" class="biblioteca-lista"><span class="muted" style="color:#bfd0c3">Todavía no hay recorridos guardados.</span></div>
+<div id="recorridoReproduccion"><div style="display:flex;justify-content:space-between;align-items:center"><b>▶️ Reproducción</b><button type="button" class="secondary" onclick="detenerReproduccionRecorrido()" style="margin:0;padding:6px 8px;font-size:10px">⏹️ Parar</button></div><div id="recorridoPlaybackTexto" class="recorrido-meta">Preparando…</div><div id="recorridoPlaybackBar"><i id="recorridoPlaybackFill"></i></div></div>
+</div>
+
+<div class="card" id="ubicacionCard">
+
+<h3>📍 Ubicación</h3>
+<label>🔎 Buscar zona, municipio o lugar</label>
+<div style="position:relative">
+<input id="buscadorZona" type="search" placeholder="Ej. Montseny, Berga, Prades..." autocomplete="off">
+<div id="resultadosZona" style="position:absolute;left:0;right:0;top:100%;z-index:2000;background:white;border:1px solid #cfd6cf;border-radius:9px;max-height:240px;overflow:auto;box-shadow:0 4px 12px rgba(0,0,0,.12)"></div>
+</div>
+<div class="muted" style="margin-top:6px">Escribe el nombre y selecciona una zona de la lista.</div>
+
+<div class="row">
+
+<div>
+
+<label>Latitud</label>
+
+<input
+
+id="lat"
+
+type="number"
+
+step="0.000001"
+
+value="41.60">
+
+</div>
+
+<div>
+
+<label>Longitud</label>
+
+<input
+
+id="lon"
+
+type="number"
+
+step="0.000001"
+
+value="1.80">
+
+</div>
+
+</div>
+
+<button onclick="usarUbicacion()">
+
+📍 Usar mi ubicación
+
+</button>
+
+<button class="secondary" onclick="cargarDatos()">
+
+🔄 Actualizar datos
+
+</button>
+
+<div
+
+id="estado"
+
+class="muted"
+
+style="margin-top:8px">
+
+</div>
+
+</div>
+
+<details class="compact" open id="datosActualesCard">
+<summary>🌦️ Datos actuales</summary>
+<div class="inside">
+<div class="metric-strip">
+<div class="metric"><div class="big" id="lluvia14">--</div><div class="muted">Lluvia 14 días</div></div>
+<div class="metric"><div class="big" id="suelo">--</div><div class="muted">Humedad suelo</div></div>
+<div class="metric"><div class="big" id="temperatura">--</div><div class="muted">Temperatura</div></div>
+<div class="metric"><div class="big" id="altitud">--</div><div class="muted">Altitud</div></div>
+</div>
+<div class="metric-strip">
+<div class="metric"><div class="big" id="humedad">--</div><div class="muted">Humedad ambiental</div></div>
+<div class="metric"><div class="big" id="probLluvia">--</div><div class="muted">Prob. lluvia</div></div>
+<div class="metric"><div class="big" id="rafaga">--</div><div class="muted">Ráfaga máxima</div></div>
+<div class="metric"><div class="big" id="lluvia7">--</div><div class="muted">Lluvia próximos 7 días</div></div>
+</div>
+</div>
+</details>
+
+<details class="compact fructificacion-card" open><summary>🧠 Dinámica de fructificación</summary><div class="inside">
+<div class="grid">
+<div><div class="big" id="lluvia3">--</div><div class="muted">Lluvia · últimos 3 días</div></div>
+<div><div class="big" id="lluvia30">--</div><div class="muted">Lluvia · últimos 30 días</div></div>
+<div><div class="big" id="diasSecos">--</div><div class="muted">Días desde la última lluvia</div></div>
+<div><div class="big" id="sueloProfundo">--</div><div class="muted">Humedad suelo 7–28 cm</div></div>
+</div>
+<div id="dinamicaFructificacion" class="notice" style="margin-top:10px">Calculando respuesta del suelo y de la lluvia…</div></div></details><div class="card decision-radar-card" id="motorDecisionCard">
+<h3>🧭 Decisión del Radar</h3>
+<div id="decisionRadar" class="notice">Analizando las condiciones de la zona…</div>
+<div id="decisionFactores" style="margin-top:10px"></div>
+<div style="margin-top:12px"><b>🧪 ¿Qué ocurrió cuando fuiste?</b>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+<button onclick="registrarResultadoCampo('encontre')">🍄 Encontré rebollones</button>
+<button class="secondary" onclick="registrarResultadoCampo('no_encontre')">🚫 No encontré</button>
+</div>
+<div id="resultadoCampoEstado" class="muted" style="margin-top:7px"></div>
+</div>
+<div class="muted" style="margin-top:8px">Estos datos son privados en este dispositivo. Sirven para medir y calibrar el Radar; no publican tu ubicación ni alimentan las observaciones públicas.</div>
+</div>
+
+<div class="card" id="previsionCard">
+
+<h3>🌦️ Previsión</h3>
+
+<div id="prevision" class="forecast"></div>
+
+</div>
+
+<details class="compact"><summary>🎚️ Ajuste manual de condiciones</summary><div class="inside">
+
+<label>
+
+Lluvia 14 días:
+
+<span id="rainValue">--</span> mm
+
+</label>
+
+<input
+
+id="rainSlider"
+
+type="range"
+
+min="0"
+
+max="250"
+
+value="80">
+
+<label>
+
+Temperatura:
+
+<span id="tempValue">--</span> °C
+
+</label>
+
+<input
+
+id="tempSlider"
+
+type="range"
+
+min="2"
+
+max="30"
+
+step=".5"
+
+value="15">
+
+<label>
+
+Humedad suelo:
+
+<span id="soilValue">--</span> %
+
+</label>
+
+<input
+
+id="soilSlider"
+
+type="range"
+
+min="1"
+
+max="100"
+
+value="70">
+
+<label>
+
+Altitud:
+
+<span id="altValue">--</span> m
+
+</label>
+
+<input
+
+id="altSlider"
+
+type="range"
+
+min="0"
+
+max="2500"
+
+value="900">
+
+<button onclick="calcular()">🍄 Calcular favorabilidad</button></div></details>
+<details class="compact"><summary>🌲 Hábitat y terreno</summary><div class="inside">
+<div id="habitatActual">Analizando cobertura forestal y especie dominante…</div>
+<div id="terrenoActual" style="margin-top:8px">Analizando orientación, pendiente y terreno…</div><div id="tendenciaRadar" style="margin-top:8px">Calculando tendencia…</div><div id="historialBiologico" style="margin-top:8px">Analizando historial biológico…</div><div id="ventanaFructificacion" style="margin-top:8px">Analizando ventana de fructificación…</div><div id="validacionRadar" style="margin-top:8px">Preparando validación…</div>
+<div class="muted" style="margin-top:8px">Se consulta cartografía forestal pública de Catalunya. El hábitat modifica la favorabilidad, pero no sustituye a la meteorología.</div>
+</div></details>
+<details class="compact"><summary>🍄 Evidencia pública reciente</summary><div class="inside">
+<div id="evidenciaPublica">Consultando observaciones públicas…</div>
+<div class="muted" style="margin-top:8px">No depende de que los usuarios del Radar introduzcan sus hallazgos. Se consultan fuentes públicas disponibles y se usan como una señal adicional, sin publicar puntos privados.</div>
+</div></details>
+
+
+<details class="compact"><summary>🌧️ Radar meteorológico</summary><div class="inside">
+
+<iframe
+
+id="windy"
+
+style="width:100%;height:390px;border:0;border-radius:12px"
+
+src="https://embed.windy.com/embed2.html?lat=41.6&lon=1.8&detailLat=41.6&detailLon=1.8&width=650&height=450&zoom=7&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=default&metricTemp=default&metricRain=default&metricSnow=default&metricCloud=default"
+
+allowfullscreen></iframe></div></details></section>
+
+<!-- ================= HISTORICO ================= -->
+
+<section
+
+id="historico"
+
+style="display:none">
+
+<div class="card">
+
+<h2>📊 Histórico y resultados</h2>
+
+<p>
+
+Consulta datos históricos de la ubicación seleccionada.
+
+</p>
+
+<div class="row">
+
+<div>
+
+<label>Año</label>
+
+<select id="ano">
+
+<option>2022</option>
+
+<option>2023</option>
+
+<option>2024</option>
+
+<option>2025</option>
+
+<option selected>2026</option>
+
+</select>
+
+</div>
+
+<div>
+
+<label>&nbsp;</label>
+
+<button onclick="cargarHistorico()">
+
+📊 Cargar histórico
+
+</button>
+
+</div>
+
+</div>
+
+<div
+
+id="historicoEstado"
+
+class="muted"
+
+style="margin-top:10px">
+
+</div>
+
+<div
+
+id="tablaHistorico"
+
+style="overflow:auto;margin-top:12px">
+
+</div>
+
+</div>
+
+<div class="card">
+<h3>📊 Rendimiento del Radar en campo</h3>
+<div id="estadisticasCampo" class="notice">Todavía no hay salidas registradas con el Radar.</div>
+<div class="muted" style="margin-top:8px">Datos experimentales de este dispositivo. Sirven para comprobar cómo se comporta el Radar con tus propias salidas; no son una validación científica.</div>
+</div>
+<div class="card">
+<h3>🍄 Mis recogidas</h3>
+<div id="estadisticas" class="notice">Todavía no hay hallazgos.</div>
+</div>
+<div class="card">
+<h3>📍 Mis hallazgos privados</h3>
+<p class="muted">Los datos se guardan únicamente en este dispositivo y NO se utilizan para calcular el Radar.</p>
+<div class="row"><div><label>Fecha</label><input id="fechaHallazgo" type="date"></div><div><label>Cantidad</label><input id="cantidadHallazgo" type="number" min="1" placeholder="Ej. 15"></div></div>
+<label>Zona / municipio</label><input id="zonaHallazgo" placeholder="Municipio, comarca o zona">
+<label>Notas</label><input id="notasHallazgo" placeholder="Pinar húmedo, después de lluvia…">
+<button onclick="guardarHallazgo()">🍄 Guardar hallazgo</button>
+<button class="danger" onclick="borrarHallazgos()">Borrar todos</button>
+<div id="listaHallazgos" class="list" style="margin-top:15px"></div>
+</div>
+</section>
+
+<!-- ================= RADAR DE PROXIMIDAD ================= -->
+<section id="proximidad" style="display:none">
+<div class="card proximity-card">
+<h2>📍 Radar de proximidad</h2>
+<p class="muted">Comparte tu posición con otra persona en tiempo real. Ambos móviles deben tener abierta esta pantalla.</p>
+<div class="proximity-code-row">
+  <div style="flex:1;min-width:180px">
+    <label>Código de encuentro</label>
+    <input id="proxCode" maxlength="20" placeholder="Se genera automáticamente al crear la sala" autocomplete="off">
+  </div>
+  <div style="display:flex;gap:7px;align-items:end;flex-wrap:wrap">
+    <button type="button" onclick="crearProximidad()">🟢 Crear sala</button>
+    <button type="button" class="secondary" onclick="unirProximidad()">🔵 Unirme</button>
+  </div>
+</div>
+<div id="proxEstado" class="notice" style="margin-top:10px">Pulsa <b>Crear sala</b> y la aplicación generará automáticamente tu código.</div>
+<div class="proximity-mapbox"><div id="proximityMap"></div></div>
+<div class="proximity-stats">
+  <div class="proximity-person me"><div class="big">🟢 <span id="proxYo">Tú</span></div><div id="proxYoCoord" class="muted">Esperando ubicación…</div></div>
+  <div class="proximity-person other"><div class="big">🔵 <span id="proxOtro">La otra persona</span></div><div id="proxOtroCoord" class="muted">Esperando conexión…</div></div>
+</div>
+<div class="proximity-distance" id="proxDistance">📏 Distancia: —</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button type="button" onclick="compartirProximidad()">📤 Compartir código</button>
+<button type="button" class="danger" onclick="salirProximidad()">✕ Salir</button>
+</div>
+<p class="muted" style="margin-top:10px">La posición se comparte solo mientras esta sala está activa. El navegador pedirá permiso de ubicación a cada móvil.</p>
+</div>
+</section>
+
+<!-- ================= ESCÁNER ================= -->
+
+
+<section id="escanner" style="display:none">
+<div class="card">
+<h2>🍄 Escáner avanzado de níscalos</h2>
+<p class="muted">Dos modos: <b>Radar visual en directo</b> para recorrer el bosque y <b>Escaneo fotográfico</b> para analizar tres vistas. Todo el análisis visual se realiza en el navegador.</p>
+
+<div class="tabs" style="margin-top:10px">
+<button id="modoLiveBtn" class="on" onclick="cambiarModoScanner('live',this)">🎥 Radar visual</button>
+<button id="modoFotosBtn" onclick="cambiarModoScanner('fotos',this)">📷 3 fotografías</button>
+</div>
+
+<div id="scannerLive">
+  <div id="liveEstado" class="notice">Pulsa «Iniciar radar visual» para activar la cámara.</div>
+  <div class="livebox" style="position:relative;background:#111;border-radius:16px;overflow:hidden;min-height:280px">
+    <div class="scan-hud"><span class="live-dot">RADAR VISUAL</span><span>IA · ENTORNO · RADAR</span></div><video id="liveVideo" autoplay playsinline muted style="width:100%;display:none;max-height:620px;object-fit:cover"></video>
+    <canvas id="liveOverlay" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none"></canvas>
+    <div id="livePlaceholder" style="color:white;text-align:center;padding:95px 15px">🎥 El radar visual aparecerá aquí</div>
+  </div>
+  <div class="grid" style="margin-top:10px">
+    <div class="card" style="margin:0"><div class="big" id="liveScore">--</div><div class="muted">Compatibilidad visual</div></div>
+    <div class="card" style="margin:0"><div class="big" id="liveCenter">--</div><div class="muted">🎯 Zona central</div></div>
+    <div class="card" style="margin:0"><div class="big" id="liveRadar">--</div><div class="muted">Radar ambiental</div></div>
+    <div class="card" style="margin:0"><div class="big" id="liveCombined">--</div><div class="muted">Señal combinada</div></div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button id="btnLiveStart" onclick="iniciarRadarVisual()">🎥 Iniciar radar visual</button>
+    <button id="btnLiveAnalyze" onclick="analizarZonaLive()" style="display:none">🎯 Analizar zona</button>
+    <button id="btnLiveNormal" class="" onclick="seleccionarVisionLive('normal')">📷 Cámara normal</button>
+    <button id="btnLiveThermal" class="secondary" onclick="seleccionarVisionLive('thermal')">🌡️ Visión térmica</button>
+    <button id="btnLiveStop" class="danger" onclick="detenerRadarVisual()" style="display:none">✕ Parar cámara</button>
+  </div>
+  <div id="liveCandidate" class="notice" style="margin-top:10px">Esperando cámara…</div>
+  <p class="muted" style="margin-top:10px">La <b>visión térmica</b> es un modo independiente de la cámara normal. Convierte el vídeo en una paleta térmica de alto contraste; el Radar modula la lectura de las zonas favorables. No es un sensor infrarrojo real ni confirma un níscalo.</p>
+</div>
+
+<div id="scannerFotos" style="display:none">
+  <div id="camaraEstado" class="notice" style="margin-bottom:10px">Pulsa «Abrir cámara» para empezar.</div>
+  <div style="position:relative;background:#111;border-radius:15px;overflow:hidden;min-height:240px">
+    <video id="videoCamara" autoplay playsinline muted style="width:100%;display:none;max-height:520px;object-fit:cover"></video>
+    <canvas id="fotoCamara" style="width:100%;display:none"></canvas>
+    <div id="guiaCamara" style="position:absolute;inset:0;display:none;pointer-events:none">
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.18),transparent 25%,transparent 75%,rgba(0,0,0,.18))"></div>
+      <div style="position:absolute;inset:12%;border:1px solid rgba(255,255,255,.75);border-radius:12px"></div>
+      <div style="position:absolute;left:33.33%;top:12%;bottom:12%;border-left:1px solid rgba(255,255,255,.35)"></div>
+      <div style="position:absolute;left:66.66%;top:12%;bottom:12%;border-left:1px solid rgba(255,255,255,.35)"></div>
+      <div style="position:absolute;top:41.66%;left:12%;right:12%;border-top:1px solid rgba(255,255,255,.35)"></div>
+      <div style="position:absolute;top:70%;left:12%;right:12%;border-top:1px solid rgba(255,255,255,.35)"></div>
+      <div style="position:absolute;left:0;right:0;bottom:12px;text-align:center;color:white;font-size:12px;text-shadow:0 1px 3px #000">Apunta al bosque y al suelo · haz 3 vistas diferentes</div>
+    </div>
+    <div id="camaraPlaceholder" style="color:white;text-align:center;padding:80px 15px">📷 La cámara aparecerá aquí</div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button id="btnAbrirCamara" onclick="abrirCamara()">📷 Abrir cámara</button>
+    <button id="btnFotoCamara" onclick="hacerFoto()" style="display:none">📸 Analizar foto 1/3</button>
+    <button id="btnRepetirCamara" class="secondary" onclick="repetirFoto()" style="display:none">🔄 Repetir</button>
+    <button id="btnCerrarCamara" class="danger" onclick="cerrarCamara()" style="display:none">✕ Cerrar</button>
+  </div>
+  <div id="resultadoEscaner" style="margin-top:12px"></div>
+</div>
+
+<div class="card">
+<h3>🧠 Qué está haciendo el sistema</h3>
+<div class="badge">👁️ Visión del terreno</div>
+<div class="badge">🌲 Hábitat</div>
+<div class="badge">🌧️ Meteorología</div>
+<div class="badge">📚 Evidencia pública</div>
+<div class="badge">🍄 Candidato visual</div>
+<p class="muted" style="margin-top:10px">La aplicación combina señales independientes. No convierte una coincidencia visual en una identificación segura de especie.</p>
+</div>
+
+<div class="card">
+<h3>💾 Escaneos guardados</h3>
+<div id="listaEscaneos"><span class="muted">Todavía no hay escaneos guardados.</span></div>
+</div>
+</div>
+</section>
+
+
+</main>
+
+<footer>
+
+Radar del Níscalo · Aplicación experimental
+
+</footer>
+
+
+
+<script>
+/* ===== MOTOR 3D DE PORTADA =====
+   Escena procedural: pinar, suelo, pinocha, luz volumétrica y grupo natural
+   de rebollones. No es una ilustración plana: todo se renderiza en perspectiva.
+*/
+(function(){
+  const splash=document.getElementById("appSplash");
+  const emergencyHide=()=>{
+    if(!splash) return;
+    splash.classList.add("hide");
+    setTimeout(()=>{splash.style.display="none";},900);
+  };
+  const emergencyTimer=setTimeout(emergencyHide,8500);
+  const canvas=document.getElementById("splash3D");
+  if(!canvas || typeof THREE==="undefined"){
+    clearTimeout(emergencyTimer);
+    setTimeout(emergencyHide,7500);
+    return;
+  }
+  let renderer;
+  try{
+  const scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x0d1710);
+  scene.fog=new THREE.FogExp2(0x152018,.035);
+
+  const camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,80);
+  camera.position.set(0,2.15,8.8);
+  camera.lookAt(0,1.55,0);
+
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:"high-performance"});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
+  renderer.setSize(innerWidth,innerHeight,false);
+  renderer.outputColorSpace=THREE.SRGBColorSpace;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.05;
+
+  scene.add(new THREE.HemisphereLight(0x9caf91,0x1b140d,1.35));
+  const sun=new THREE.DirectionalLight(0xffe7ad,3.0);
+  sun.position.set(-4,8,5); scene.add(sun);
+  const fill=new THREE.PointLight(0xd9e8bb,1.5,14);
+  fill.position.set(2,3,2); scene.add(fill);
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const group=new THREE.Group(); scene.add(group);
+
+  // suelo irregular
+  const soilGeo=new THREE.PlaneGeometry(22,22,80,80);
+  const p=soilGeo.attributes.position;
+  for(let i=0;i<p.count;i++){
+    const x=p.getX(i),y=p.getY(i);
+    p.setZ(i,Math.sin(x*.65)*.10+Math.cos(y*.52)*.12+Math.sin((x+y)*1.8)*.035+rand(-.018,.018));
+  }
+  soilGeo.rotateX(-Math.PI/2);
+  const soilMat=new THREE.MeshStandardMaterial({color:0x30291d,roughness:1,metalness:0});
+  const soil=new THREE.Mesh(soilGeo,soilMat); soil.position.y=-.12; group.add(soil);
+
+  // pinocha / ramitas: miles de pequeñas geometrías
+  const needleGeo=new THREE.ConeGeometry(.012,.22,4);
+  const needleMat=new THREE.MeshStandardMaterial({color:0x655238,roughness:1});
+  const needles=new THREE.InstancedMesh(needleGeo,needleMat,900);
+  const dummy=new THREE.Object3D();
+  for(let i=0;i<900;i++){
+    const x=rand(-7,7),z=rand(-5,7),y=rand(-.02,.10);
+    dummy.position.set(x,y,z); dummy.rotation.set(rand(-.35,.35),rand(0,Math.PI),rand(-.4,.4)); dummy.scale.set(rand(.7,1.4),1,rand(.7,1.4)); dummy.updateMatrix(); needles.setMatrixAt(i,dummy.matrix);
+  }
+  group.add(needles);
+
+  // troncos de pino en varios planos para profundidad
+  function pine(x,z,h,r,far){
+    const g=new THREE.Group();
+    const bark=new THREE.Mesh(new THREE.CylinderGeometry(r*.72,r,h,10),new THREE.MeshStandardMaterial({color:far?0x25271e:0x3b3325,roughness:1}));
+    bark.position.y=h/2; g.add(bark);
+    const crownMat=new THREE.MeshStandardMaterial({color:far?0x263b29:0x1b3021,roughness:1});
+    for(let i=0;i<5;i++){
+      const cone=new THREE.Mesh(new THREE.ConeGeometry(r*(5-i*.55),h*.24,9),crownMat);
+      cone.position.y=h*.60+i*h*.075; g.add(cone);
+    }
+    g.position.set(x,0,z); g.rotation.z=rand(-.035,.035); group.add(g);
+  }
+  pine(-5.7,-.5,8.5,.42,false); pine(5.4,.1,8.8,.45,false);
+  pine(-3.9,-2.4,7.1,.30,true); pine(3.6,-2.2,7.5,.34,true);
+  pine(-1.7,-4.0,8.0,.32,true); pine(1.8,-4.3,8.5,.35,true);
+  pine(-6.8,2.8,10,.48,true); pine(6.7,2.5,10,.5,true);
+
+  // arbustos y hierba baja
+  const grassGeo=new THREE.ConeGeometry(.035,.5,4);
+  const grassMat=new THREE.MeshStandardMaterial({color:0x4b5635,roughness:1});
+  const grass=new THREE.InstancedMesh(grassGeo,grassMat,450);
+  for(let i=0;i<450;i++){
+    const x=rand(-7,7),z=rand(-3.8,6),y=rand(0,.04);
+    dummy.position.set(x,y,z); dummy.rotation.z=rand(-.7,.7); dummy.rotation.y=rand(0,Math.PI); dummy.scale.set(rand(.5,1.5),rand(.45,1.3),1); dummy.updateMatrix(); grass.setMatrixAt(i,dummy.matrix);
+  }
+  group.add(grass);
+
+  // rebollón procedural: cap con depresión central, láminas y pie
+  function mushroom(x,z,s,rot){
+    const m=new THREE.Group();
+    const stem=new THREE.Mesh(new THREE.CylinderGeometry(.055*s,.075*s,.28*s,12),new THREE.MeshStandardMaterial({color:0xc6b28f,roughness:.9}));
+    stem.position.y=.14*s; m.add(stem);
+    const capMat=new THREE.MeshStandardMaterial({color:0xb95827,roughness:.72,metalness:0});
+    const cap=new THREE.Mesh(new THREE.SphereGeometry(.23*s,24,12,0,Math.PI*2,0,Math.PI*.48),capMat);
+    cap.scale.y=.48; cap.position.y=.29*s; m.add(cap);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(.12*s,.012*s,7,24),new THREE.MeshStandardMaterial({color:0x7f341f,roughness:.9}));
+    ring.rotation.x=Math.PI/2; ring.position.y=.286*s; m.add(ring);
+    m.position.set(x,.015,z); m.rotation.y=rot; group.add(m);
+  }
+  // mancha natural: agrupada, irregular, sin círculo perfecto
+  mushroom(-.55,-.05,1.25,.3);
+  mushroom(.05,-.28,.92,2.1);
+  mushroom(.62,.02,.72,4.5);
+  mushroom(-.02,.48,.58,5.7);
+  mushroom(-.92,.36,.55,1.7);
+  mushroom(1.0,.40,.46,3.1);
+  mushroom(.42,.75,.34,5.0);
+
+  // partículas ambientales / polvo
+  const dustGeo=new THREE.BufferGeometry(),dust=[];
+  for(let i=0;i<180;i++) dust.push(rand(-6,6),rand(.2,6),rand(-3,5));
+  dustGeo.setAttribute("position",new THREE.Float32BufferAttribute(dust,3));
+  const dustMat=new THREE.PointsMaterial({color:0xd9d2ac,size:.025,transparent:true,opacity:.28});
+  scene.add(new THREE.Points(dustGeo,dustMat));
+
+  let t=0,active=true;
+  function resize(){
+    camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth,innerHeight,false);
+  }
+  addEventListener("resize",resize,{passive:true});
+
+  function animate(){
+    if(!active)return;
+    requestAnimationFrame(animate); t+=.004;
+    camera.position.x=Math.sin(t*.55)*.16;
+    camera.position.y=2.15+Math.sin(t*.7)*.025;
+    camera.lookAt(.05,1.42,0);
+    group.rotation.y=Math.sin(t*.25)*.012;
+    renderer.render(scene,camera);
+  }
+  animate();
+
+  const hide=()=>{
+    clearTimeout(emergencyTimer);
+    emergencyHide();
+    setTimeout(()=>{active=false;try{renderer.dispose()}catch(e){}},900);
+  };
+  addEventListener("load",()=>setTimeout(hide,7500),{once:true});
+  setTimeout(hide,8000);
+  }catch(e){
+    clearTimeout(emergencyTimer);
+    console.warn("Portada 3D no disponible:",e);
+    setTimeout(emergencyHide,7500);
+  }
+})();
+</script>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+
+<script>
+
+const $ = id => document.getElementById(id);
+
+let mapa;
+
+let marcador;
+
+let capasFavorabilidad=[];
+
+/* ================= RECORRIDO GPS ================= */
+let watchIdRecorrido=null;
+let recorridoActivo=false;
+let recorridoPuntos=[];
+let recorridoDistancia=0;
+let recorridoInicio=0;
+let recorridoTimer=null;
+let lineaRecorrido=null;
+let marcadorRecorrido=null;
+let circuloPrecisionRecorrido=null;
+
+function formatearDistanciaRecorrido(metros){
+if(metros<1000) return Math.round(metros)+" m";
+return (metros/1000).toFixed(2)+" km";
+}
+
+function formatearTiempoRecorrido(){
+if(!recorridoInicio) return "00:00";
+const segundos=Math.max(0,Math.floor((Date.now()-recorridoInicio)/1000));
+const h=Math.floor(segundos/3600);
+const m=Math.floor((segundos%3600)/60);
+const s=segundos%60;
+return (h>0 ? String(h).padStart(2,"0")+":" : "")+
+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+
+function actualizarPanelRecorrido(){
+const distancia=$("recorridoDistancia");
+const tiempo=$("recorridoTiempo");
+const puntos=$("recorridoPuntos");
+const estado=$("recorridoEstado");
+if(distancia) distancia.textContent=formatearDistanciaRecorrido(recorridoDistancia);
+if(tiempo) tiempo.textContent=formatearTiempoRecorrido();
+if(puntos) puntos.textContent=recorridoPuntos.length;
+if(estado) estado.textContent=recorridoActivo?"Grabando":"Parado";
+}
+
+function distanciaEntrePuntos(lat1,lon1,lat2,lon2){
+const R=6371000;
+const rad=Math.PI/180;
+const dLat=(lat2-lat1)*rad;
+const dLon=(lon2-lon1)*rad;
+const a=Math.sin(dLat/2)**2+
+Math.cos(lat1*rad)*Math.cos(lat2*rad)*Math.sin(dLon/2)**2;
+return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function dibujarRecorridoGuardado(){
+if(!mapa) return;
+if(lineaRecorrido){
+mapa.removeLayer(lineaRecorrido);
+lineaRecorrido=null;
+}
+if(!recorridoPuntos.length) return;
+lineaRecorrido=L.polyline(
+recorridoPuntos.map(p=>[p.lat,p.lon]),
+{
+color:"#e56f32",
+weight:5,
+opacity:.9,
+lineCap:"round",
+lineJoin:"round"
+}
+).addTo(mapa);
+}
+
+function guardarRecorridoLocal(){
+try{
+const ahora=new Date();
+localStorage.setItem("radar_niscalo_recorrido",JSON.stringify({puntos:recorridoPuntos,distancia:recorridoDistancia,inicio:recorridoInicio||null,fecha:ahora.toISOString()}));
+if(recorridoPuntos.length>=2){
+ const nombre=prompt("Pon un nombre para este recorrido:","Recorrido "+ahora.toLocaleDateString("es-ES"));
+ if(nombre!==null) guardarRecorridoBiblioteca({nombre:nombre.trim()||("Recorrido "+ahora.toLocaleDateString("es-ES")),fechaInicio:recorridoInicio?new Date(recorridoInicio).toISOString():ahora.toISOString(),fechaFin:ahora.toISOString(),duracionMs:recorridoInicio?Math.max(0,ahora.getTime()-recorridoInicio):0,distancia:Number(recorridoDistancia)||0,puntos:recorridoPuntos.map(p=>({lat:Number(p.lat),lon:Number(p.lon),accuracy:Number(p.accuracy)||0,timestamp:Number(p.timestamp)||Date.now()})),version:1});
+}
+}catch(e){console.warn("No se pudo guardar el recorrido:",e);}
+}
+
+function cargarRecorridoGuardado(){
+try{
+const guardado=JSON.parse(localStorage.getItem("radar_niscalo_recorrido")||"null");
+if(!guardado||!Array.isArray(guardado.puntos)||!guardado.puntos.length) return;
+recorridoPuntos=guardado.puntos;
+recorridoDistancia=Number(guardado.distancia)||0;
+dibujarRecorridoGuardado();
+actualizarPanelRecorrido();
+const aviso=$("recorridoAviso");
+if(aviso) aviso.textContent="Ruta guardada cargada. Puedes verla en el mapa o borrarla antes de empezar otra.";
+}catch(e){
+console.warn("No se pudo cargar el recorrido guardado:",e);
+}
+}
+
+function actualizarPosicionRecorrido(pos){
+const lat=pos.coords.latitude;
+const lon=pos.coords.longitude;
+const precision=Number(pos.coords.accuracy)||0;
+
+if(!mapa) return;
+
+if(!marcadorRecorrido){
+marcadorRecorrido=L.circleMarker([lat,lon],{
+radius:7,
+color:"#ffffff",
+weight:2,
+fillColor:"#2878e8",
+fillOpacity:1,
+zIndexOffset:1000
+}).addTo(mapa).bindTooltip("Tu posición",{
+permanent:false,
+direction:"top"
+});
+}else{
+marcadorRecorrido.setLatLng([lat,lon]);
+}
+
+if(!circuloPrecisionRecorrido){
+circuloPrecisionRecorrido=L.circle([lat,lon],{
+radius:Math.max(precision,5),
+color:"#2878e8",
+weight:1,
+opacity:.35,
+fillColor:"#2878e8",
+fillOpacity:.08,
+interactive:false
+}).addTo(mapa);
+}else{
+circuloPrecisionRecorrido.setLatLng([lat,lon]);
+circuloPrecisionRecorrido.setRadius(Math.max(precision,5));
+}
+
+if(!recorridoActivo) return;
+
+const ultimo=recorridoPuntos[recorridoPuntos.length-1];
+
+if(ultimo){
+const metros=distanciaEntrePuntos(
+ultimo.lat,ultimo.lon,lat,lon
+);
+if(metros<5) return;
+recorridoDistancia+=metros;
+}
+
+recorridoPuntos.push({
+lat:Number(lat.toFixed(6)),
+lon:Number(lon.toFixed(6)),
+precision:Math.round(precision),
+hora:new Date().toISOString()
+});
+
+if(!lineaRecorrido){
+lineaRecorrido=L.polyline([],{
+color:"#e56f32",
+weight:5,
+opacity:.9,
+lineCap:"round",
+lineJoin:"round"
+}).addTo(mapa);
+}
+
+lineaRecorrido.setLatLngs(
+recorridoPuntos.map(p=>[p.lat,p.lon])
+);
+
+actualizarPanelRecorrido();
+guardarRecorridoLocal();
+}
+
+function errorRecorrido(error){
+let mensaje="No se pudo actualizar el GPS.";
+if(error&&error.code===1) mensaje="Permiso de ubicación denegado. Actívalo para poder grabar el recorrido.";
+if(error&&error.code===2) mensaje="No se pudo determinar tu posición. Muévete a una zona con mejor señal GPS.";
+if(error&&error.code===3) mensaje="El GPS está tardando demasiado. Mantén el teléfono desbloqueado y vuelve a intentarlo.";
+const aviso=$("recorridoAviso");
+if(aviso) aviso.textContent=mensaje;
+}
+
+function comenzarRecorrido(){
+if(!navigator.geolocation){
+alert("Este navegador no permite usar el GPS.");
+return;
+}
+
+if(recorridoActivo) return;
+
+if(recorridoPuntos.length){
+const continuar=confirm(
+"Ya hay una ruta guardada. ¿Quieres borrarla y comenzar un recorrido nuevo?"
+);
+if(!continuar) return;
+borrarRecorrido(false);
+}
+
+recorridoPuntos=[];
+recorridoDistancia=0;
+recorridoInicio=Date.now();
+recorridoActivo=true;
+actualizarPanelRecorrido();
+
+$("btnComenzarRecorrido").style.display="none";
+$("btnPararRecorrido").style.display="inline-block";
+
+const aviso=$("recorridoAviso");
+if(aviso) aviso.textContent="Buscando GPS con precisión alta… camina unos metros para que empiece a dibujar la ruta.";
+
+recorridoTimer=setInterval(actualizarPanelRecorrido,1000);
+
+watchIdRecorrido=navigator.geolocation.watchPosition(
+actualizarPosicionRecorrido,
+errorRecorrido,
+{
+enableHighAccuracy:true,
+timeout:15000,
+maximumAge:1000
+}
+);
+}
+
+function pararRecorrido(){
+if(!recorridoActivo) return;
+
+recorridoActivo=false;
+
+if(watchIdRecorrido!==null){
+navigator.geolocation.clearWatch(watchIdRecorrido);
+watchIdRecorrido=null;
+}
+
+if(recorridoTimer){
+clearInterval(recorridoTimer);
+recorridoTimer=null;
+}
+
+guardarRecorridoLocal();
+actualizarPanelRecorrido();
+
+$("btnComenzarRecorrido").style.display="inline-block";
+$("btnPararRecorrido").style.display="none";
+
+const aviso=$("recorridoAviso");
+if(aviso) aviso.textContent="Recorrido guardado. La línea naranja queda en el mapa para ayudarte a volver por el mismo camino.";
+}
+
+function centrarRecorrido(){
+if(!mapa) return;
+
+if(marcadorRecorrido){
+mapa.setView(marcadorRecorrido.getLatLng(),16,{animate:true});
+return;
+}
+
+if(recorridoPuntos.length){
+const ultimo=recorridoPuntos[recorridoPuntos.length-1];
+mapa.setView([ultimo.lat,ultimo.lon],16,{animate:true});
+return;
+}
+
+const lat=Number($("lat").value);
+const lon=Number($("lon").value);
+if(Number.isFinite(lat)&&Number.isFinite(lon)){
+mapa.setView([lat,lon],15,{animate:true});
+}
+}
+
+function borrarRecorrido(confirmar=true){
+if(confirmar&&!confirm("¿Quieres borrar la ruta guardada?")) return;
+
+if(recorridoActivo){
+recorridoActivo=false;
+if(watchIdRecorrido!==null){
+navigator.geolocation.clearWatch(watchIdRecorrido);
+watchIdRecorrido=null;
+}
+if(recorridoTimer){
+clearInterval(recorridoTimer);
+recorridoTimer=null;
+}
+}
+
+localStorage.removeItem("radar_niscalo_recorrido");
+recorridoPuntos=[];
+recorridoDistancia=0;
+recorridoInicio=0;
+
+if(lineaRecorrido&&mapa){
+mapa.removeLayer(lineaRecorrido);
+lineaRecorrido=null;
+}
+
+actualizarPanelRecorrido();
+
+const boton=$("btnComenzarRecorrido");
+const parar=$("btnPararRecorrido");
+if(boton) boton.style.display="inline-block";
+if(parar) parar.style.display="none";
+
+const aviso=$("recorridoAviso");
+if(aviso) aviso.textContent="Pulsa «Comenzar recorrido» cuando entres al bosque. Mantén la ubicación del teléfono activada.";
+}
+
+
+/* ===== BIBLIOTECA AVANZADA DE RECORRIDOS ===== */
+const DB_RECORRIDOS="RadarNiscaloDB",STORE_RECORRIDOS="recorridos";let dbRecorridos=null,reproduccionRecorridoTimer=null,seguirRecorridoWatchId=null,recorridoSeguido=null;
+function abrirDBRecorridos(){return new Promise((ok,no)=>{if(!indexedDB){no(new Error("IndexedDB no disponible"));return}if(dbRecorridos){ok(dbRecorridos);return}const q=indexedDB.open(DB_RECORRIDOS,1);q.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains(STORE_RECORRIDOS))d.createObjectStore(STORE_RECORRIDOS,{keyPath:"id",autoIncrement:true})};q.onsuccess=e=>{dbRecorridos=e.target.result;ok(dbRecorridos)};q.onerror=()=>no(q.error)})}
+async function guardarRecorridoBiblioteca(r){try{const d=await abrirDBRecorridos();await new Promise((ok,no)=>{const t=d.transaction(STORE_RECORRIDOS,"readwrite");t.objectStore(STORE_RECORRIDOS).add(r);t.oncomplete=ok;t.onerror=()=>no(t.error)});mostrarBibliotecaRecorridos();const a=$("recorridoAviso");if(a)a.textContent="✅ Recorrido guardado en «Mis recorridos»."}catch(e){try{const l=JSON.parse(localStorage.getItem("radar_niscalo_recorridos")||"[]");l.unshift({...r,id:"ls_"+Date.now()});localStorage.setItem("radar_niscalo_recorridos",JSON.stringify(l.slice(0,100)));mostrarBibliotecaRecorridos()}catch(x){console.warn(e)}}}
+async function obtenerRecorridosBiblioteca(){try{const d=await abrirDBRecorridos();return await new Promise((ok,no)=>{const t=d.transaction(STORE_RECORRIDOS,"readonly"),q=t.objectStore(STORE_RECORRIDOS).getAll();q.onsuccess=()=>ok((q.result||[]).sort((a,b)=>String(b.fechaFin).localeCompare(String(a.fechaFin))));q.onerror=()=>no(q.error)})}catch(e){try{return JSON.parse(localStorage.getItem("radar_niscalo_recorridos")||"[]")}catch{return[]}}}
+function formatearDuracionGuardada(ms){const s=Math.round(Number(ms||0)/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h?String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(x).padStart(2,"0"):String(m).padStart(2,"0")+":"+String(x).padStart(2,"0")}
+async function mostrarBibliotecaRecorridos(){const b=$("listaRecorridosGuardados");if(!b)return;const l=await obtenerRecorridosBiblioteca();if(!l.length){b.innerHTML='<span class="muted" style="color:#bfd0c3">Todavía no hay recorridos guardados.</span>';return}b.innerHTML=l.map(r=>{const id=JSON.stringify(String(r.id)),f=r.fechaFin?new Date(r.fechaFin).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"Sin fecha";return '<div class="recorrido-guardado"><b>🧭 '+escapar(r.nombre||"Recorrido")+'</b><div class="recorrido-meta">📅 '+f+' · 📏 '+formatearDistanciaRecorrido(r.distancia||0)+' · ⏱️ '+formatearDuracionGuardada(r.duracionMs)+' · 📍 '+(r.puntos?.length||0)+' puntos</div><div class="recorrido-acciones"><button type="button" class="ruta-ver" onclick="abrirRecorridoBiblioteca('+id+')">🗺️ Ver</button><button type="button" class="ruta-ver" onclick="reproducirRecorridoBiblioteca('+id+')">▶️ Reproducir</button><button type="button" class="ruta-volver" onclick="seguirRecorridoBiblioteca('+id+')">🧭 Volver</button><button type="button" class="ruta-exportar" onclick="exportarRecorridoGPX('+id+')">📤 GPX</button><button type="button" class="ruta-borrar" onclick="borrarRecorridoBiblioteca('+id+')">🗑️</button></div></div>'}).join("")}
+async function cargarRecorridoBiblioteca(id){const l=await obtenerRecorridosBiblioteca(),r=l.find(x=>String(x.id)===String(id));return r&&r.puntos?.length>1?r:null}
+function dibujarRutaBiblioteca(r){if(!mapa||!r)return;if(lineaRecorrido)mapa.removeLayer(lineaRecorrido);lineaRecorrido=L.polyline(r.puntos.map(p=>[+p.lat,+p.lon]),{color:"#e68a35",weight:5,opacity:.92,lineCap:"round",lineJoin:"round"}).addTo(mapa);mapa.fitBounds(lineaRecorrido.getBounds(),{padding:[30,30],maxZoom:16});const a=$("recorridoAviso");if(a)a.textContent="Ruta «"+(r.nombre||"sin nombre")+"» cargada."}
+async function abrirRecorridoBiblioteca(id){detenerReproduccionRecorrido();detenerSeguirRecorrido();const r=await cargarRecorridoBiblioteca(id);if(!r)return;recorridoPuntos=r.puntos;recorridoDistancia=+r.distancia||0;recorridoInicio=0;dibujarRutaBiblioteca(r);actualizarPanelRecorrido()}
+async function reproducirRecorridoBiblioteca(id){detenerReproduccionRecorrido();detenerSeguirRecorrido();const r=await cargarRecorridoBiblioteca(id);if(!r||!mapa)return;dibujarRutaBiblioteca(r);const p=r.puntos,m=L.circleMarker([p[0].lat,p[0].lon],{radius:8,color:"#fff",weight:2,fillColor:"#e6a253",fillOpacity:1}).addTo(mapa),panel=$("recorridoReproduccion"),txt=$("recorridoPlaybackTexto"),fill=$("recorridoPlaybackFill"),dur=Math.max(8000,Math.min(45000,p.length*350)),ini=performance.now();if(panel)panel.classList.add("activo");reproduccionRecorridoTimer=setInterval(()=>{const t=Math.min(1,(performance.now()-ini)/dur),x=t*(p.length-1),a=Math.floor(x),b=Math.min(p.length-1,a+1),f=x-a,lat=+p[a].lat+(+p[b].lat-+p[a].lat)*f,lon=+p[a].lon+(+p[b].lon-+p[a].lon)*f;m.setLatLng([lat,lon]);if(txt)txt.textContent=(r.nombre||"Recorrido")+" · "+Math.round(t*100)+"%";if(fill)fill.style.width=Math.round(t*100)+"%";if(t>=1){clearInterval(reproduccionRecorridoTimer);reproduccionRecorridoTimer=null;setTimeout(()=>mapa&&mapa.hasLayer(m)&&mapa.removeLayer(m),700)}},40)}
+function detenerReproduccionRecorrido(){if(reproduccionRecorridoTimer){clearInterval(reproduccionRecorridoTimer);reproduccionRecorridoTimer=null}const p=$("recorridoReproduccion");if(p)p.classList.remove("activo")}
+async function seguirRecorridoBiblioteca(id){detenerReproduccionRecorrido();if(recorridoActivo){alert("Primero termina el recorrido que estás grabando.");return}const r=await cargarRecorridoBiblioteca(id);if(!r)return;dibujarRutaBiblioteca(r);recorridoSeguido=r;if(seguirRecorridoWatchId!==null)navigator.geolocation.clearWatch(seguirRecorridoWatchId);seguirRecorridoWatchId=navigator.geolocation.watchPosition(actualizarPosicionSeguirRecorrido,errorRecorrido,{enableHighAccuracy:true,timeout:15000,maximumAge:1000});const a=$("recorridoAviso");if(a)a.textContent="🧭 Sigue la línea naranja. La app te avisará si te alejas del camino."}
+function distanciaTrazado(lat,lon,r){let m=Infinity;for(const p of r.puntos){const R=6371000,rad=Math.PI/180,x=(+p.lon-lon)*rad*Math.cos((lat+ +p.lat)*rad/2),y=(+p.lat-lat)*rad,d=Math.sqrt(x*x+y*y)*R;if(d<m)m=d}return m}
+function actualizarPosicionSeguirRecorrido(pos){const lat=pos.coords.latitude,lon=pos.coords.longitude;if(!mapa||!recorridoSeguido)return;if(!marcadorRecorrido)marcadorRecorrido=L.circleMarker([lat,lon],{radius:7,color:"#fff",weight:2,fillColor:"#2878e8",fillOpacity:1}).addTo(mapa);else marcadorRecorrido.setLatLng([lat,lon]);const d=distanciaTrazado(lat,lon,recorridoSeguido),a=$("recorridoAviso");if(a)a.textContent=d<20?"🧭 En el camino · sigue la línea naranja":"⚠️ Te has alejado "+Math.round(d)+" m del camino guardado."}
+function detenerSeguirRecorrido(){if(seguirRecorridoWatchId!==null){navigator.geolocation.clearWatch(seguirRecorridoWatchId);seguirRecorridoWatchId=null}recorridoSeguido=null}
+async function borrarRecorridoBiblioteca(id){if(!confirm("¿Borrar este recorrido de «Mis recorridos»?"))return;try{const d=await abrirDBRecorridos();await new Promise((ok,no)=>{const t=d.transaction(STORE_RECORRIDOS,"readwrite");t.objectStore(STORE_RECORRIDOS).delete(id);t.oncomplete=ok;t.onerror=()=>no(t.error)})}catch(e){try{const l=JSON.parse(localStorage.getItem("radar_niscalo_recorridos")||"[]");localStorage.setItem("radar_niscalo_recorridos",JSON.stringify(l.filter(x=>String(x.id)!==String(id))))}catch(x){}}mostrarBibliotecaRecorridos()}
+async function exportarRecorridoGPX(id){const r=await cargarRecorridoBiblioteca(id);if(!r)return;const pts=r.puntos.map(p=>'<trkpt lat="'+(+p.lat).toFixed(7)+'" lon="'+(+p.lon).toFixed(7)+'">'+(p.timestamp?'<time>'+new Date(p.timestamp).toISOString()+'</time>':'')+'</trkpt>').join(""),g='<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="Radar Níscalo" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>'+escapar(r.nombre||"Recorrido")+'</name><trkseg>'+pts+'</trkseg></trk></gpx>',u=URL.createObjectURL(new Blob([g],{type:"application/gpx+xml"})),a=document.createElement("a");a.href=u;a.download=(r.nombre||"recorrido").replace(/[^a-z0-9áéíóúüñ_-]+/gi,"_")+".gpx";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+
+let capaCalorRadar=null;
+let visionRadarActiva=true;
+
+function alternarVisionRadar(){
+visionRadarActiva=!visionRadarActiva;
+if(capaCalorRadar){
+  if(visionRadarActiva) capaCalorRadar.addTo(mapa);
+  else mapa.removeLayer(capaCalorRadar);
+}
+let boton=$("btnVisionRadar");
+if(boton){
+boton.textContent=visionRadarActiva?"👁️ Visión Radar: ON":"👁️ Visión Radar: OFF";
+boton.style.background=visionRadarActiva?"#214b35":"#6b7280";
+}
+}
+
+/* ================= PESTAÑAS ================= */
+
+function tab(nombre,boton){
+
+["radar","historico","escanner","proximidad"].forEach(id=>{
+
+$(id).style.display =
+
+id===nombre ? "block" : "none";
+
+});
+
+document
+
+.querySelectorAll(".tabs button")
+
+.forEach(b=>b.classList.remove("on"));
+
+boton.classList.add("on");
+
+if(nombre==="historico"){mostrarEstadisticas();mostrarRendimientoCampo();cargarHistorico();}
+
+
+
+if(nombre==="radar" && mapa){
+
+setTimeout(()=>{
+
+mapa.invalidateSize();
+
+},100);
+
+}
+
+if(nombre==="proximidad"){
+  setTimeout(()=>{
+    iniciarMapaProximidad();
+    if(proxMap) proxMap.invalidateSize();
+  },100);
+}
+
+}
+
+/* ================= MAPA ================= */
+
+function iniciarMapa(){
+
+mapa=L.map("map").setView(
+[41.60,1.80],
+8
+);
+
+/* Fotografía aérea real + nombres de lugares encima. */
+const mapaSatelite=L.tileLayer(
+"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+{
+maxZoom:19,
+attribution:"© Esri, Maxar, Earthstar Geographics, and the GIS User Community"
+}
+).addTo(mapa);
+
+const nombresLugares=L.tileLayer(
+"https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+{
+maxZoom:19,
+opacity:1,
+attribution:"© Esri"
+}
+).addTo(mapa);
+
+marcador=L.marker(
+[41.60,1.80]
+)
+.addTo(mapa)
+.bindPopup("Ubicación consultada");
+
+}
+
+async function pintarMapaZonas(lat,lon){
+if(!mapa) return;
+capasFavorabilidad.forEach(capa=>mapa.removeLayer(capa));
+capasFavorabilidad=[];
+if(capaCalorRadar){mapa.removeLayer(capaCalorRadar);capaCalorRadar=null;}
+
+/*
+  Mapa local: 5x5 celdas.
+  Cada celda mide aproximadamente 4 km de lado.
+  Calculamos condiciones independientes para cada punto.
+*/
+const paso=0.04;
+const columnas=5;
+let latitudes=[];
+let longitudes=[];
+let puntosRadar=[];
+
+for(let y=-2;y<=2;y++){
+for(let x=-2;x<=2;x++){
+latitudes.push((lat+y*paso).toFixed(4));
+longitudes.push((lon+x*paso).toFixed(4));
+}
+}
+
+try{
+let consulta=
+"https://api.open-meteo.com/v1/forecast?latitude="+latitudes.join(",")+
+"&longitude="+longitudes.join(",")+
+"&timezone=auto&past_days=30&forecast_days=7"+
+"&current=temperature_2m,soil_moisture_0_to_7cm"+
+"&hourly=temperature_2m,precipitation,soil_moisture_0_to_7cm";
+
+let respuesta=await fetch(consulta);
+if(!respuesta.ok) throw new Error("Error en datos de zonas");
+
+let datos=await respuesta.json();
+if(!Array.isArray(datos)) datos=[datos];
+
+let elev=await fetch(
+"https://api.open-meteo.com/v1/elevation?latitude="+
+latitudes.join(",")+
+"&longitude="+
+longitudes.join(",")
+);
+
+if(!elev.ok) throw new Error("Error en altitudes");
+
+let elevData=await elev.json();
+let elevaciones=Array.isArray(elevData.elevation)
+?elevData.elevation
+:[elevData.elevation];
+
+for(let i=0;i<datos.length;i++){
+let d=datos[i];
+if(!d || !d.current || !d.hourly) continue;
+
+let tiempos=d.hourly.time||[];
+let precipitacion=d.hourly.precipitation||[];
+let temperaturas=d.hourly.temperature_2m||[];
+let humedadSuelo=d.hourly.soil_moisture_0_to_7cm||[];
+
+let indiceActual=tiempos.findIndex(t=>t>=d.current.time);
+if(indiceActual<0) indiceActual=tiempos.length-1;
+
+let inicio7=Math.max(0,indiceActual-(7*24)+1);
+let inicio14=Math.max(0,indiceActual-(14*24)+1);
+let inicio30=Math.max(0,indiceActual-(30*24)+1);
+
+let lluvia7Pasada=0;
+let lluvia14=0;
+let lluvia30=0;
+let temp7=[];
+let sueloReciente=[];
+
+for(let j=inicio30;j<=indiceActual;j++){
+let lluvia=Number(precipitacion[j]||0);
+lluvia30+=lluvia;
+
+if(j>=inicio14) lluvia14+=lluvia;
+if(j>=inicio7){
+lluvia7Pasada+=lluvia;
+let t=Number(temperaturas[j]);
+if(Number.isFinite(t)) temp7.push(t);
+}
+}
+
+for(let j=Math.max(0,indiceActual-24+1);j<=indiceActual;j++){
+let s=Number(humedadSuelo[j]);
+if(Number.isFinite(s)) sueloReciente.push(s*100);
+}
+
+let tempActual=Number(d.current.temperature_2m||0);
+let tempMedia7=temp7.length
+?temp7.reduce((a,b)=>a+b,0)/temp7.length
+:tempActual;
+
+let suelo=sueloReciente.length
+?sueloReciente.reduce((a,b)=>a+b,0)/sueloReciente.length
+:Number(d.current.soil_moisture_0_to_7cm||0)*100;
+
+let alt=Number(elevaciones[i]||0);
+
+let habitatScore=0.5;
+let habitatTexto="Sin clasificación forestal";
+try{
+let hurl=
+`https://maps.icgc.cat/vector03/rest/services/RTT/Referencial_Topogr%C3%A0fic_Territorial/MapServer/4/query?where=1%3D1&geometry=${encodeURIComponent(JSON.stringify({x:Number(longitudes[i]),y:Number(latitudes[i]),spatialReference:{wkid:4326}}))}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=tipus&returnGeometry=false&f=json`;
+let hr=await fetch(hurl);
+let hd=await hr.json();
+let ht=String(hd.features?.[0]?.attributes?.tipus||"").toLowerCase();
+
+if(/pi roig|pinus sylvestris/.test(ht)){
+  habitatScore=1.00;
+  habitatTexto="Pinar de pi roig (Pinus sylvestris)";
+}else if(/pinassa|pinus nigra/.test(ht)){
+  habitatScore=0.95;
+  habitatTexto="Pinar de pinassa (Pinus nigra)";
+}else if(/pi negre|pinus uncinata/.test(ht)){
+  habitatScore=0.90;
+  habitatTexto="Pinar de pi negre (Pinus uncinata)";
+}else if(/pi blanc|pinus halepensis/.test(ht)){
+  habitatScore=0.80;
+  habitatTexto="Pinar de pi blanc (Pinus halepensis)";
+}else if(/pi pinyer|pinus pinea/.test(ht)){
+  habitatScore=0.75;
+  habitatTexto="Pinar de pi pinyer (Pinus pinea)";
+}else if(/pi|pinar|conífer|bosque|bosc|forest|arbrat/.test(ht)){
+  habitatScore=/pi|pinar/.test(ht)?0.88:0.75;
+  habitatTexto="Pinar o bosque de coníferas compatible";
+}else if(/matorral|matollar|arbust/.test(ht)){
+  habitatScore=0.35;
+  habitatTexto="Matorral / vegetación arbustiva";
+}else if(/cultiu|agr|conreu|agrícola|agricola|urb|edific|industrial|carretera|vial|urban|aigua|riu|llac|embass/.test(ht)){
+  habitatScore=0.05;
+  habitatTexto="Cobertura no forestal";
+}else if(ht){
+  habitatScore=0.20;
+  habitatTexto=ht;
+}
+}catch(e){}
+let score=calcularPuntuacion(
+lluvia7Pasada,
+lluvia14,
+lluvia30,
+tempActual,
+tempMedia7,
+suelo,
+alt,
+new Date().getMonth()+1,
+0,
+habitatScore,
+0,
+50,
+0
+);
+
+let y=Math.floor(i/columnas)-2;
+let x=(i%columnas)-2;
+let centroLat=lat+y*paso;
+let centroLon=lon+x*paso;
+
+let color=
+score>=80?"#ff3b1f":
+score>=60?"#ff8a00":
+score>=40?"#ffd23f":
+"#3b82f6";
+
+let nivel=
+score>=80?"Muy favorable":
+score>=60?"Favorable":
+score>=40?"Posible":
+"Baja";
+
+let popupHtml=
+"<b>🍄 Favorabilidad: "+score+"/100</b>"+
+"<br>🍄 "+nivel+
+"<hr style='margin:7px 0'>"+
+"🌧️ Últimos 7 días: "+Math.round(lluvia7)+" mm"+
+"<br>🌧️ Últimos 14 días: "+Math.round(lluvia14)+" mm"+
+"<br>🌧️ Últimos 30 días: "+Math.round(lluvia30)+" mm"+
+"<br>🌡️ Temp. actual: "+tempActual.toFixed(1)+" °C"+
+"<br>🌡️ Media 7 días: "+tempMedia7.toFixed(1)+" °C"+
+"<br>💧 Suelo: "+Math.round(suelo)+"%"+
+"<br>🌲 Hábitat: "+Math.round(habitatScore*100)+"/100"+
+"<br>⛰️ Altitud: "+Math.round(alt)+" m";
+
+puntosRadar.push({lat:centroLat,lon:centroLon,score});
+
+let puntoRadar=L.circleMarker([centroLat,centroLon],{
+radius:8,
+opacity:0,
+fillOpacity:0,
+interactive:true
+}).addTo(mapa);
+puntoRadar.bindPopup(popupHtml);
+capasFavorabilidad.push(puntoRadar);
+}
+// La favorabilidad sigue calculándose en los 25 puntos reales,
+// pero no se dibuja como superficie térmica sobre la fotografía aérea.
+// Los puntos permanecen disponibles para consultar sus datos al tocarlos.
+}catch(error){
+console.error("Mapa de favorabilidad:",error);
+}
+}
+
+async function buscarZona(){
+let consulta=$("buscadorZona").value.trim();
+let caja=$("resultadosZona");
+if(consulta.length<2){caja.innerHTML="";return;}
+caja.innerHTML='<div style="padding:10px">Buscando…</div>';
+try{
+let url="https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&accept-language=es&q="+encodeURIComponent(consulta);
+let respuesta=await fetch(url);
+if(!respuesta.ok) throw new Error();
+let lugares=await respuesta.json();
+if(!lugares.length){caja.innerHTML='<div style="padding:10px">No se encontraron lugares.</div>';return;}
+caja.innerHTML=lugares.map((l,i)=>`<button type="button" data-zona="${i}" style="display:block;width:100%;margin:0;border-radius:0;background:white;color:#17231b;text-align:left;font-weight:500;border-bottom:1px solid #e5e9e3">${escapar(l.display_name)}</button>`).join("");
+caja.querySelectorAll("button").forEach((b,i)=>b.onclick=()=>{
+let l=lugares[i];
+let lat=Number(l.lat),lon=Number(l.lon);
+$("lat").value=lat.toFixed(6);
+$("lon").value=lon.toFixed(6);
+$("buscadorZona").value=l.display_name;
+caja.innerHTML="";
+moverMapa(lat,lon);
+cargarDatos();
+});
+}catch(error){
+console.error(error);
+caja.innerHTML='<div style="padding:10px">No se pudo buscar la zona. Comprueba la conexión.</div>';
+}
+}
+
+function moverMapa(lat,lon){
+
+if(!mapa || !marcador){
+
+return;
+
+}
+
+marcador
+
+.setLatLng([lat,lon])
+
+.bindPopup("📍 Ubicación consultada");
+
+mapa.setView(
+
+[lat,lon],
+
+11
+
+);
+
+}
+
+/* ================= FAVORABILIDAD ================= */
+
+function factorCampana(valor,ideal,anchura){
+return Math.exp(-Math.pow((valor-ideal)/anchura,2));
+}
+
+function factorTemporada(mes){
+/*
+  Calibración estacional específica para rebollón.
+  La literatura sobre Lactarius deliciosus sitúa la fructificación
+  principalmente en otoño y destaca septiembre-octubre como periodo
+  especialmente sensible a la lluvia previa.
+*/
+const factores={
+1:.05,2:.03,3:.03,4:.03,5:.02,6:.02,
+7:.10,8:.35,9:.80,10:1.00,11:.95,12:.55
+};
+return factores[mes]||.05;
+}
+
+function calcularPuntuacion(
+lluvia7,
+lluvia14,
+lluvia30,
+tempActual,
+tempMedia7,
+suelo,
+altitud,
+mes,
+evidencia=0,
+habitat=0,
+dryDays=0,
+soilDeep=50,
+vpd24=0
+){
+/*
+  Modelo automático provisional:
+  meteorología + estacionalidad + hábitat + evidencia pública.
+  El hábitat se limita a una corrección para evitar que una buena
+  predicción meteorológica convierta una zona no forestal en «muy buena».
+*/
+let lluvia7Factor=factorCampana(lluvia7,35,30);
+let lluvia14Factor=factorCampana(lluvia14,60,50);
+let lluvia30Factor=factorCampana(lluvia30,115,95);
+
+let lluviaFactor=
+0.25*lluvia7Factor+
+0.30*lluvia14Factor+
+0.45*lluvia30Factor;
+
+let tempActualFactor=factorCampana(tempActual,14,6);
+let tempMedia7Factor=factorCampana(tempMedia7,15,5);
+
+let temperaturaFactor=
+0.35*tempActualFactor+
+0.65*tempMedia7Factor;
+
+let sueloFactor=Math.max(0,Math.min(1,suelo/100));
+let sueloProfundoFactor=factorCampana(Number(soilDeep)||50,55,28);
+let altFactor=factorCampana(altitud,850,750);
+let temporadaFactor=factorTemporada(mes);
+
+let sequedadFactor=dryDays<=1?0.55:
+  dryDays<=8?factorCampana(dryDays,4.5,4.5):
+  dryDays<=14?factorCampana(dryDays,8,7):0.25;
+
+let dinamicaLluvia=
+  0.45*factorCampana(lluvia7,35,30)+
+  0.35*factorCampana(lluvia14,60,50)+
+  0.20*factorCampana(lluvia30,115,95);
+
+let base=100*(
+0.27*lluviaFactor+
+0.12*dinamicaLluvia+
+0.17*temperaturaFactor+
+0.17*sueloFactor+
+0.07*sueloProfundoFactor+
+0.06*altFactor+
+0.06*temporadaFactor+
+0.05*Math.max(0,Math.min(1,habitat))+
+0.03*sequedadFactor+
+0.03*(Number(vpd24)>0?factorCampana(Number(vpd24),0.9,0.9):0.5)
+);
+
+/* Evidencia pública: máximo ±8 puntos */
+let ajusteEvidencia=Math.max(-8,Math.min(8,evidencia));
+
+/* Si sabemos que es una cobertura claramente no forestal, penalizamos. */
+let penalizacionHabitat=(habitat<0.20)?-12:0;
+
+return Math.max(0,Math.min(100,Math.round(base+ajusteEvidencia+penalizacionHabitat)));
+}
+
+function puntuacionActualSimple(lluvia,temp,suelo,alt,evidencia=0,habitat=0){
+return calcularPuntuacion(
+lluvia*0.35,
+lluvia,
+lluvia*1.55,
+temp,
+temp,
+suelo,
+alt,
+new Date().getMonth()+1,
+evidencia,
+habitat,
+Number(window.diasDesdeLluvia||0),
+Number(window.sueloProfundoActual||suelo),
+Number(window.vpdActual||0)
+);
+}
+
+function pintarFavorabilidad(){
+let lluvia=Number($("rainSlider").value);
+let temp=Number($("tempSlider").value);
+let suelo=Number($("soilSlider").value);
+let alt=Number($("altSlider").value);
+
+$("rainValue").textContent=lluvia;
+$("tempValue").textContent=temp;
+$("soilValue").textContent=suelo;
+$("altValue").textContent=alt;
+
+let evidencia=Number(window.evidenciaPublicaScore||0);
+let habitat=Number(window.habitatActualScore||0);
+let resultado=puntuacionActualSimple(lluvia,temp,suelo,alt,evidencia,habitat);
+resultado=Math.max(0,Math.min(100,Math.round(
+ resultado
+ + ((Number(window.sueloActualScore||0.5)-0.5)*8)
+ + ((Number(window.terrenoActualScore||0.5)-0.5)*4)
+ + ((Number(window.coberturaArbolScore||0.5)-0.5)*5)
+ + ((Number(window.densidadArbolScore||0.5)-0.5)*3)
+ + ((Number(window.ndviScore||0.5)-0.5)*2)
+)));
+resultado=actualizarModeloHistorico(resultado,evidencia);
+resultado=aplicarModeloHistorico(resultado);
+const ventana=calcularVentanaFructificacion();
+registrarValidacion(resultado,evidencia);
+actualizarValidacion();
+resultado=Math.max(0,Math.min(100,Math.round(resultado + Number(window.historialBiologicoScore||0))));
+registrarTendenciaRadar(resultado);
+actualizarMotorDecision(resultado);
+const conf=calcularFiabilidadDatos().nivel;
+const cajaConf=$("tendenciaRadar");
+if(cajaConf){
+ const actual=cajaConf.innerHTML;
+ cajaConf.innerHTML=actual+`<br><b>🎯 Confianza:</b> ${conf}`;
+}
+
+$("score").textContent=resultado;
+
+if(resultado>=80){
+$("nivel").textContent="Muy favorable";
+$("ventana").textContent="Condiciones actuales muy favorables";
+}else if(resultado>=60){
+$("nivel").textContent="Favorable";
+$("ventana").textContent="Condiciones actuales favorables";
+}else if(resultado>=40){
+$("nivel").textContent="Posible";
+$("ventana").textContent="Conviene vigilar lluvia y humedad";
+}else{
+$("nivel").textContent="Baja";
+$("ventana").textContent="Condiciones poco favorables";
+}
+
+$("ring").style.background=
+`conic-gradient(#3e8b58 0 ${resultado}%,#e5e9e3 ${resultado}% 100%)`;
+}
+
+function actualizarDinamicaFructificacion(){
+  const caja=$("dinamicaFructificacion");
+  if(!caja) return;
+
+  /* No confundimos un dato no disponible con un cero real. */
+  const numDisponible=v=>{
+    const n=Number(v);
+    return Number.isFinite(n);
+  };
+  const r3=numDisponible(window.lluvia3Actual)?Number(window.lluvia3Actual):null;
+  const r7=numDisponible(window.lluvia7Actual)?Number(window.lluvia7Actual):null;
+  const r14=numDisponible(window.lluvia14Actual)?Number(window.lluvia14Actual):null;
+  const secos=numDisponible(window.diasDesdeLluvia)?Number(window.diasDesdeLluvia):null;
+  const s0=numDisponible(window.humedadSueloActual)?Number(window.humedadSueloActual):null;
+  const s1=numDisponible(window.sueloProfundoActual)?Number(window.sueloProfundoActual):null;
+  const vpd=numDisponible(window.vpdActual)?Number(window.vpdActual):null;
+
+  const factores=[];
+  if(r3!==null) factores.push([factorCampana(r3,18,22),35]);
+  if(r7!==null) factores.push([factorCampana(r7,35,30),25]);
+  if(r14!==null) factores.push([factorCampana(r14,60,50),15]);
+  if(s0!==null && s0>0) factores.push([factorCampana(s0,60,28),10]);
+  if(s1!==null && s1>0) factores.push([factorCampana(s1,55,28),10]);
+  if(secos!==null) factores.push([(secos<=1?.35:secos<=10?1:secos<=16?.55:.15),5]);
+
+  /* VPD solo ajusta si existe un valor real. */
+  if(vpd!==null && vpd>0) factores.push([factorCampana(vpd,0.9,0.9),5]);
+
+  const pesoTotal=factores.reduce((a,b)=>a+b[1],0);
+  const indice=pesoTotal
+    ? Math.round(Math.max(0,Math.min(100,100*factores.reduce((a,b)=>a+b[0]*b[1],0)/pesoTotal)))
+    : 0;
+
+  const estado=indice>=75?"🍄 Ventana dinámica favorable":indice>=55?"🟡 Ventana dinámica posible":"⚪ Ventana dinámica débil";
+  const fmt=v=>v===null?"--":Math.round(v);
+  caja.innerHTML="<b>"+estado+"</b> · "+indice+"/100<br><span class='muted'>Lluvia 3/7/14 días: "+fmt(r3)+"/"+fmt(r7)+"/"+fmt(r14)+" mm · suelo 0–7 / 7–28 cm: "+fmt(s0)+"% / "+fmt(s1)+"% · "+(secos===null?"--":Math.round(secos))+" días secos"+(vpd!==null&&vpd>0?" · VPD 24h "+vpd.toFixed(2)+" kPa":"")+"</span>";
+}
+
+function actualizarMotorDecision(score){
+  const box=$("decisionRadar"), factores=$("decisionFactores");
+  if(!box||score===null||score===undefined||Number.isNaN(Number(score))) return;
+  const s=Number(score), lluvia3=Number(window.lluvia3Actual||0), lluvia30=Number(window.lluvia30Actual||0);
+  const suelo=Number(window.humedadSueloActual||0), sueloProf=Number(window.sueloProfundoActual||0);
+  const secos=Number(window.diasDesdeLluvia||30), temp=Number(window.tempActual||15);
+  const habitat=Number(window.habitatActualScore||0), evid=Number(window.evidenciaPublicaScore||0);
+  const titulo=s>=80?"🔥 ZONA MUY FAVORABLE":s>=65?"🟢 ZONA FAVORABLE":s>=45?"🟡 ZONA POSIBLE":"⚪ ZONA POCO INTERESANTE AHORA";
+  const razones=[
+    lluvia3>=8?"🌧️ Lluvia reciente favorable":lluvia3>=3?"🌦️ Lluvia reciente moderada":"🏜️ Poca lluvia reciente",
+    lluvia30>=30?"💧 Acumulación de lluvia de 30 días favorable":lluvia30>=12?"💧 Acumulación de lluvia moderada":"💧 Acumulación de lluvia baja",
+    secos<=4?"🌱 Pocos días secos":secos<=10?"🌱 Sequedad moderada":"☀️ Periodo seco prolongado",
+    suelo>=45&&sueloProf>=45?"💦 Humedad del suelo favorable":suelo>=30||sueloProf>=30?"💦 Humedad del suelo intermedia":"🏜️ Suelo demasiado seco",
+    temp>=8&&temp<=20?"🌡️ Temperatura compatible":temp>20?"🌡️ Temperatura elevada":"🌡️ Temperatura baja",
+    habitat>=0.75?"🌲 Hábitat muy compatible":habitat>=0.45?"🌲 Hábitat compatible":"🌾 Hábitat poco compatible"
+  ];
+  if(evid>0.15) razones.push("🍄 Hay evidencia pública reciente en la zona");
+  box.innerHTML="<b>"+titulo+"</b><br><span class='muted'>Puntuación actual: "+Math.round(s)+"/100</span>";
+  factores.innerHTML=razones.map(x=>"<span class='badge'>"+x+"</span>").join("");
+}
+
+function calcular(){
+
+pintarFavorabilidad();
+
+}
+
+/* ================= UBICACIÓN ================= */
+
+async function mostrarDireccionUbicacion(lat,lon){
+
+try{
+
+const respuesta=await fetch(
+`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`,
+{
+headers:{
+"Accept":"application/json"
+}
+}
+);
+
+if(!respuesta.ok) throw new Error("No se pudo obtener la dirección");
+
+const datos=await respuesta.json();
+
+const buscador=$("buscadorZona");
+
+if(buscador){
+
+buscador.value=datos.display_name||"Ubicación actual";
+
+}
+
+}catch(error){
+
+console.warn("Dirección no disponible:",error);
+
+const buscador=$("buscadorZona");
+
+if(buscador){
+
+buscador.value="Ubicación actual";
+
+}
+
+}
+
+}
+
+function usarUbicacion(){
+
+if(!navigator.geolocation){
+  $("estado").textContent="Este navegador no permite obtener la ubicación.";
+  return;
+}
+
+$("estado").textContent="📍 Obteniendo ubicación precisa…";
+
+navigator.geolocation.getCurrentPosition(
+
+async pos=>{
+
+  const lat=pos.coords.latitude;
+  const lon=pos.coords.longitude;
+
+  $("lat").value=lat.toFixed(6);
+  $("lon").value=lon.toFixed(6);
+
+  if(mapa){
+    mapa.setView([lat,lon],13,{animate:true});
+    if(marcador){
+      marcador.setLatLng([lat,lon]);
+      marcador.bindPopup("📍 Mi ubicación actual").openPopup();
+    }else{
+      marcador=L.marker([lat,lon]).addTo(mapa)
+        .bindPopup("📍 Mi ubicación actual").openPopup();
+    }
+  }
+
+  $("estado").textContent="📍 Ubicación obtenida. Cargando datos…";
+
+  try{
+    await mostrarDireccionUbicacion(lat,lon);
+  }catch(e){
+    console.warn("Dirección no disponible:",e);
+  }
+
+  await cargarDatos();
+  await pintarMapaZonas(lat,lon);
+
+  if(mapa){
+    mapa.setView([lat,lon],13,{animate:true});
+    if(marcador) marcador.setLatLng([lat,lon]);
+  }
+
+  $("estado").textContent="✅ Ubicación actualizada correctamente.";
+
+},
+
+error=>{
+
+  let mensaje="No se pudo obtener la ubicación.";
+
+  if(error.code===1){
+    mensaje="📍 Permiso de ubicación denegado. Actívalo para este sitio y vuelve a pulsar el botón.";
+  }else if(error.code===2){
+    mensaje="📍 No se pudo determinar tu ubicación. Comprueba que el GPS/ubicación esté activado.";
+  }else if(error.code===3){
+    mensaje="📍 La ubicación tardó demasiado. Vuelve a intentarlo.";
+  }
+
+  $("estado").textContent=mensaje;
+  console.warn("Geolocalización:",error);
+
+},
+
+{
+  enableHighAccuracy:true,
+  timeout:30000,
+  maximumAge:0
+}
+
+);
+}
+/* ================= CONTROL DE TIEMPOS DE RED =================
+   Ningún servicio externo puede dejar el Radar esperando indefinidamente.
+   Si una API tarda demasiado, se aborta y el Radar continúa con el respaldo
+   o con los datos que sí estén disponibles.
+*/
+async function fetchConLimite(url,options={},timeoutMs=10000){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),timeoutMs);
+  try{
+    return await fetch(url,{...options,signal:controller.signal});
+  }finally{
+    clearTimeout(timer);
+  }
+}
+
+/* ================= VALORACIÓN PROVISIONAL SEGURA =================
+   El radar nunca debe quedarse en "Preparando…" si una fuente externa
+   tarda demasiado o falla. Esta valoración usa los valores disponibles
+   en los controles y sirve como respaldo visual hasta que llegue la
+   meteorología real.
+*/
+function mostrarValoracionProvisional(){
+  try{
+    const num=(id,def)=>{
+      const el=$(id);
+      const v=Number(el?.value);
+      return Number.isFinite(v)?v:def;
+    };
+    const lluvia=num("rainSlider",60);
+    const temp=num("tempSlider",15);
+    const suelo=num("soilSlider",50);
+    const alt=num("altSlider",800);
+
+    $("rainSlider").value=lluvia;
+    $("tempSlider").value=temp;
+    $("soilSlider").value=suelo;
+    $("altSlider").value=alt;
+    $("rainValue").textContent=Math.round(lluvia);
+    $("tempValue").textContent=Math.round(temp);
+    $("soilValue").textContent=Math.round(suelo);
+    $("altValue").textContent=Math.round(alt);
+
+    let provisional=null;
+    try{
+      if(typeof calcularPuntuacion==="function"){
+        provisional=calcularPuntuacion(
+          lluvia*0.35,
+          lluvia,
+          lluvia*1.55,
+          temp,
+          temp,
+          suelo,
+          alt,
+          new Date().getMonth()+1,
+          0,
+          0.5,
+          0,
+          suelo,
+          0
+        );
+      }
+    }catch(e){
+      console.warn("Radar Níscalo · cálculo meteorológico provisional:",e);
+    }
+
+    /* Último recurso: cálculo local, sin ninguna API externa ni función secundaria.
+       Así el radar siempre puede mostrar un resultado aunque falle otro bloque JS. */
+    if(!Number.isFinite(Number(provisional))){
+      const lluviaScore=Math.max(0,100-Math.abs(lluvia-60)*1.15);
+      const tempScore=Math.max(0,100-Math.abs(temp-15)*5);
+      const sueloScore=Math.max(0,100-Math.abs(suelo-55)*1.6);
+      const altScore=Math.max(0,100-Math.abs(alt-800)*0.08);
+      provisional=Math.round(lluviaScore*0.40+tempScore*0.25+sueloScore*0.25+altScore*0.10);
+    }
+
+    provisional=Math.max(0,Math.min(100,Math.round(Number(provisional))));
+    $("score").textContent=provisional;
+    $("nivel").textContent=
+      provisional>=80?"Muy favorable":
+      provisional>=60?"Favorable":
+      provisional>=40?"Posible":"Baja";
+    $("ventana").textContent="Valoración provisional · esperando meteorología";
+    $("ring").style.background=
+      "conic-gradient(#3e8b58 0 "+provisional+"%,#e5e9e3 "+provisional+"% 100%)";
+    return provisional;
+  }catch(e){
+    console.error("Radar Níscalo · valoración provisional:",e);
+    try{
+      $("score").textContent="--";
+      $("nivel").textContent="Preparando…";
+      $("ventana").textContent="Analizando condiciones del terreno y meteorología";
+    }catch(_){}
+    return null;
+  }
+}
+
+/* ================= DATOS METEOROLÓGICOS ================= */
+
+async function cargarDatos(){
+
+  const lat=parseFloat($("lat").value);    const cargaRadarId=Date.now();
+  window._cargaRadarId=cargaRadarId;
+  const watchdogRadar=setTimeout(()=>{
+    if(window._cargaRadarId===cargaRadarId && $("score")?.textContent==="--"){
+      mostrarValoracionProvisional();
+      $("estado").textContent="⚠️ La meteorología está tardando demasiado. Mostrando valoración provisional…";
+    }
+  },18000);
+
+
+  const lon=parseFloat($("lon").value);
+
+  if(!Number.isFinite(lat)||!Number.isFinite(lon)){
+    alert("Introduce una ubicación válida.");
+    return;
+  }
+
+  $("estado").textContent="🌦️ Cargando datos meteorológicos…";
+
+  /* =========================================================
+     METEOROLOGÍA PRINCIPAL
+     Se mantiene deliberadamente sencilla: si un dato secundario
+     falla, no puede bloquear temperatura, lluvia, humedad, etc.
+     ========================================================= */
+  let datos=null;
+  let errorMeteorologia=null;
+
+  const url=
+    "https://api.open-meteo.com/v1/forecast"+
+    "?latitude="+encodeURIComponent(lat)+
+    "&longitude="+encodeURIComponent(lon)+
+    "&timezone=auto"+
+    "&past_days=30"+
+    "&forecast_days=7"+
+    "&current=temperature_2m,relative_humidity_2m,wind_gusts_10m"+
+    "&hourly=temperature_2m,relative_humidity_2m,precipitation,precipitation_probability,wind_gusts_10m,vapour_pressure_deficit,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm"+
+    "&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code,et0_fao_evapotranspiration";
+
+  for(let intento=1;intento<=2;intento++){
+    try{
+      const respuesta=await fetchConLimite(url,{cache:"no-store"},10000);
+      const texto=await respuesta.text();
+
+      if(!respuesta.ok){
+        let motivo="HTTP "+respuesta.status;
+        try{
+          const fallo=JSON.parse(texto);
+          if(fallo?.reason) motivo+=": "+fallo.reason;
+        }catch(e){}
+        throw new Error(motivo);
+      }
+
+      const json=JSON.parse(texto);
+
+      if(!json?.current || !json?.hourly || !json?.daily){
+        throw new Error("Open-Meteo devolvió una respuesta incompleta.");
+      }
+
+      datos=json;
+      break;
+
+    }catch(e){
+      errorMeteorologia=e;
+      if(intento===1){
+        await new Promise(resolve=>setTimeout(resolve,700));
+      }
+    }
+  }
+
+  if(!datos){
+    /* =======================================================
+       RESPALDO 1 · MET NORWAY
+       Open-Meteo puede devolver 429 por límite diario. MET
+       Norway ofrece previsión global sin clave y hasta 9 días.
+       ======================================================= */
+    try{
+      const mlat=Number(lat.toFixed(4));
+      const mlon=Number(lon.toFixed(4));
+      const metUrl=
+        "https://api.met.no/weatherapi/locationforecast/2.0/compact"+
+        "?lat="+encodeURIComponent(mlat)+
+        "&lon="+encodeURIComponent(mlon);
+
+      const metResp=await fetchConLimite(metUrl,{cache:"no-store"},10000);
+      const metTexto=await metResp.text();
+
+      if(!metResp.ok){
+        throw new Error("MET Norway HTTP "+metResp.status);
+      }
+
+      const met=JSON.parse(metTexto);
+      const series=Array.isArray(met?.properties?.timeseries)
+        ?met.properties.timeseries:[];
+
+      if(!series.length){
+        throw new Error("MET Norway devolvió una respuesta sin previsión.");
+      }
+
+      const ahoraTs=Date.now();
+      let indice=0;
+      let mejor=Infinity;
+
+      series.forEach((p,i)=>{
+        const t=Date.parse(p.time);
+        const d=Math.abs(t-ahoraTs);
+        if(Number.isFinite(d)&&d<mejor){
+          mejor=d;
+          indice=i;
+        }
+      });
+
+      const actual=series[indice];
+      const metAltitud=Number(met?.geometry?.coordinates?.[2]);
+      const inst=actual?.data?.instant?.details||{};
+      const temp=Number(inst.air_temperature);
+      const hum=Number(inst.relative_humidity);
+      const viento=Number(inst.wind_speed);
+      const precipActual=Number(
+        actual?.data?.next_1_hours?.details?.precipitation_amount ??
+        actual?.data?.next_6_hours?.details?.precipitation_amount ??
+        0
+      );
+
+      if(!Number.isFinite(temp)){
+        throw new Error("MET Norway no devolvió temperatura.");
+      }
+
+      const diasMap=new Map();
+
+      series.forEach(p=>{
+        const fecha=p.time?.slice(0,10);
+        if(!fecha)return;
+
+        const d=p.data||{};
+        const di=d.instant?.details||{};
+        const six=d.next_6_hours?.details||{};
+        const one=d.next_1_hours?.details||{};
+
+        if(!diasMap.has(fecha)){
+          diasMap.set(fecha,{
+            max:-Infinity,
+            min:Infinity,
+            suma:0,
+            prob:0,
+            wind:0,
+            count:0
+          });
+        }
+
+        const dia=diasMap.get(fecha);
+        const t=Number(di.air_temperature);
+        if(Number.isFinite(t)){
+          dia.max=Math.max(dia.max,t);
+          dia.min=Math.min(dia.min,t);
+        }
+
+        const lluvia=Number(
+          one.precipitation_amount ??
+          six.precipitation_amount ??
+          0
+        );
+        if(Number.isFinite(lluvia))dia.suma+=Math.max(0,lluvia);
+
+        const prob=Number(
+          six.probability_of_precipitation ??
+          one.probability_of_precipitation ??
+          0
+        );
+        if(Number.isFinite(prob))dia.prob=Math.max(dia.prob,prob);
+
+        const w=Number(di.wind_speed);
+        if(Number.isFinite(w))dia.wind=Math.max(dia.wind,w);
+
+        dia.count++;
+      });
+
+      const dailyFechas=[...diasMap.keys()].sort().slice(0,9);
+      const daily={
+        time:dailyFechas,
+        temperature_2m_max:dailyFechas.map(f=>{
+          const d=diasMap.get(f);
+          return Number.isFinite(d.max)?d.max:null;
+        }),
+        temperature_2m_min:dailyFechas.map(f=>{
+          const d=diasMap.get(f);
+          return Number.isFinite(d.min)?d.min:null;
+        }),
+        temperature_2m_mean:dailyFechas.map(f=>{
+          const d=diasMap.get(f);
+          if(!Number.isFinite(d.max)||!Number.isFinite(d.min))return null;
+          return (d.max+d.min)/2;
+        }),
+        precipitation_sum:dailyFechas.map(f=>diasMap.get(f).suma),
+        precipitation_probability_max:dailyFechas.map(f=>diasMap.get(f).prob),
+        wind_gusts_10m_max:dailyFechas.map(f=>diasMap.get(f).wind),
+        weather_code:dailyFechas.map(f=>{
+          const p=series.find(x=>x.time?.slice(0,10)===f);
+          const code=String(
+            p?.data?.next_1_hours?.summary?.symbol_code ??
+            p?.data?.next_6_hours?.summary?.symbol_code ??
+            p?.data?.next_12_hours?.summary?.symbol_code ??
+            ""
+          ).toLowerCase();
+
+          if(code.includes("thunder")) return 95;
+          if(code.includes("heavysnow") || code.includes("snowshowers")) return 85;
+          if(code.includes("snow")) return 73;
+          if(code.includes("sleet")) return 67;
+          if(code.includes("heavyrain") || code.includes("rainshowers")) return 80;
+          if(code.includes("rain") || code.includes("drizzle")) return 61;
+          if(code.includes("fog")) return 45;
+          if(code.includes("partlycloudy")) return 2;
+          if(code.includes("cloudy")) return 3;
+          if(code.includes("fair") || code.includes("clearsky")) return 1;
+          return 0;
+        }),
+        et0_fao_evapotranspiration:[]
+      };
+
+      const isoActual=actual.time||new Date().toISOString();
+
+      datos={
+        current:{
+          time:isoActual,
+          temperature_2m:temp,
+          relative_humidity_2m:hum,
+          wind_gusts_10m:Number.isFinite(viento)?viento:0
+        },
+        hourly:{
+          time:[isoActual],
+          temperature_2m:[temp],
+          relative_humidity_2m:[hum],
+          precipitation:[Number.isFinite(precipActual)?precipActual:0],
+          precipitation_probability:[0],
+          wind_gusts_10m:[Number.isFinite(viento)?viento:0],
+          vapour_pressure_deficit:[null]
+        },
+        daily,
+        _respaldoLimitado:true
+      };
+
+      if(Number.isFinite(metAltitud)){
+        datos._altitudRespaldo=metAltitud;
+      }
+
+      window.meteorologiaRespaldo=true;
+      window.meteorologiaFuente="MET Norway";
+      console.warn("Radar Níscalo · usando MET Norway como respaldo.",errorMeteorologia);
+      $("estado").textContent=
+        "⚠️ Open-Meteo ha alcanzado su límite. Mostrando meteorología de respaldo…";
+
+    }catch(metError){
+
+      /* =====================================================
+         RESPALDO 2 · WTTR.IN
+         ===================================================== */
+      try{
+        const respaldoUrl=
+          "https://wttr.in/"+
+          encodeURIComponent(lat)+","+encodeURIComponent(lon)+
+          "?format=j1";
+
+        const respaldoResp=await fetchConLimite(respaldoUrl,{cache:"no-store"},10000);
+        const respaldoTexto=await respaldoResp.text();
+
+        if(!respaldoResp.ok){
+          throw new Error("wttr.in HTTP "+respaldoResp.status);
+        }
+
+        const respaldoJson=JSON.parse(respaldoTexto);
+        const actual=respaldoJson?.current_condition?.[0];
+        const dias=Array.isArray(respaldoJson?.weather)
+          ?respaldoJson.weather:[];
+
+        if(!actual){
+          throw new Error("wttr.in devolvió una respuesta incompleta.");
+        }
+
+        const temp=Number(actual.temp_C);
+        const hum=Number(actual.humidity);
+        const viento=Number(actual.windspeedKmph);
+        const lluviaAhora=Number(actual.precipMM||0);
+
+        const daily={
+          time:dias.map(d=>d.date).filter(Boolean),
+          temperature_2m_max:dias.map(d=>Number(d.maxtempC)),
+          temperature_2m_min:dias.map(d=>Number(d.mintempC)),
+          temperature_2m_mean:dias.map(d=>Number(d.avgtempC)),
+          precipitation_sum:dias.map(d=>{
+            const horas=Array.isArray(d.hourly)?d.hourly:[];
+            return horas.reduce((s,h)=>s+Number(h.precipMM||0),0);
+          }),
+          precipitation_probability_max:dias.map(d=>{
+            const horas=Array.isArray(d.hourly)?d.hourly:[];
+            return horas.reduce((m,h)=>Math.max(m,Number(h.chanceofrain||0)),0);
+          }),
+          wind_gusts_10m_max:dias.map(d=>{
+            const horas=Array.isArray(d.hourly)?d.hourly:[];
+            return horas.reduce((m,h)=>Math.max(m,Number(h.windspeedKmph||0)),0);
+          }),
+          weather_code:dias.map(d=>Number(d.hourly?.[0]?.weatherCode||0)),
+          et0_fao_evapotranspiration:[]
+        };
+
+        const ahora=new Date().toISOString();
+
+        datos={
+          current:{
+            time:ahora,
+            temperature_2m:temp,
+            relative_humidity_2m:hum,
+            wind_gusts_10m:viento
+          },
+          hourly:{
+            time:[ahora],
+            temperature_2m:[temp],
+            relative_humidity_2m:[hum],
+            precipitation:[lluviaAhora],
+            precipitation_probability:[Number(actual.chanceofrain||0)],
+            wind_gusts_10m:[viento],
+            vapour_pressure_deficit:[null]
+          },
+          daily
+        };
+
+        window.meteorologiaRespaldo=true;
+        window.meteorologiaFuente="wttr.in";
+        console.warn("Radar Níscalo · usando wttr.in como segundo respaldo.",metError);
+        $("estado").textContent=
+          "⚠️ Meteorología de respaldo activada.";
+
+      }catch(respaldoError){
+        console.error("Radar Níscalo · Open-Meteo:",errorMeteorologia);
+        console.error("Radar Níscalo · MET Norway:",metError);
+        console.error("Radar Níscalo · wttr.in:",respaldoError);
+
+        /* Aunque fallen las tres fuentes meteorológicas, el Radar no se queda
+           bloqueado en "Preparando…". Calculamos una valoración provisional
+           con valores neutros y dejamos claro que no procede de meteorología en vivo. */
+        mostrarValoracionProvisional();
+        $("estado").textContent=
+          "⚠️ Sin conexión meteorológica. El Radar muestra una valoración provisional. "+
+          "Puedes seguir usando mapa, ubicación y funciones locales.";
+        return;
+      }
+    }
+  }
+  try{
+
+    /* =======================================================
+       ÍNDICE HORARIO ACTUAL
+       ======================================================= */
+    const tiempos=Array.isArray(datos.hourly.time)?datos.hourly.time:[];
+    const precipitacion=Array.isArray(datos.hourly.precipitation)
+      ?datos.hourly.precipitation:[];
+
+    /* Elegimos la hora más cercana al momento actual. */
+    let indiceActual=0;
+    if(tiempos.length){
+      const ahoraMs=Date.parse(datos.current?.time||new Date().toISOString());
+      let mejor=Infinity;
+      tiempos.forEach((t,i)=>{
+        const ms=Date.parse(t);
+        if(!Number.isFinite(ms))return;
+        const d=Math.abs(ms-ahoraMs);
+        if(d<mejor){mejor=d;indiceActual=i;}
+      });
+    }
+
+    /* La lluvia acumulada se calcula con los valores diarios.
+       Es mucho más fiable que contar horas cuando la API devuelve
+       bloques históricos + previsión en una sola respuesta. */
+    const fechasDiarias=Array.isArray(datos.daily?.time)?datos.daily.time:[];
+    const lluviaDiariaRaw=Array.isArray(datos.daily?.precipitation_sum)
+      ?datos.daily.precipitation_sum:[];
+    const hoyRadar=new Date();
+    const hoyRadarClave=[
+      hoyRadar.getFullYear(),
+      String(hoyRadar.getMonth()+1).padStart(2,"0"),
+      String(hoyRadar.getDate()).padStart(2,"0")
+    ].join("-");
+
+    const sumarLluviaDias=(dias)=>{
+      let suma=0;
+      for(let i=0;i<fechasDiarias.length;i++){
+        const f=String(fechasDiarias[i]);
+        if(f<=hoyRadarClave && f>=fechaDiasAntes(hoyRadarClave,dias)){
+          suma+=Number(lluviaDiariaRaw[i]||0);
+        }
+      }
+      return suma;
+    };
+
+    const fechaDiasAntes=(clave,dias)=>{
+      const d=new Date(clave+"T12:00:00");
+      d.setDate(d.getDate()-dias+1);
+      return d.toISOString().slice(0,10);
+    };
+
+    let lluvia3=sumarLluviaDias(3);
+    let lluvia7=sumarLluviaDias(7);
+    let lluvia14=sumarLluviaDias(14);
+    let lluvia30=sumarLluviaDias(30);
+    let humedadSuelo=NaN;
+    let sueloProfundo=NaN;
+    let diasSecosHistorico=null;
+
+    /* MET Norway no aporta histórico. No mostramos ceros inventados.
+       Intentamos recuperar los últimos 30 días desde el archivo histórico
+       independiente del endpoint de previsión. Si también falla, queda "--". */
+    let historicoLluviaDisponible=!datos._respaldoLimitado;
+
+    if(datos._respaldoLimitado){
+      try{
+        const fin=new Date();
+        const ini=new Date();
+        ini.setDate(fin.getDate()-29);
+        const iso=d=>d.toISOString().slice(0,10);
+        const archiveUrl=
+          "https://archive-api.open-meteo.com/v1/archive"+
+          "?latitude="+encodeURIComponent(lat)+
+          "&longitude="+encodeURIComponent(lon)+
+          "&start_date="+iso(ini)+
+          "&end_date="+iso(fin)+
+          "&timezone=auto"+
+          "&daily=precipitation_sum"+
+          "&hourly=soil_moisture_0_to_7cm,soil_moisture_7_to_28cm";
+        const archiveResp=await fetchConLimite(archiveUrl,{cache:"no-store"},8000);
+        if(archiveResp.ok){
+          const archive=await archiveResp.json();
+          const fechas=Array.isArray(archive?.daily?.time)?archive.daily.time:[];
+          const lluvias=Array.isArray(archive?.daily?.precipitation_sum)?archive.daily.precipitation_sum:[];
+          if(fechas.length && lluvias.length){
+            const hoyClave=iso(fin);
+            const sumarArchivo=dias=>{
+              const desde=new Date(fin);
+              desde.setDate(desde.getDate()-dias+1);
+              const desdeClave=iso(desde);
+              let suma=0;
+              for(let i=0;i<fechas.length;i++){
+                if(String(fechas[i])>=desdeClave && String(fechas[i])<=hoyClave){
+                  suma+=Number(lluvias[i]||0);
+                }
+              }
+              return suma;
+            };
+            lluvia3=sumarArchivo(3);
+            lluvia7=sumarArchivo(7);
+            lluvia14=sumarArchivo(14);
+            lluvia30=sumarArchivo(30);
+            historicoLluviaDisponible=fechas.length>0;
+
+            /* En el modo de respaldo, "días desde la última lluvia"
+               también sale del mismo histórico diario. No usamos el
+               contador horario de MET Norway, porque ese contador solo
+               cubre el bloque que haya devuelto el respaldo. */
+            let diasSin=0;
+            for(let i=fechas.length-1;i>=0;i--){
+              const mm=Number(lluvias[i]);
+              if(Number.isFinite(mm) && mm>=0.5) break;
+              diasSin++;
+            }
+            diasSecosHistorico=diasSin;
+
+            /* También recuperamos humedad del suelo desde el archivo histórico.
+               El valor mostrado es el promedio de las últimas 24 h disponibles. */
+            const soilTimes=Array.isArray(archive?.hourly?.time)?archive.hourly.time:[];
+            const soil0=Array.isArray(archive?.hourly?.soil_moisture_0_to_7cm)
+              ?archive.hourly.soil_moisture_0_to_7cm:[];
+            const soil1=Array.isArray(archive?.hourly?.soil_moisture_7_to_28cm)
+              ?archive.hourly.soil_moisture_7_to_28cm:[];
+            const soilMuestras=[];
+            const soilMuestrasProf=[];
+            /* El histórico puede tener varios días de retraso. Tomamos
+               las últimas muestras disponibles, no solamente las últimas
+               36 horas, para no quedarnos sin humedad. */
+            for(let i=Math.max(0,soilTimes.length-24);i<soilTimes.length;i++){
+              const a=Number(soil0[i]);
+              const b=Number(soil1[i]);
+              if(Number.isFinite(a))soilMuestras.push(a*100);
+              if(Number.isFinite(b))soilMuestrasProf.push(b*100);
+            }
+            if(soilMuestras.length){
+              humedadSuelo=soilMuestras.reduce((a,b)=>a+b,0)/soilMuestras.length;
+            }
+            if(soilMuestrasProf.length){
+              sueloProfundo=soilMuestrasProf.reduce((a,b)=>a+b,0)/soilMuestrasProf.length;
+            }
+          }
+        }
+      }catch(e){
+        console.warn("Histórico de lluvia no disponible:",e);
+      }
+    }
+
+    let horasDesdeLluvia=0;
+    for(let i=indiceActual;i>=0;i--){
+      if(Number(precipitacion[i]||0)>=0.5) break;
+      horasDesdeLluvia++;
+      if(horasDesdeLluvia>=30*24) break;
+    }
+    let diasSecos=Math.floor(horasDesdeLluvia/24);
+    if(Number.isFinite(diasSecosHistorico)){
+      diasSecos=diasSecosHistorico;
+    }
+
+    const vpdArr=Array.isArray(datos.hourly.vapour_pressure_deficit)
+      ?datos.hourly.vapour_pressure_deficit:[];
+    const vpdMuestras=[];
+    for(let i=Math.max(0,indiceActual-23);i<=indiceActual;i++){
+      const v=Number(vpdArr[i]);
+      if(Number.isFinite(v)) vpdMuestras.push(v);
+    }
+    const vpd24=vpdMuestras.length
+      ?vpdMuestras.reduce((a,b)=>a+b,0)/vpdMuestras.length
+      :0;
+
+    const et0=Array.isArray(datos.daily.et0_fao_evapotranspiration)
+      ?datos.daily.et0_fao_evapotranspiration:[];
+    const et07=et0.slice(0,7).reduce((a,b)=>a+Number(b||0),0);
+
+    const temperatura=Number(datos.current.temperature_2m);
+    const humedad=Number(datos.current.relative_humidity_2m);
+    const rafaga=Number(datos.current.wind_gusts_10m);
+
+    const lluviaDiaria=Array.isArray(datos.daily.precipitation_sum)
+      ?datos.daily.precipitation_sum:[];
+    const probDiaria=Array.isArray(datos.daily.precipitation_probability_max)
+      ?datos.daily.precipitation_probability_max:[];
+    const lluvia7Prevista=lluviaDiaria.slice(0,7).reduce((a,b)=>a+Number(b||0),0);
+    const probabilidades=probDiaria.slice(0,7).map(v=>Number(v||0));
+    const probabilidad=probabilidades.length?Math.max(...probabilidades):0;
+
+    /* =======================================================
+       HUMEDAD DEL SUELO
+       Se obtiene de la misma respuesta meteorológica principal.
+       Así evitamos una segunda llamada a Open-Meteo que podía
+       alcanzar el límite diario y dejar el valor en 0.
+       Open-Meteo entrega la humedad volumétrica del suelo en
+       m³/m³ para 0–7 cm y 7–28 cm. 
+       ======================================================= */
+    try{
+      const soilSuperficial=Array.isArray(datos.hourly?.soil_moisture_0_to_7cm)
+        ?datos.hourly.soil_moisture_0_to_7cm:[];
+      const soilProfundoArr=Array.isArray(datos.hourly?.soil_moisture_7_to_28cm)
+        ?datos.hourly.soil_moisture_7_to_28cm:[];
+
+      let soilIndex=0;
+      if(tiempos.length && soilSuperficial.length){
+        const ahoraMs=Date.parse(datos.current?.time||new Date().toISOString());
+        let mejor=Infinity;
+        const limite=Math.min(tiempos.length,soilSuperficial.length);
+        for(let i=0;i<limite;i++){
+          const ms=Date.parse(tiempos[i]);
+          if(!Number.isFinite(ms))continue;
+          const d=Math.abs(ms-ahoraMs);
+          if(d<mejor){mejor=d;soilIndex=i;}
+        }
+      }
+      const superficial=Number(soilSuperficial[soilIndex]);
+      if(Number.isFinite(superficial) && superficial>0){
+        humedadSuelo=Math.round(superficial*100);
+      }
+
+      const profundo=[];
+      for(let i=Math.max(0,indiceActual-23);i<=indiceActual;i++){
+        const v=Number(soilProfundoArr[i]);
+        if(Number.isFinite(v)) profundo.push(v*100);
+      }
+      if(profundo.length){
+        sueloProfundo=profundo.reduce((a,b)=>a+b,0)/profundo.length;
+      }
+    }catch(e){
+      console.warn("Humedad del suelo no disponible:",e);
+    }
+
+    /* =======================================================
+       ALTITUD
+       También es secundaria.
+       ======================================================= */
+    let altitud=Number.isFinite(datos._altitudRespaldo)
+      ?Math.round(datos._altitudRespaldo):0;
+
+    if(!altitud){
+      try{
+        const elevacion=await fetchConLimite(
+          "https://api.open-meteo.com/v1/elevation?latitude="+
+          encodeURIComponent(lat)+"&longitude="+encodeURIComponent(lon),
+          {cache:"no-store"},
+          7000
+        );
+        if(elevacion.ok){
+          const elevacionDatos=await elevacion.json();
+          altitud=Math.round(elevacionDatos.elevation?.[0]||0);
+        }
+      }catch(e){
+        console.warn("Altitud no disponible:",e);
+      }
+    }
+
+    /* =======================================================
+       MOSTRAR DATOS BÁSICOS ANTES DE CUALQUIER FUENTE
+       SECUNDARIA. Esto evita que una fuente externa deje todo
+       en blanco.
+       ======================================================= */
+    $("lluvia14").textContent=historicoLluviaDisponible ? Math.round(lluvia14)+" mm" : "--";
+    $("lluvia3").textContent=historicoLluviaDisponible ? Math.round(lluvia3)+" mm" : "--";
+    $("lluvia30").textContent=historicoLluviaDisponible ? Math.round(lluvia30)+" mm" : "--";
+    $("diasSecos").textContent=historicoLluviaDisponible ? diasSecos+" d" : "--";
+    $("sueloProfundo").textContent=Number.isFinite(sueloProfundo)?Math.round(sueloProfundo)+"%":"--";
+    $("suelo").textContent=Number.isFinite(Number(humedadSuelo)) && humedadSuelo>0 ? Math.round(humedadSuelo)+"%" : "--";
+    $("temperatura").textContent=Number.isFinite(temperatura)?temperatura.toFixed(1)+" °C":"--";
+    $("altitud").textContent=altitud+" m";
+    $("humedad").textContent=Number.isFinite(humedad)?Math.round(humedad)+"%":"--";
+    $("probLluvia").textContent=Math.round(probabilidad)+"%";
+    $("rafaga").textContent=Number.isFinite(rafaga)?Math.round(rafaga)+" km/h":"--";
+    $("lluvia7").textContent=(datos._respaldoLimitado && lluvia7Prevista===0) ? "--" : lluvia7Prevista.toFixed(1)+" mm";
+
+    $("rainSlider").value=historicoLluviaDisponible
+      ? Math.min(250,Math.max(0,Math.round(lluvia14)))
+      : 0;
+    $("tempSlider").value=Math.max(2,Math.min(30,Number.isFinite(temperatura)?temperatura:15));
+    $("soilSlider").value=Number.isFinite(Number(humedadSuelo)) && humedadSuelo>0
+      ? Math.max(1,Math.min(100,humedadSuelo))
+      : 1;
+    $("altSlider").value=Math.max(0,Math.min(2500,altitud));
+
+    window.lluvia3Actual=lluvia3;
+    window.lluvia7Actual=lluvia7;
+    window.lluvia14Actual=lluvia14;
+    window.lluvia30Actual=lluvia30;
+
+    if(historicoLluviaDisponible){
+      try{
+        localStorage.setItem("radar_lluvia3",String(lluvia3));
+        localStorage.setItem("radar_lluvia7",String(lluvia7));
+        localStorage.setItem("radar_lluvia14",String(lluvia14));
+        localStorage.setItem("radar_lluvia30",String(lluvia30));
+      }catch(e){}
+    }
+    window.lluviaActual=historicoLluviaDisponible?lluvia14:null;
+    window.tempActual=Number.isFinite(temperatura)?temperatura:15;
+    window.humedadSueloActual=(Number.isFinite(Number(humedadSuelo))&&humedadSuelo>0)?humedadSuelo:null;
+    window.sueloProfundoActual=Number.isFinite(sueloProfundo)?sueloProfundo:window.humedadSueloActual;
+    window.diasDesdeLluvia=historicoLluviaDisponible?diasSecos:null;
+    window.vpdActual=vpd24;
+    window.et07Actual=et07;
+
+    try{ actualizarDinamicaFructificacion(); }catch(e){console.warn("Dinámica:",e);}
+    try{ pintarFavorabilidad(); }catch(e){console.warn("Favorabilidad:",e);}
+    try{ mostrarPrevision(datos.daily); }catch(e){console.warn("Previsión:",e);}
+
+    try{ moverMapa(lat,lon); }catch(e){console.warn("Mapa:",e);}
+    try{ pintarMapaZonas(lat,lon); }catch(e){console.warn("Zonas:",e);}
+
+    window.ultimaLat=lat;
+    window.ultimaLon=lon;
+
+    try{ consultarHabitat(lat,lon); }catch(e){console.warn("Hábitat:",e);}
+    try{ consultarTerreno(lat,lon); }catch(e){console.warn("Terreno:",e);}
+    try{ consultarSueloGeologia(lat,lon); }catch(e){console.warn("Suelo/geología:",e);}
+    try{ consultarEstructuraArbolado(lat,lon); }catch(e){console.warn("Arbolado:",e);}
+    try{ consultarEstructuraAvanzada(lat,lon); }catch(e){console.warn("Estructura avanzada:",e);}
+    try{ consultarNDVI(lat,lon); }catch(e){console.warn("NDVI:",e);}
+    try{ cargarEvidenciaPublica(lat,lon); }catch(e){console.warn("Evidencia pública:",e);}
+    try{ cargarHistorialBiologico(lat,lon); }catch(e){console.warn("Historial biológico:",e);}
+    try{ construirModeloHistorico(lat,lon); }catch(e){console.warn("Modelo histórico:",e);}
+
+    try{
+      $("windy").src=
+        "https://embed.windy.com/embed2.html?lat="+lat+
+        "&lon="+lon+
+        "&detailLat="+lat+
+        "&detailLon="+lon+
+        "&width=650&height=450&zoom=8&level=surface&overlay=rain"+
+        "&product=ecmwf&menu=&message=true&marker=true&calendar=now"+
+        "&pressure=true&type=map&location=coordinates&detail=true"+
+        "&metricWind=default&metricTemp=default&metricRain=default"+
+        "&metricSnow=default&metricCloud=default";
+    }catch(e){console.warn("Windy:",e);}
+
+    $("ubicacionTexto").textContent=
+      "Lat "+lat.toFixed(4)+" · Lon "+lon.toFixed(4);
+
+    $("estado").textContent=
+      window.meteorologiaRespaldo
+        ? (historicoLluviaDisponible
+          ? "⚠️ Meteorología de respaldo actualizada. Lluvia histórica recuperada. Consultando hábitat y fuentes adicionales…"
+          : "⚠️ Meteorología de respaldo actualizada. Histórico de lluvia no disponible ahora. Consultando hábitat y fuentes adicionales…")
+        : "✅ Datos meteorológicos actualizados. Consultando hábitat y fuentes adicionales…";
+
+  }catch(error){
+
+    console.error("Radar Níscalo · procesamiento meteorológico:",error);
+    if($("score")?.textContent==="--") mostrarValoracionProvisional();
+
+    $("estado").textContent=
+      "⚠️ Error procesando los datos. Mostrando valoración provisional: "+
+      (error?.message||"error desconocido.");
+
+  }finally{
+    if(window._cargaRadarId===cargaRadarId){
+      clearTimeout(watchdogRadar);
+    }
+  }
+}
+
+
+/* ================= PREVISIÓN ================= */
+
+function iconoTiempo(codigo){
+
+if(codigo===0)
+
+return "☀️";
+
+if(codigo<=2)
+
+return "🌤️";
+
+if(codigo===3)
+
+return "☁️";
+
+if(codigo<=67)
+
+return "🌧️";
+
+if(codigo<=77)
+
+return "❄️";
+
+return "⛈️";
+
+}
+
+function mostrarPrevision(diario){
+
+let caja=
+
+$("prevision");
+const tarjetaPrevision=document.getElementById("previsionCard");
+if(tarjetaPrevision){
+  tarjetaPrevision.classList.remove("meteo-sol","meteo-nubes","meteo-lluvia","meteo-tormenta");
+}
+
+caja.innerHTML="";
+
+if(!diario || !diario.time){
+
+return;
+
+}
+
+const hoyLocal=new Date();
+const hoyClave=[
+hoyLocal.getFullYear(),
+String(hoyLocal.getMonth()+1).padStart(2,"0"),
+String(hoyLocal.getDate()).padStart(2,"0")
+].join("-");
+
+const indices=diario.time
+.map((fecha,i)=>({fecha,i}))
+.filter(x=>x.fecha>=hoyClave)
+.sort((a,b)=>a.fecha.localeCompare(b.fecha))
+.slice(0,7);
+
+indices.forEach(({fecha,i},posicion)=>{
+
+if(posicion===0 && tarjetaPrevision){
+  const codigoActual=Number(diario.weather_code?.[i] ?? 0);
+  if(codigoActual===0 || codigoActual===1) tarjetaPrevision.classList.add("meteo-sol");
+  else if(codigoActual===2 || codigoActual===3 || (codigoActual>=45 && codigoActual<=48)) tarjetaPrevision.classList.add("meteo-nubes");
+  else if((codigoActual>=51 && codigoActual<=67) || (codigoActual>=80 && codigoActual<=82)) tarjetaPrevision.classList.add("meteo-lluvia");
+  else if(codigoActual>=95) tarjetaPrevision.classList.add("meteo-tormenta");
+  else tarjetaPrevision.classList.add("meteo-nubes");
+}
+
+let div=
+
+document.createElement("div");
+
+div.className="day";
+
+let fechaReal=
+
+new Date(
+
+fecha+"T12:00:00"
+
+);
+
+let temperaturaDia=
+Number(
+  diario.temperature_2m_max?.[i] ?? diario.temperature_2m_mean?.[i] ?? 0
+);
+
+let lluviaDia=
+
+Number(
+
+diario.precipitation_sum?.[i] ?? 0
+
+);
+
+let probDia=
+
+Number(
+
+diario.precipitation_probability_max?.[i] ?? 0
+
+);
+
+div.innerHTML=`
+
+<b>
+
+${fechaReal.toLocaleDateString(
+
+"es-ES",
+
+{
+
+weekday:"short",
+
+day:"2-digit",
+
+month:"2-digit"
+
+}
+
+)}
+
+</b>
+
+<div class="ico">
+
+${iconoTiempo(
+
+Number(diario.weather_code?.[i]||0)
+
+)}
+
+</div>
+
+<strong>
+
+${Math.round(temperaturaDia)} °C máx.
+
+</strong>
+
+<div>
+
+🌧️ ${lluviaDia.toFixed(1)} mm
+
+</div>
+
+<div>
+
+💧 ${probDia}%
+
+</div>
+
+`;
+
+caja.appendChild(div);
+
+}
+
+);
+
+/* IMPORTANTE: cierre correcto de mostrarPrevision */
+
+}
+
+/* ================= HISTÓRICO ================= */
+
+async function cargarHistorico(){
+
+let lat=
+
+parseFloat($("lat").value);
+
+let lon=
+
+parseFloat($("lon").value);
+
+let ano=
+
+$("ano").value;
+
+if(!Number.isFinite(lat)||!Number.isFinite(lon)){
+
+$("historicoEstado").textContent="Introduce una latitud y longitud válidas.";
+
+return;
+
+}
+
+$("historicoEstado").textContent=
+
+"Cargando histórico…";
+
+$("tablaHistorico").innerHTML="";
+
+try{
+
+let fechaFin=ano===String(new Date().getFullYear())
+
+?new Date().toISOString().slice(0,10)
+
+:`${ano}-12-31`;
+
+let url=
+
+`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${ano}-01-01&end_date=${fechaFin}&timezone=auto&daily=temperature_2m_mean,precipitation_sum`;
+
+let respuesta=
+
+await fetch(url);
+
+if(!respuesta.ok)
+
+throw new Error();
+
+let datos=
+
+await respuesta.json();
+
+let totalLluvia=
+
+datos.daily
+
+.precipitation_sum
+
+.reduce(
+
+(a,b)=>a+Number(b||0),
+
+0
+
+);
+
+let temperaturas=
+
+datos.daily
+
+.temperature_2m_mean
+
+.filter(v=>v!==null);
+
+let media=
+
+temperaturas.length
+
+?
+
+temperaturas.reduce(
+
+(a,b)=>a+Number(b),
+
+0
+
+)/
+
+temperaturas.length
+
+:0;
+
+let filas=[];
+
+for(let mes=0;mes<12;mes++){
+
+let lluvia=0;
+
+let temps=[];
+
+datos.daily.time.forEach(
+
+(fecha,i)=>{
+
+let fechaReal=
+
+new Date(
+
+fecha+"T12:00:00"
+
+);
+
+if(
+
+fechaReal.getMonth()===mes
+
+){
+
+lluvia+=
+
+Number(
+
+datos.daily
+
+.precipitation_sum[i]||0
+
+);
+
+if(
+
+datos.daily
+
+.temperature_2m_mean[i]!==null
+
+){
+
+temps.push(
+
+Number(
+
+datos.daily
+
+.temperature_2m_mean[i]
+
+)
+
+);
+
+}
+
+}
+
+}
+
+);
+
+let tempMedia=
+
+temps.length
+
+?
+
+(
+
+temps.reduce(
+
+(a,b)=>a+b,
+
+0
+
+)/temps.length
+
+).toFixed(1)
+
+:"--";
+
+filas.push(`
+
+<tr>
+
+<td>
+
+${new Date(
+
+2020,
+
+mes,
+
+1
+
+).toLocaleDateString(
+
+"es-ES",
+
+{month:"long"}
+
+)}
+
+</td>
+
+<td>
+
+${lluvia.toFixed(1)} mm
+
+</td>
+
+<td>
+
+${tempMedia} °C
+
+</td>
+
+</tr>
+
+`);
+
+}
+
+$("historicoEstado").textContent=
+
+`${ano}: ${totalLluvia.toFixed(0)} mm de lluvia · ${media.toFixed(1)} °C de temperatura media`;
+
+$("tablaHistorico").innerHTML=`
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Mes</th>
+
+<th>Lluvia</th>
+
+<th>Temp. media</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+${filas.join("")}
+
+</tbody>
+
+</table>
+
+`;
+
+}
+
+catch(error){
+
+console.error(error);
+
+$("historicoEstado").textContent=
+
+"No se pudo cargar el histórico. Comprueba la conexión y vuelve a intentarlo.";
+
+}
+
+}
+
+/* ================= HALLAZGOS ================= */
+
+function obtenerHallazgos(){
+
+try{
+
+return JSON.parse(
+
+localStorage.getItem(
+
+"radar_niscalo_hallazgos"
+
+)||"[]"
+
+);
+
+}
+
+catch{
+
+return [];
+
+}
+
+}
+
+function guardarHallazgo(){
+
+let fecha=
+
+$("fechaHallazgo").value;
+
+let zona=
+
+$("zonaHallazgo").value.trim();
+
+let cantidad=
+
+parseInt(
+
+$("cantidadHallazgo").value,
+
+10
+
+);
+
+let notas=
+
+$("notasHallazgo").value.trim();
+
+if(
+
+!fecha ||
+
+!zona ||
+
+!Number.isFinite(cantidad) ||
+
+cantidad<1
+
+){
+
+alert(
+
+"Completa fecha, zona y cantidad."
+
+);
+
+return;
+
+}
+
+let hallazgos=
+
+obtenerHallazgos();
+
+hallazgos.unshift({
+
+fecha:fecha,
+
+zona:zona,
+
+cantidad:cantidad,
+
+notas:notas,
+
+lat:$("lat").value,
+
+lon:$("lon").value
+
+});
+
+localStorage.setItem(
+
+"radar_niscalo_hallazgos",
+
+JSON.stringify(hallazgos)
+
+);
+
+$("zonaHallazgo").value="";
+
+$("cantidadHallazgo").value="";
+
+$("notasHallazgo").value="";
+
+mostrarHallazgos();
+
+mostrarEstadisticas();
+
+}
+
+function mostrarHallazgos(){
+
+let hallazgos=
+
+obtenerHallazgos();
+
+let caja=
+
+$("listaHallazgos");
+
+if(!hallazgos.length){
+
+caja.innerHTML=
+
+'<span class="muted">Aún no hay hallazgos guardados.</span>';
+
+return;
+
+}
+
+caja.innerHTML=
+
+hallazgos
+
+.map(h=>`
+
+<div>
+
+🍄 <b>
+
+${escapar(h.zona)}
+
+</b>
+
+· ${escapar(h.fecha)}
+
+· <b>
+
+${h.cantidad}
+
+</b>
+
+ejemplares
+
+${h.notas
+
+?
+
+" · "+escapar(h.notas)
+
+:""}
+
+</div>
+
+`)
+
+.join("");
+
+}
+
+function mostrarRendimientoCampo(){
+const box=$("estadisticasCampo"); if(!box)return;
+let datos=[]; try{datos=JSON.parse(localStorage.getItem("radar_resultados_campo")||"[]")}catch(e){}
+if(!datos.length){box.innerHTML="Todavía no hay salidas registradas con el Radar.";return;}
+const total=datos.length, positivos=datos.filter(x=>x.outcome==="encontre").length, negativos=total-positivos;
+const pct=Math.round(positivos/total*100);
+const bandas=[["80–100",80,100],["60–79",60,79],["40–59",40,59],["0–39",0,39]];
+const filas=bandas.map(b=>{const v=datos.filter(x=>Number(x.score)>=b[1]&&Number(x.score)<=b[2]),p=v.filter(x=>x.outcome==="encontre").length;return "<span class='badge'><b>"+b[0]+"</b>: "+p+"/"+v.length+" positivas</span>"}).join("");
+const media=a=>a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length):"—";
+const ps=datos.filter(x=>x.outcome==="encontre").map(x=>Number(x.score)).filter(Number.isFinite);
+const ns=datos.filter(x=>x.outcome!=="encontre").map(x=>Number(x.score)).filter(Number.isFinite);
+box.innerHTML="<b>"+positivos+"/"+total+" salidas positivas · "+pct+"%</b><br><span class='muted'>"+negativos+" sin encontrar · media de puntuación: positivas "+media(ps)+" · negativas "+media(ns)+"</span><div style='margin-top:8px'>"+filas+"</div>";
+}
+
+function mostrarEstadisticas(){
+
+let hallazgos=
+
+obtenerHallazgos();
+
+if(!hallazgos.length){
+
+$("estadisticas").textContent=
+
+"Todavía no hay hallazgos guardados.";
+
+return;
+
+}
+
+let total=
+
+hallazgos.reduce(
+
+(s,h)=>
+
+s+Number(h.cantidad||0),
+
+0
+
+);
+
+let zonas=
+
+new Set(
+
+hallazgos.map(h=>h.zona)
+
+).size;
+
+let porAno={};
+
+hallazgos.forEach(h=>{
+
+let ano=
+
+h.fecha.substring(0,4);
+
+porAno[ano]=
+
+(porAno[ano]||0)+
+
+Number(h.cantidad||0);
+
+});
+
+$("estadisticas").innerHTML=
+
+`<b>
+
+${hallazgos.length}
+
+</b> registros ·
+
+<b>
+
+${total}
+
+</b> ejemplares ·
+
+<b>
+
+${zonas}
+
+</b> zonas
+
+<br><br>
+
+`+
+
+Object.entries(porAno)
+
+.sort(
+
+(a,b)=>b[0].localeCompare(a[0])
+
+)
+
+.map(
+
+([ano,cantidad])=>
+
+`<span class="badge">
+
+${ano}: ${cantidad} ejemplares
+
+</span>`
+
+)
+
+.join("");
+
+}
+
+function borrarHallazgos(){
+
+if(
+
+confirm(
+
+"¿Seguro que quieres borrar todos tus hallazgos?"
+
+)
+
+){
+
+localStorage.removeItem(
+
+"radar_niscalo_hallazgos"
+
+);
+
+mostrarHallazgos();
+
+mostrarEstadisticas();
+
+}
+
+}
+
+function escapar(texto){
+
+return String(texto)
+
+.replace(
+
+/[&<>"']/g,
+
+caracter=>({
+
+"&":"&amp;",
+
+"<":"&lt;",
+
+">":"&gt;",
+
+'"':"&quot;",
+
+"'":"&#039;"
+
+}[caracter])
+
+);
+
+}
+
+let temporizadorBusqueda;
+$("buscadorZona").addEventListener("input",()=>{
+clearTimeout(temporizadorBusqueda);
+temporizadorBusqueda=setTimeout(buscarZona,350);
+});
+document.addEventListener("click",e=>{
+if(!e.target.closest("#buscadorZona")&&!e.target.closest("#resultadosZona")) $("resultadosZona").innerHTML="";
+});
+
+function enfocarRadar(){
+  const lat=Number($("lat").value),lon=Number($("lon").value);
+  const mapEl=document.getElementById("map");
+  if(mapEl) mapEl.scrollIntoView({behavior:"smooth",block:"center"});
+  if(Number.isFinite(lat)&&Number.isFinite(lon)){
+    setTimeout(()=>{ if(mapa) mapa.setView([lat,lon],13,{animate:true}); pintarMapaZonas(lat,lon); },350);
+  }
+}
+
+
+/* ================= CÁMARA Y ESCÁNER ================= */
+let scannerStream=null, scannerFotoN=0, scannerFotosData=[], liveVisionMode="normal", liveAnim=null;
+
+function estadoCamara(t){const e=$("camaraEstado");if(e)e.innerHTML=t;}
+function estadoLive(t){const e=$("liveEstado");if(e)e.innerHTML=t;}
+
+function pararStreamScanner(){
+  if(scannerStream){scannerStream.getTracks().forEach(t=>{try{t.stop()}catch(e){}});scannerStream=null;}
+}
+
+async function abrirStreamScanner(videoEl, facingMode="environment"){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    throw new Error("El navegador no permite acceder a la cámara.");
+  }
+  pararStreamScanner();
+  const base={audio:false,video:{facingMode:{ideal:facingMode},width:{ideal:1280},height:{ideal:720}}};
+  try{
+    scannerStream=await navigator.mediaDevices.getUserMedia(base);
+  }catch(e){
+    scannerStream=await navigator.mediaDevices.getUserMedia({audio:false,video:true});
+  }
+  videoEl.srcObject=scannerStream;
+  await videoEl.play().catch(()=>{});
+  return scannerStream;
+}
+
+function errorCamara(e){
+  if(e?.name==="NotAllowedError"||e?.name==="PermissionDeniedError") return "El navegador ha bloqueado el acceso a la cámara. Permite la cámara para este sitio y vuelve a pulsar.";
+  if(e?.name==="NotFoundError") return "No se ha encontrado ninguna cámara disponible en este dispositivo.";
+  if(e?.name==="NotReadableError") return "La cámara está siendo usada por otra aplicación. Ciérrala y vuelve a intentarlo.";
+  if(location.protocol!=="https:" && location.hostname!=="localhost") return "La cámara necesita una conexión segura (HTTPS).";
+  return "No se pudo abrir la cámara. Comprueba los permisos del navegador y vuelve a intentarlo.";
+}
+
+async function iniciarRadarVisual(){
+  const video=$("liveVideo"), placeholder=$("livePlaceholder"), overlay=$("liveOverlay");
+  try{
+    if(!video)return;
+    await abrirStreamScanner(video,"environment");
+    video.style.display="block";
+    if(placeholder)placeholder.style.display="none";
+    if(overlay){overlay.style.display="block";ajustarOverlayLive();dibujarOverlayLive();}
+    $("btnLiveStart").style.display="none";
+    $("btnLiveAnalyze").style.display="";
+    $("btnLiveStop").style.display="";
+    $("liveCandidate").innerHTML="🟢 Cámara activa. Recorre el bosque y pulsa «Analizar zona».";
+    estadoLive("<b>🟢 Radar visual activo.</b> La imagen procede de la cámara del móvil.");
+    const s=$("scannerLive");if(s)s.classList.add("scanning");
+  }catch(e){
+    console.error(e);estadoLive("⚠️ "+errorCamara(e));
+  }
+}
+
+function ajustarOverlayLive(){
+  const v=$("liveVideo"),c=$("liveOverlay");if(!v||!c)return;
+  const w=v.videoWidth||640,h=v.videoHeight||360;c.width=w;c.height=h;
+}
+
+function dibujarOverlayLive(){
+  const v=$("liveVideo"),c=$("liveOverlay");if(!v||!c||!scannerStream)return;
+  ajustarOverlayLive();
+  const x=c.getContext("2d"),w=c.width,h=c.height;
+  x.clearRect(0,0,w,h);
+  if(liveVisionMode==="thermal"){
+    const temp=document.createElement("canvas");temp.width=w;temp.height=h;
+    const tx=temp.getContext("2d");tx.drawImage(v,0,0,w,h);
+    const im=tx.getImageData(0,0,w,h),d=im.data;
+    for(let i=0;i<d.length;i+=4){
+      const g=.299*d[i]+.587*d[i+1]+.114*d[i+2],q=g/255;
+      d[i]=Math.min(255,255*q*1.8);
+      d[i+1]=Math.min(255,255*Math.max(0,1-Math.abs(q-.55)*2.1));
+      d[i+2]=Math.min(255,255*(1-q)*1.7);
+    }
+    x.putImageData(im,0,0);x.globalAlpha=.42;x.fillStyle="rgba(8,12,20,.45)";x.fillRect(0,0,w,h);x.globalAlpha=1;
+  }
+  x.strokeStyle="rgba(233,163,75,.85)";x.lineWidth=Math.max(2,w/320);
+  x.strokeRect(w*.12,h*.12,w*.76,h*.76);
+  x.strokeStyle="rgba(255,255,255,.45)";x.lineWidth=1;
+  x.beginPath();x.moveTo(w/3,h*.12);x.lineTo(w/3,h*.88);x.moveTo(w*2/3,h*.12);x.lineTo(w*2/3,h*.88);x.moveTo(w*.12,h*.5);x.lineTo(w*.88,h*.5);x.stroke();
+  liveAnim=requestAnimationFrame(dibujarOverlayLive);
+}
+
+function analizarZonaLive(){
+  const v=$("liveVideo"),c=document.createElement("canvas");
+  if(!v||!v.videoWidth){estadoLive("Primero activa la cámara.");return;}
+  c.width=320;c.height=Math.round(320*v.videoHeight/v.videoWidth);
+  const x=c.getContext("2d");x.drawImage(v,0,0,c.width,c.height);
+  const im=x.getImageData(0,0,c.width,c.height).data;
+  let verde=0,lum=0,orange=0,n=0;
+  for(let i=0;i<im.length;i+=16){
+    const r=im[i],g=im[i+1],b=im[i+2],l=(r+g+b)/3;
+    if(g>r*1.05&&g>b*.9)verde++;
+    if(r>g*1.18&&g>b*1.15&&r>90)orange++;
+    lum+=l;n++;
+  }
+  const vPct=Math.round(verde/n*100),oPct=Math.round(orange/n*100),lAvg=lum/n;
+  const visual=Math.max(0,Math.min(100,Math.round(vPct*.65+oPct*2.2+Math.max(0,55-Math.abs(lAvg-75))*.18)));
+  const ambiental=Number(window.scoreActual)||Number($("score")?.textContent)||50;
+  const radar=Math.max(0,Math.min(100,Math.round(ambiental)));
+  const combinado=Math.round(visual*.45+radar*.55);
+  $("liveScore").textContent=visual+"/100";
+  $("liveCenter").textContent=(oPct>=1?"🍄 señal":"—");
+  $("liveRadar").textContent=radar+"/100";
+  $("liveCombined").textContent=combinado+"/100";
+  $("liveCandidate").innerHTML="<b>🎯 Lectura de zona: "+combinado+"/100</b><br><span class='muted'>Señal visual aproximada: vegetación "+vPct+"% · tonos cálidos "+oPct+"%. No identifica una especie por sí sola.</span>";
+}
+
+function seleccionarVisionLive(modo){
+  liveVisionMode=modo==="thermal"?"thermal":"normal";
+  const btnN=$("btnLiveNormal"),btnT=$("btnLiveThermal");
+  if(btnN)btnN.className=liveVisionMode==="normal"?"":"secondary";
+  if(btnT)btnT.className=liveVisionMode==="thermal"?"":"secondary";
+  estadoLive(liveVisionMode==="thermal"?"🌡️ Visión térmica visual activada (no es infrarrojo real).":"📷 Cámara normal activada.");
+}
+
+function detenerRadarVisual(){
+  if(liveAnim)cancelAnimationFrame(liveAnim);liveAnim=null;
+  const s=$("scannerLive");if(s)s.classList.remove("scanning");
+  pararStreamScanner();
+  const v=$("liveVideo"),o=$("liveOverlay"),p=$("livePlaceholder");
+  if(v){v.pause();v.srcObject=null;v.style.display="none";}
+  if(o){o.style.display="none";const x=o.getContext("2d");x.clearRect(0,0,o.width,o.height);}
+  if(p)p.style.display="block";
+  $("btnLiveStart").style.display="";
+  $("btnLiveAnalyze").style.display="none";
+  $("btnLiveStop").style.display="none";
+  estadoLive("Pulsa «Iniciar radar visual» para activar la cámara.");
+}
+
+function cambiarModoScanner(modo,boton){
+  if(modo==="fotos"){
+    detenerRadarVisual();
+    $("scannerLive").style.display="none";$("scannerFotos").style.display="";
+    $("modoLiveBtn").classList.remove("on");$("modoFotosBtn").classList.add("on");
+  }else{
+    cerrarCamara();
+    $("scannerFotos").style.display="none";$("scannerLive").style.display="";
+    $("modoFotosBtn").classList.remove("on");$("modoLiveBtn").classList.add("on");
+  }
+}
+
+async function abrirCamara(){
+  const v=$("videoCamara");
+  try{
+    await abrirStreamScanner(v,"environment");
+    v.style.display="block";$("camaraPlaceholder").style.display="none";$("guiaCamara").style.display="block";
+    $("btnAbrirCamara").style.display="none";$("btnFotoCamara").style.display="";
+    $("btnCerrarCamara").style.display="";
+    scannerFotoN=0;scannerFotosData=[];
+    $("btnFotoCamara").textContent="📸 Analizar foto 1/3";
+    $("resultadoEscaner").innerHTML="";
+    estadoCamara("<b>🟢 Cámara abierta.</b> Haz tres fotografías: bosque, suelo y una vista cercana.");
+  }catch(e){console.error(e);estadoCamara("⚠️ "+errorCamara(e));}
+}
+
+function hacerFoto(){
+  const v=$("videoCamara"),c=$("fotoCamara");
+  if(!v||!v.videoWidth){estadoCamara("Primero abre la cámara.");return;}
+  c.width=v.videoWidth;c.height=v.videoHeight;c.getContext("2d").drawImage(v,0,0,c.width,c.height);
+  const data=c.getContext("2d").getImageData(0,0,c.width,c.height).data;
+  let verde=0,tierra=0,lum=0,n=0;
+  for(let i=0;i<data.length;i+=20){
+    const r=data[i],g=data[i+1],b=data[i+2],l=(r+g+b)/3;
+    if(g>r*1.06&&g>b*.95)verde++;
+    if(r>g*1.08&&r>b*1.12&&g>45)tierra++;
+    lum+=l;n++;
+  }
+  const señal=Math.max(0,Math.min(100,Math.round(verde/n*45+tierra/n*35+Math.max(0,50-Math.abs(lum/n-80))*.4)));
+  scannerFotosData.push({senal:señal,fecha:new Date().toISOString()});
+  scannerFotoN++;
+  $("fotoCamara").style.display="block";
+  $("fotoCamara").style.maxHeight="520px";
+  $("videoCamara").style.display="none";
+  $("guiaCamara").style.display="none";
+  if(scannerFotoN<3){
+    $("btnFotoCamara").style.display="none";$("btnRepetirCamara").style.display="";
+    estadoCamara("📸 Vista "+scannerFotoN+"/3 capturada. Pulsa «Repetir» si quieres rehacerla o vuelve a abrir la cámara para la siguiente.");
+    $("resultadoEscaner").innerHTML="<b>Vista "+scannerFotoN+"/3:</b> señal visual "+señal+"/100.";
+  }else{
+    const total=Math.round(scannerFotosData.reduce((s,x)=>s+x.senal,0)/scannerFotosData.length);
+    $("btnFotoCamara").style.display="none";$("btnRepetirCamara").style.display="none";
+    $("btnCerrarCamara").style.display="";
+    $("resultadoEscaner").innerHTML="<b>🍄 Escaneo completado: "+total+"/100</b><br><span class='muted'>Resultado experimental basado en las tres vistas. No constituye identificación de especie.</span>";
+    guardarEscaneoLocal(total,scannerFotosData.length);
+  }
+  pararStreamScanner();v.srcObject=null;
+}
+
+async function repetirFoto(){
+  if(scannerFotoN<1){abrirCamara();return;}
+  scannerFotosData.pop();scannerFotoN=Math.max(0,scannerFotoN-1);
+  await abrirCamara();
+  estadoCamara("🔄 Repite la vista "+(scannerFotoN+1)+"/3.");
+}
+
+function cerrarCamara(){
+  pararStreamScanner();
+  const v=$("videoCamara");if(v){v.pause();v.srcObject=null;v.style.display="none";}
+  if($("fotoCamara"))$("fotoCamara").style.display="none";
+  if($("guiaCamara"))$("guiaCamara").style.display="none";
+  if($("camaraPlaceholder"))$("camaraPlaceholder").style.display="block";
+  if($("btnAbrirCamara"))$("btnAbrirCamara").style.display="";
+  if($("btnFotoCamara"))$("btnFotoCamara").style.display="none";
+  if($("btnRepetirCamara"))$("btnRepetirCamara").style.display="none";
+  if($("btnCerrarCamara"))$("btnCerrarCamara").style.display="none";
+  estadoCamara("Pulsa «Abrir cámara» para empezar.");
+}
+
+function guardarEscaneoLocal(score,vistas){
+  let arr=[];try{arr=JSON.parse(localStorage.getItem("radar_niscalo_escaneos")||"[]")}catch(e){}
+  arr.unshift({fecha:new Date().toISOString(),score:Number(score),vistas:Number(vistas)});
+  localStorage.setItem("radar_niscalo_escaneos",JSON.stringify(arr.slice(0,30)));
+  mostrarEscaneos();
+}
+
+function mostrarEscaneos(){
+  const box=$("listaEscaneos");if(!box)return;
+  let arr=[];try{arr=JSON.parse(localStorage.getItem("radar_niscalo_escaneos")||"[]")}catch(e){}
+  if(!arr.length){box.innerHTML="<span class='muted'>Todavía no hay escaneos guardados.</span>";return;}
+  box.innerHTML=arr.map(x=>"<div>🍄 <b>"+Number(x.score)+"/100</b> · "+new Date(x.fecha).toLocaleString("es-ES")+" · "+Number(x.vistas)+" vistas</div>").join("");
+}
+
+/* ================= RADAR DE PROXIMIDAD ================= */
+let proxPeer=null,proxConn=null,proxWatch=null,proxMap=null,proxMeMarker=null,proxOtherMarker=null,proxMe=null,proxOther=null,proxRole="";
+function proxStatus(t){const e=$("proxEstado");if(e)e.innerHTML=t;}
+function proxCode(){return String($("proxCode")?.value||"").trim().toUpperCase().replace(/[^A-Z0-9_-]/g,"").slice(0,20);}
+function generarCodigoProx(){const letras=Math.random().toString(36).slice(2,6).toUpperCase();const numero=Math.floor(1000+Math.random()*9000);return "NISCALO-"+letras+numero;}
+function iniciarMapaProximidad(){
+  if(proxMap||typeof L==="undefined")return;
+  proxMap=L.map("proximityMap").setView([41.60,1.80],11);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(proxMap);
+}
+function marcadorProx(tipo,p){
+  if(!proxMap)return null;
+  const icon=L.divIcon({className:"",html:"<div style='width:28px;height:28px;border-radius:50%;background:"+(tipo==="me"?"#2f6b46":"#2877c7")+";border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.35);display:grid;place-items:center;color:#fff;font-size:13px'>"+(tipo==="me"?"●":"●")+"</div>",iconSize:[28,28],iconAnchor:[14,14]});
+  return L.marker(p,{icon}).addTo(proxMap).bindTooltip(tipo==="me"?"Tú":"La otra persona",{permanent:false});
+}
+function actualizarMarcadoresProx(){
+  if(!proxMap)return;
+  if(proxMe){if(!proxMeMarker)proxMeMarker=marcadorProx("me",[proxMe.lat,proxMe.lon]);else proxMeMarker.setLatLng([proxMe.lat,proxMe.lon]);$("proxYoCoord").textContent=proxMe.lat.toFixed(5)+", "+proxMe.lon.toFixed(5);}
+  if(proxOther){if(!proxOtherMarker)proxOtherMarker=marcadorProx("other",[proxOther.lat,proxOther.lon]);else proxOtherMarker.setLatLng([proxOther.lat,proxOther.lon]);$("proxOtroCoord").textContent=proxOther.lat.toFixed(5)+", "+proxOther.lon.toFixed(5);}
+  if(proxMe&&proxOther){
+    const d=haversineProx(proxMe.lat,proxMe.lon,proxOther.lat,proxOther.lon);
+    $("proxDistance").textContent="📏 Distancia: "+(d<1000?Math.round(d)+" m":(d/1000).toFixed(2)+" km");
+    proxMap.fitBounds([[proxMe.lat,proxMe.lon],[proxOther.lat,proxOther.lon]],{padding:[45,45],maxZoom:17});
+  }else if(proxMe) proxMap.setView([proxMe.lat,proxMe.lon],15);
+}
+function haversineProx(a,b,c,d){const R=6371000,rad=Math.PI/180,x=(c-a)*rad,y=(d-b)*rad;const q=Math.sin(x/2)**2+Math.cos(a*rad)*Math.cos(c*rad)*Math.sin(y/2)**2;return 2*R*Math.asin(Math.sqrt(q));}
+function emitirPosicionProx(){
+  if(!navigator.geolocation){proxStatus("Este navegador no permite geolocalización.");return;}
+  navigator.geolocation.getCurrentPosition(pos=>{
+    proxMe={lat:pos.coords.latitude,lon:pos.coords.longitude,accuracy:pos.coords.accuracy};
+    actualizarMarcadoresProx();
+    if(proxConn&&proxConn.open)proxConn.send({type:"position",lat:proxMe.lat,lon:proxMe.lon,accuracy:proxMe.accuracy});
+  },err=>proxStatus("Necesitamos permiso de ubicación para compartir tu posición. ("+err.message+")"),{enableHighAccuracy:true,maximumAge:5000,timeout:15000});
+}
+function empezarSeguimientoProx(){if(proxWatch!==null)navigator.geolocation.clearWatch(proxWatch);proxWatch=navigator.geolocation.watchPosition(pos=>{proxMe={lat:pos.coords.latitude,lon:pos.coords.longitude,accuracy:pos.coords.accuracy};actualizarMarcadoresProx();if(proxConn&&proxConn.open)proxConn.send({type:"position",lat:proxMe.lat,lon:proxMe.lon,accuracy:proxMe.accuracy});},()=>{}, {enableHighAccuracy:true,maximumAge:3000,timeout:15000});}
+function configurarConexionProx(conn){
+  proxConn=conn;
+  conn.on("open",()=>{proxStatus("<b>🟢 Conectados.</b> Ya podéis veros en el mapa.");emitirPosicionProx();if(proxMe)conn.send({type:"position",lat:proxMe.lat,lon:proxMe.lon,accuracy:proxMe.accuracy});});
+  conn.on("data",data=>{if(data?.type==="position"){proxOther={lat:Number(data.lat),lon:Number(data.lon),accuracy:Number(data.accuracy)||0};actualizarMarcadoresProx();}});
+  conn.on("close",()=>{proxOther=null;if(proxOtherMarker){proxMap.removeLayer(proxOtherMarker);proxOtherMarker=null;}$("proxOtroCoord").textContent="Conexión cerrada";$("proxDistance").textContent="📏 Distancia: —";proxStatus("La otra persona se ha desconectado.");});
+  conn.on("error",e=>proxStatus("Error de conexión: "+(e?.message||"comprueba el código.")));
+}
+function prepararPeerProx(id,onReady){
+  if(typeof Peer==="undefined"){proxStatus("No se ha podido cargar el sistema de conexión. Recarga la página.");return;}
+  if(proxPeer){try{proxPeer.destroy();}catch(e){}}
+  proxPeer=new Peer(id,{debug:1});
+  proxPeer.on("open",()=>onReady());
+  proxPeer.on("connection",conn=>{if(proxConn&&proxConn.open)proxConn.close();configurarConexionProx(conn);});
+  proxPeer.on("error",e=>proxStatus("No se pudo abrir la sala. Prueba otro código."));
+}
+function crearProximidad(){
+  let code=proxCode();
+  if(!code){code=generarCodigoProx();$("proxCode").value=code;}
+  if(code.length<4){proxStatus("Usa un código de al menos 4 caracteres.");return;}
+  $("proxCode").value=code;proxRole="host";iniciarMapaProximidad();
+  prepararPeerProx("radar-niscalo-"+code,()=>{proxStatus("<b>🟢 Sala creada.</b> Comparte el código <b>"+escapar(code)+"</b> con tu mujer y espera a que se una.");emitirPosicionProx();empezarSeguimientoProx();});
+}
+function unirProximidad(){
+  const code=proxCode();if(code.length<4){proxStatus("Introduce el código que te han enviado.");return;}
+  $("proxCode").value=code;proxRole="guest";iniciarMapaProximidad();
+  if(typeof Peer==="undefined"){proxStatus("No se ha podido cargar el sistema de conexión. Recarga la página.");return;}
+  if(proxPeer){try{proxPeer.destroy();}catch(e){}}
+  proxPeer=new Peer();
+  proxPeer.on("open",()=>{const conn=proxPeer.connect("radar-niscalo-"+code,{reliable:true});configurarConexionProx(conn);proxStatus("🔵 Conectando con la otra persona…");});
+  proxPeer.on("error",()=>proxStatus("No se encuentra esa sala. Comprueba el código."));
+  emitirPosicionProx();empezarSeguimientoProx();
+}
+async function compartirProximidad(){
+  const code=proxCode();if(!code){proxStatus("Primero crea una sala.");return;}
+  const texto="Únete a mi Radar de proximidad de Radar Níscalo. Código: "+code;
+  if(navigator.share){try{await navigator.share({title:"Radar Níscalo · Proximidad",text:texto});return;}catch(e){}}
+  if(navigator.clipboard){try{await navigator.clipboard.writeText(texto);proxStatus("📋 Código copiado para compartirlo.");return;}catch(e){}}
+  proxStatus("Código de la sala: <b>"+escapar(code)+"</b>");
+}
+function salirProximidad(){
+  if(proxWatch!==null&&navigator.geolocation)navigator.geolocation.clearWatch(proxWatch);proxWatch=null;
+  if(proxConn){try{proxConn.close();}catch(e){}} if(proxPeer){try{proxPeer.destroy();}catch(e){}}
+  proxConn=null;proxPeer=null;proxMe=null;proxOther=null;
+  if(proxMap){if(proxMeMarker){proxMap.removeLayer(proxMeMarker);proxMeMarker=null;}if(proxOtherMarker){proxMap.removeLayer(proxOtherMarker);proxOtherMarker=null;}proxMap.remove();}
+  proxMap=null;$("proxYoCoord").textContent="Esperando ubicación…";$("proxOtroCoord").textContent="Esperando conexión…";$("proxDistance").textContent="📏 Distancia: —";proxStatus("Sala cerrada.");
+}
+
+
+/* ===== ARRANQUE EN LA PARTE SUPERIOR ===== */
+(function(){
+  function radarIrArriba(){try{window.scrollTo({top:0,left:0,behavior:"auto"});}catch(e){window.scrollTo(0,0);}}
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",radarIrArriba,{once:true}); else radarIrArriba();
+  window.addEventListener("load",radarIrArriba,{once:true});
+  window.addEventListener("pageshow",radarIrArriba);
+})();
+
+/* ================= INICIO ================= */
+
+$("fechaHallazgo").value=
+new Date()
+.toISOString()
+.slice(0,10);
+
+[
+"rainSlider",
+"tempSlider",
+"soilSlider",
+"altSlider"
+].forEach(id=>{
+  $(id).addEventListener("input",pintarFavorabilidad);
+});
+
+/* ================= OCULTAR PORTADA ================= */
+
+(function(){
+  const s=document.getElementById("appSplash");
+  const hide=()=>{
+    if(!s) return;
+    s.classList.add("hide");
+    setTimeout(()=>{
+      s.style.display="none";
+      try{
+        history.scrollRestoration="manual";
+        document.documentElement.scrollTop=0;
+        document.body.scrollTop=0;
+        window.scrollTo(0,0);
+      }catch(e){}
+      /* Evita que una inicialización tardía vuelva a desplazar la portada. */
+      [0,50,150,300,600,1000,1600].forEach(ms=>{
+        setTimeout(()=>{
+          try{
+            document.documentElement.scrollTop=0;
+            document.body.scrollTop=0;
+            window.scrollTo(0,0);
+          }catch(e){}
+        },ms);
+      });
+    },800);
+  };
+
+  /* ================= ARRANQUE DE LA APLICACIÓN =================
+     Esta inicialización es imprescindible: sin ella el contenedor del mapa
+     existe, pero Leaflet no se crea y tampoco se cargan los datos iniciales.
+     Se mantiene aislada para que un servicio externo caído no deje la portada
+     bloqueando toda la aplicación.
+  */
+  const iniciarSeguro=(nombre,fn)=>{
+    try{
+      const r=fn();
+      if(r&&typeof r.catch==="function") r.catch(e=>console.error("Radar Níscalo · "+nombre,e));
+    }catch(e){ console.error("Radar Níscalo · "+nombre,e); }
+  };
+  iniciarSeguro("mapa",()=>iniciarMapa());
+  iniciarSeguro("recorrido",()=>cargarRecorridoGuardado());
+  iniciarSeguro("biblioteca de recorridos",()=>mostrarBibliotecaRecorridos());
+  iniciarSeguro("hallazgos",()=>mostrarHallazgos());
+  iniciarSeguro("estadísticas",()=>mostrarEstadisticas());
+  iniciarSeguro("escaneos",()=>mostrarEscaneos());
+
+  /* Resultado inicial inmediato: no depende de Internet.
+     La meteorología real lo sustituirá cuando termine. */
+  try{ mostrarValoracionProvisional(); }catch(e){ console.error("Radar Níscalo · inicio provisional",e); }
+
+  iniciarSeguro("datos meteorológicos",()=>cargarDatos());
+
+  /* La portada es visual: nunca debe depender de que un proveedor externo
+     (mapa, meteorología, Leaflet, etc.) responda para desaparecer. */
+  if(document.readyState==="complete"){
+    setTimeout(hide,4000);
+  }else{
+    window.addEventListener("load",()=>setTimeout(hide,2800),{once:true});
+  }
+  setTimeout(hide,6000);
+})();
+
+</script>
+</body>
+</html>
+
