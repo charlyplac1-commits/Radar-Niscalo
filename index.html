@@ -5921,8 +5921,22 @@ new Date()
     s.classList.add("hide");
     setTimeout(()=>{
       s.style.display="none";
-      try{history.scrollRestoration="manual";window.scrollTo(0,0);}catch(e){window.scrollTo(0,0);}
-      requestAnimationFrame(()=>window.scrollTo(0,0));
+      try{
+        history.scrollRestoration="manual";
+        document.documentElement.scrollTop=0;
+        document.body.scrollTop=0;
+        window.scrollTo(0,0);
+      }catch(e){}
+      /* Evita que una inicialización tardía vuelva a desplazar la portada. */
+      [0,50,150,300,600,1000,1600].forEach(ms=>{
+        setTimeout(()=>{
+          try{
+            document.documentElement.scrollTop=0;
+            document.body.scrollTop=0;
+            window.scrollTo(0,0);
+          }catch(e){}
+        },ms);
+      });
     },800);
   };
 
