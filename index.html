@@ -1174,6 +1174,69 @@ button:not(.app-nav button):focus-visible{
   }
 }
 
+
+/* ===== FONDO BOSQUE · RADAR NÍSCALO ===== */
+body{
+  position:relative;
+  background:
+    radial-gradient(circle at 12% 12%,rgba(126,164,116,.18),transparent 28%),
+    radial-gradient(circle at 88% 24%,rgba(72,113,76,.13),transparent 30%),
+    linear-gradient(145deg,#eef2e8 0%,#e8eee5 42%,#f4f0e5 100%);
+  background-attachment:fixed;
+}
+body:before,
+body:after{
+  content:"";
+  position:fixed;
+  z-index:-1;
+  pointer-events:none;
+  border-radius:50%;
+  filter:blur(1px);
+}
+body:before{
+  width:420px;
+  height:420px;
+  left:-170px;
+  bottom:-150px;
+  background:
+    radial-gradient(circle at 50% 55%,rgba(38,82,48,.13),transparent 57%),
+    radial-gradient(circle at 30% 40%,rgba(104,137,88,.10),transparent 45%);
+  animation:forestGlow 12s ease-in-out infinite alternate;
+}
+body:after{
+  width:500px;
+  height:500px;
+  right:-220px;
+  top:110px;
+  background:
+    radial-gradient(circle at 50% 50%,rgba(47,107,70,.10),transparent 58%),
+    radial-gradient(circle at 30% 65%,rgba(229,163,75,.06),transparent 42%);
+  animation:forestGlow 15s ease-in-out infinite alternate-reverse;
+}
+@keyframes forestGlow{
+  from{transform:translate3d(0,0,0) scale(1);opacity:.72}
+  to{transform:translate3d(18px,-12px,0) scale(1.08);opacity:1}
+}
+main{
+  position:relative;
+}
+main:before{
+  content:"";
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  height:150px;
+  z-index:-1;
+  pointer-events:none;
+  opacity:.20;
+  background:
+    linear-gradient(145deg,transparent 0 48%,rgba(35,69,42,.30) 49% 50%,transparent 51%) 0 100%/42px 90px,
+    linear-gradient(215deg,transparent 0 48%,rgba(35,69,42,.22) 49% 50%,transparent 51%) 21px 100%/52px 105px;
+  -webkit-mask-image:linear-gradient(to top,black,transparent);
+  mask-image:linear-gradient(to top,black,transparent);
+}
+
 </style>
 
 <script>
