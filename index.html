@@ -524,6 +524,8 @@ button{border-radius:12px}
   --naranja:#e56f32;
   --texto:#17231b;
 }
+html,body{scroll-behavior:auto;scroll-padding-top:0}
+body{overflow-x:hidden}
 body{background:var(--crema)}
 .app-header{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
@@ -5465,8 +5467,18 @@ new Date()
   const s=document.getElementById("appSplash");
   const hide=()=>{
     if(!s) return;
+    /* Al terminar la portada siempre arrancamos la app desde arriba.
+       Evita que el navegador conserve una posición de desplazamiento anterior. */
+    window.scrollTo(0,0);
+    document.documentElement.scrollTop=0;
+    document.body.scrollTop=0;
     s.classList.add("hide");
-    setTimeout(()=>{s.style.display="none"},800);
+    setTimeout(()=>{
+      s.style.display="none";
+      window.scrollTo(0,0);
+      document.documentElement.scrollTop=0;
+      document.body.scrollTop=0;
+    },800);
   };
 
   /* ================= ARRANQUE DE LA APLICACIÓN =================
