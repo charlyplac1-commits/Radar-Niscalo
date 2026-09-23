@@ -3767,6 +3767,21 @@ error=>{
 
 );
 }
+/* ================= CONTROL DE TIEMPOS DE RED =================
+   Ningún servicio externo puede dejar el Radar esperando indefinidamente.
+   Si una API tarda demasiado, se aborta y el Radar continúa con el respaldo
+   o con los datos que sí estén disponibles.
+*/
+async function fetchConLimite(url,options={},timeoutMs=10000){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),timeoutMs);
+  try{
+    return await fetch(url,{...options,signal:controller.signal});
+  }finally{
+    clearTimeout(timer);
+  }
+}
+
 /* ================= DATOS METEOROLÓGICOS ================= */
 
 async function cargarDatos(){
@@ -3802,7 +3817,7 @@ async function cargarDatos(){
 
   for(let intento=1;intento<=2;intento++){
     try{
-      const respuesta=await fetch(url,{cache:"no-store"});
+      const respuesta=await fetchConLimite(url,{cache:"no-store"},10000);
       const texto=await respuesta.text();
 
       if(!respuesta.ok){
@@ -3845,7 +3860,7 @@ async function cargarDatos(){
         "?lat="+encodeURIComponent(mlat)+
         "&lon="+encodeURIComponent(mlon);
 
-      const metResp=await fetch(metUrl,{cache:"no-store"});
+      const metResp=await fetchConLimite(metUrl,{cache:"no-store"},10000);
       const metTexto=await metResp.text();
 
       if(!metResp.ok){
@@ -4024,7 +4039,7 @@ async function cargarDatos(){
           encodeURIComponent(lat)+","+encodeURIComponent(lon)+
           "?format=j1";
 
-        const respaldoResp=await fetch(respaldoUrl,{cache:"no-store"});
+        const respaldoResp=await fetchConLimite(respaldoUrl,{cache:"no-store"},10000);
         const respaldoTexto=await respaldoResp.text();
 
         if(!respaldoResp.ok){
@@ -4187,7 +4202,7 @@ async function cargarDatos(){
           "&timezone=auto"+
           "&daily=precipitation_sum"+
           "&hourly=soil_moisture_0_to_7cm,soil_moisture_7_to_28cm";
-        const archiveResp=await fetch(archiveUrl,{cache:"no-store"});
+        const archiveResp=await fetchConLimite(archiveUrl,{cache:"no-store"},8000);
         if(archiveResp.ok){
           const archive=await archiveResp.json();
           const fechas=Array.isArray(archive?.daily?.time)?archive.daily.time:[];
@@ -4345,10 +4360,11 @@ async function cargarDatos(){
 
     if(!altitud){
       try{
-        const elevacion=await fetch(
+        const elevacion=await fetchConLimite(
           "https://api.open-meteo.com/v1/elevation?latitude="+
           encodeURIComponent(lat)+"&longitude="+encodeURIComponent(lon),
-          {cache:"no-store"}
+          {cache:"no-store"},
+          7000
         );
         if(elevacion.ok){
           const elevacionDatos=await elevacion.json();
