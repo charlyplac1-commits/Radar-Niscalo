@@ -1179,38 +1179,38 @@ button:not(.app-nav button):focus-visible{
 body{
   position:relative;
   background:
-    radial-gradient(circle at 12% 12%,rgba(126,164,116,.18),transparent 28%),
-    radial-gradient(circle at 88% 24%,rgba(72,113,76,.13),transparent 30%),
-    linear-gradient(145deg,#eef2e8 0%,#e8eee5 42%,#f4f0e5 100%);
+    radial-gradient(circle at 15% 18%,rgba(91,132,82,.28),transparent 30%),
+    radial-gradient(circle at 88% 28%,rgba(46,91,59,.22),transparent 32%),
+    linear-gradient(145deg,#dce7d9 0%,#edf1e8 48%,#e5dfd0 100%);
   background-attachment:fixed;
 }
 body:before,
 body:after{
   content:"";
   position:fixed;
-  z-index:-1;
+  z-index:0;
   pointer-events:none;
   border-radius:50%;
-  filter:blur(1px);
+  filter:blur(2px);
 }
 body:before{
-  width:420px;
-  height:420px;
-  left:-170px;
-  bottom:-150px;
+  width:520px;
+  height:520px;
+  left:-210px;
+  bottom:-190px;
   background:
-    radial-gradient(circle at 50% 55%,rgba(38,82,48,.13),transparent 57%),
-    radial-gradient(circle at 30% 40%,rgba(104,137,88,.10),transparent 45%);
+    radial-gradient(circle at 50% 55%,rgba(38,82,48,.24),transparent 58%),
+    radial-gradient(circle at 30% 40%,rgba(104,137,88,.16),transparent 46%);
   animation:forestGlow 12s ease-in-out infinite alternate;
 }
 body:after{
-  width:500px;
-  height:500px;
-  right:-220px;
-  top:110px;
+  width:560px;
+  height:560px;
+  right:-240px;
+  top:90px;
   background:
-    radial-gradient(circle at 50% 50%,rgba(47,107,70,.10),transparent 58%),
-    radial-gradient(circle at 30% 65%,rgba(229,163,75,.06),transparent 42%);
+    radial-gradient(circle at 50% 50%,rgba(47,107,70,.18),transparent 58%),
+    radial-gradient(circle at 30% 65%,rgba(229,163,75,.09),transparent 42%);
   animation:forestGlow 15s ease-in-out infinite alternate-reverse;
 }
 @keyframes forestGlow{
@@ -1219,6 +1219,7 @@ body:after{
 }
 main{
   position:relative;
+  z-index:1;
 }
 main:before{
   content:"";
@@ -1226,13 +1227,13 @@ main:before{
   left:0;
   right:0;
   bottom:0;
-  height:150px;
-  z-index:-1;
+  height:180px;
+  z-index:0;
   pointer-events:none;
-  opacity:.20;
+  opacity:.26;
   background:
-    linear-gradient(145deg,transparent 0 48%,rgba(35,69,42,.30) 49% 50%,transparent 51%) 0 100%/42px 90px,
-    linear-gradient(215deg,transparent 0 48%,rgba(35,69,42,.22) 49% 50%,transparent 51%) 21px 100%/52px 105px;
+    linear-gradient(145deg,transparent 0 48%,rgba(35,69,42,.34) 49% 50%,transparent 51%) 0 100%/42px 90px,
+    linear-gradient(215deg,transparent 0 48%,rgba(35,69,42,.26) 49% 50%,transparent 51%) 21px 100%/52px 105px;
   -webkit-mask-image:linear-gradient(to top,black,transparent);
   mask-image:linear-gradient(to top,black,transparent);
 }
