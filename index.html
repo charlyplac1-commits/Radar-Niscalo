@@ -1922,136 +1922,9 @@ details.compact .notice{
 .proximity-distance{margin:10px 0;padding:13px;border-radius:13px;background:#214b35;color:#fff;font-weight:900;text-align:center}
 @media(max-width:720px){.proximity-mapbox{height:52vh;min-height:300px}.proximity-stats{grid-template-columns:1fr}.proximity-code-row>div:last-child{width:100%}.proximity-code-row button{flex:1}}
 </style>
-<style id="ajuste-inicio-definitivo">
-/* ===== INICIO A RAS DE PANTALLA ===== */
-html,body{
-  margin:0 !important;
-  padding:0 !important;
-}
-main{
-  margin:0 !important;
-  padding-top:0 !important;
-}
-.app-nav{
-  margin-top:0 !important;
-}
-</style>
 
-<style id="ajuste-primer-bloque">
-/* ===== PRIMER BLOQUE PEGADO ARRIBA ===== */
-main{padding-top:0 !important;}
-#radar{margin-top:0 !important;}
-#radar>.card.score{margin-top:0 !important;}
-</style>
 
-<style id="ajuste-franja-final">
-/* El contenido arranca físicamente en el borde superior */
-html,body{margin:0!important;padding:0!important;}
-main{margin:0!important;padding-top:0!important;position:relative;top:-8px!important;}
-</style>
-<style id="ajuste-centrado-final">
-/* ===== CENTRADO REAL FINAL · CORRIGE EL MARGIN 0 ANTERIOR ===== */
-main{
-  width:calc(100% - 16px) !important;
-  max-width:1100px !important;
-  margin-left:auto !important;
-  margin-right:auto !important;
-}
-@media(max-width:720px){
-  main{
-    width:calc(100% - 14px) !important;
-    max-width:none !important;
-    margin-left:auto !important;
-    margin-right:auto !important;
-  }
-}
-</style>
-<style id="ajuste-superior-final">
-/* ===== ENCUADRE REAL DEL CONTENIDO · SIN TOCAR FUNCIONES ===== */
-html,body{
-  margin:0 !important;
-  padding:0 !important;
-  scroll-padding-top:0 !important;
-}
-body{
-  min-height:100vh !important;
-}
-main{
-  margin:0 auto !important;
-  padding-top:0 !important;
-  position:relative !important;
-  top:0 !important;
-  transform:none !important;
-}
-.app-nav{
-  margin-top:0 !important;
-}
-#radar{
-  margin-top:0 !important;
-}
-#radar>.card.score{
-  margin-top:0 !important;
-}
-</style>
-<style id="ajuste-arranque-real">
-/* ===== ARRANQUE REAL · SIN FRANJA RESERVADA ===== */
-html,body{
-  margin:0 !important;
-  padding:0 !important;
-  width:100% !important;
-}
-body{
-  overflow-x:hidden !important;
-}
-body > main{
-  display:block !important;
-  width:100% !important;
-  max-width:1100px !important;
-  margin:0 auto !important;
-  padding:0 7px 24px !important;
-}
-body > main > .app-nav{
-  margin:0 0 10px !important;
-  padding:6px !important;
-  min-height:52px !important;
-  box-sizing:border-box !important;
-}
-#appSplash{
-  position:fixed !important;
-  inset:0 !important;
-  width:100vw !important;
-  height:100dvh !important;
-  margin:0 !important;
-  padding:0 !important;
-  z-index:999999 !important;
-}
-#appSplash.hide{
-  display:none !important;
-  opacity:0 !important;
-  visibility:hidden !important;
-  pointer-events:none !important;
-}
-@media(max-width:720px){
-  body > main{
-    padding:0 7px 18px !important;
-  }
-  body > main > .app-nav{
-    margin:0 0 10px !important;
-  }
-}
-</style>
 
-<style id="ajuste-superprogramador-arranque">
-/* ===== LIMPIEZA DEL PRIMER PÍXEL ===== */
-body > main > .app-nav{
-  position:relative !important;
-  top:0 !important;
-  transform:none !important;
-}
-body > main > .app-nav::before{
-  display:none !important;
-}
-</style>
 /* ===== CABECERA REAL · ARRANQUE SIN FRANJA ===== */
 html,body{
   margin:0 !important;
@@ -2089,36 +1962,17 @@ body > main > .app-nav{
 }
 </style>
 
-<style id="ajuste-arranque-ultimo-seguro">
-/* ===== AJUSTE FINAL SEGURO · VISTA INICIAL ===== */
-/* No modifica funciones ni contenido de la aplicación. */
-html{
-  margin:0 !important;
-  padding:0 !important;
-  width:100% !important;
-  overflow-x:hidden !important;
-  overflow-anchor:none !important;
-  scroll-behavior:auto !important;
-}
-body{
-  margin:0 !important;
-  padding:0 !important;
-  width:100% !important;
-  overflow-x:hidden !important;
-  overflow-anchor:none !important;
-}
-body > main{
-  margin-top:0 !important;
-  transform:none !important;
-  overflow-anchor:none !important;
-}
-#appSplash{
-  position:fixed !important;
-  inset:0 !important;
-  margin:0 !important;
-  padding:0 !important;
-}
 
+<style id="arranque-canonico">
+/* ===== ARRANQUE CANÓNICO ===== */
+html,body{margin:0;padding:0;width:100%;}
+html{overflow-x:hidden;scroll-behavior:auto;}
+body{overflow-x:hidden;}
+body>main{width:100%;max-width:1100px;margin:0 auto;padding:0 7px 24px;position:relative;top:auto;transform:none;}
+body>main>.app-nav{margin:0 0 10px;padding:6px;position:sticky;top:0;z-index:1100;}
+#appSplash{position:fixed;inset:0;width:100vw;height:100dvh;margin:0;padding:0;z-index:999999;}
+#appSplash.hide{display:none!important;}
+@media(max-width:720px){body>main{padding:0 7px 18px;}body>main>.app-nav{margin:0 0 10px;}}
 </style>
 </head>
 
