@@ -1667,6 +1667,56 @@ body{
 <style id="biblioteca-recorridos-style">
 #bibliotecaRecorridos{margin-top:10px;padding:12px;border-radius:16px;background:linear-gradient(145deg,#14241a,#20382a);border:1px solid rgba(137,181,145,.2);color:#eef5ef;box-shadow:0 8px 20px rgba(0,0,0,.22)}
 #bibliotecaRecorridos h4{margin:0 0 4px;font-size:14px}.biblioteca-lista{display:grid;gap:8px;margin-top:9px}.recorrido-guardado{padding:10px;border-radius:13px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1)}.recorrido-meta{font-size:10px;color:#bfd0c3;margin-top:3px}.recorrido-acciones{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.recorrido-acciones button{margin:0;padding:7px 9px;font-size:10px;border-radius:9px}.ruta-ver{background:#315f43}.ruta-volver{background:#c77b32}.ruta-exportar{background:#536b5a}.ruta-borrar{background:#8f4039}#recorridoReproduccion{display:none;margin-top:9px;padding:9px;border-radius:12px;background:rgba(0,0,0,.22)}#recorridoReproduccion.activo{display:block}#recorridoPlaybackBar{height:5px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:7px}#recorridoPlaybackBar i{display:block;width:0;height:100%;background:#e6a253}
+
+
+/* ===== FONDO FRUCTIFICACIÓN ===== */
+.fructificacion-card{
+  position:relative;
+  overflow:hidden;
+  color:#fff;
+  border:1px solid rgba(38,67,43,.35)!important;
+  background-image:
+    linear-gradient(180deg,rgba(8,24,13,.48),rgba(7,20,11,.72)),
+    url('https://images.unsplash.com/photo-1760891914057-e54115982788?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=1600');
+  background-size:cover;
+  background-position:center;
+  box-shadow:0 5px 18px rgba(23,61,41,.16);
+}
+.fructificacion-card:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,.06),rgba(0,0,0,.24));
+  pointer-events:none;
+}
+.fructificacion-card>summary,
+.fructificacion-card>.inside{
+  position:relative;
+  z-index:1;
+}
+.fructificacion-card>summary{
+  color:#fff;
+  text-shadow:0 2px 7px rgba(0,0,0,.8);
+}
+.fructificacion-card>summary:after{color:#fff!important}
+.fructificacion-card .grid .big,
+.fructificacion-card .grid .muted{
+  text-shadow:0 2px 6px rgba(0,0,0,.82);
+}
+.fructificacion-card .grid .big{color:#fff}
+.fructificacion-card .grid .muted{color:rgba(255,255,255,.92)}
+.fructificacion-card .notice{
+  background:rgba(18,39,24,.72);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.22);
+  backdrop-filter:blur(3px);
+  box-shadow:0 3px 12px rgba(0,0,0,.18);
+}
+@media(max-width:720px){
+  .fructificacion-card{
+    background-position:center center;
+  }
+}
 </style></style>
 
 <script>
@@ -2065,7 +2115,7 @@ style="margin-top:8px">
 </div>
 </details>
 
-<details class="compact" open><summary>🧠 Dinámica de fructificación</summary><div class="inside">
+<details class="compact fructificacion-card" open><summary>🧠 Dinámica de fructificación</summary><div class="inside">
 <div class="grid">
 <div><div class="big" id="lluvia3">--</div><div class="muted">Lluvia · últimos 3 días</div></div>
 <div><div class="big" id="lluvia30">--</div><div class="muted">Lluvia · últimos 30 días</div></div>
