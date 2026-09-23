@@ -11,7 +11,7 @@
   "theme_color": "#214b35",
   "icons": [
     {
-      "src": "./icon-radar-niscalo.svg?v=4",
+      "src": "./icon-radar-niscalo-v5.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
