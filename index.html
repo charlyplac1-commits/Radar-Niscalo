@@ -4113,11 +4113,72 @@ async function cargarDatos(){
         console.error("Radar Níscalo · MET Norway:",metError);
         console.error("Radar Níscalo · wttr.in:",respaldoError);
 
-        $("estado").textContent=
-          "❌ No hay servicio meteorológico disponible ahora. "+
-          "Open-Meteo: "+(errorMeteorologia?.message||"error")+
-          " · MET Norway: "+(metError?.message||"error")+
-          " · wttr.in: "+(respaldoError?.message||"error");
+        /* Aunque fallen las tres fuentes meteorológicas, el Radar no se queda
+           bloqueado en "Preparando…". Calculamos una valoración provisional
+           con valores neutros y dejamos claro que no procede de meteorología en vivo. */
+        try{
+          const num=(id,def)=>{
+            const el=$(id);
+            const v=Number(el?.value);
+            return Number.isFinite(v)?v:def;
+          };
+          const lluvia=num("rainSlider",60);
+          const temp=num("tempSlider",15);
+          const suelo=num("soilSlider",50);
+          const alt=num("altSlider",800);
+          $("rainSlider").value=lluvia;
+          $("tempSlider").value=temp;
+          $("soilSlider").value=suelo;
+          $("altSlider").value=alt;
+          $("rainValue").textContent=Math.round(lluvia);
+          $("tempValue").textContent=Math.round(temp);
+          $("soilValue").textContent=Math.round(suelo);
+          $("altValue").textContent=Math.round(alt);
+
+          const provisional=Math.max(0,Math.min(100,Math.round(
+            calcularPuntuacion(
+              lluvia*0.35,
+              lluvia,
+              lluvia*1.55,
+              temp,
+              temp,
+              suelo,
+              alt,
+              new Date().getMonth()+1,
+              0,
+              0.5,
+              0,
+              suelo,
+              0
+            )
+          )));
+
+          $("score").textContent=provisional;
+          if(provisional>=80){
+            $("nivel").textContent="Muy favorable";
+            $("ventana").textContent="Valoración provisional · meteorología no disponible";
+          }else if(provisional>=60){
+            $("nivel").textContent="Favorable";
+            $("ventana").textContent="Valoración provisional · meteorología no disponible";
+          }else if(provisional>=40){
+            $("nivel").textContent="Posible";
+            $("ventana").textContent="Valoración provisional · meteorología no disponible";
+          }else{
+            $("nivel").textContent="Baja";
+            $("ventana").textContent="Valoración provisional · meteorología no disponible";
+          }
+
+          $("ring").style.background=
+            "conic-gradient(#3e8b58 0 "+provisional+"%,#e5e9e3 "+provisional+"% 100%)";
+
+          $("estado").textContent=
+            "⚠️ Sin conexión meteorológica. El Radar muestra una valoración provisional. "+
+            "Puedes seguir usando mapa, ubicación y funciones locales.";
+        }catch(provisionalError){
+          console.error("Radar Níscalo · valoración provisional:",provisionalError);
+          $("estado").textContent=
+            "⚠️ Meteorología no disponible. El Radar puede seguir usándose.";
+        }
         return;
       }
     }
