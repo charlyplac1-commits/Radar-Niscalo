@@ -4890,138 +4890,37 @@ return "⛈️";
 }
 
 function mostrarPrevision(diario){
-
-let caja=
-
-$("prevision");
-
-caja.innerHTML="";
-
-if(!diario || !diario.time){
-
-return;
-
-}
-
-const hoyLocal=new Date();
-const hoyClave=[
-hoyLocal.getFullYear(),
-String(hoyLocal.getMonth()+1).padStart(2,"0"),
-String(hoyLocal.getDate()).padStart(2,"0")
-].join("-");
-
-const indices=diario.time
-.map((fecha,i)=>({fecha,i}))
-.sort((a,b)=>{
-const aEsHoy=a.fecha===hoyClave;
-const bEsHoy=b.fecha===hoyClave;
-if(aEsHoy&&!bEsHoy) return -1;
-if(bEsHoy&&!aEsHoy) return 1;
-
-const aPasado=a.fecha<hoyClave;
-const bPasado=b.fecha<hoyClave;
-if(aPasado&&bPasado) return b.fecha.localeCompare(a.fecha);
-if(!aPasado&&!bPasado) return a.fecha.localeCompare(b.fecha);
-return aPasado ? -1 : 1;
-});
-
-indices.forEach(({fecha,i})=>{
-
-let div=
-
-document.createElement("div");
-
-div.className="day";
-
-let fechaReal=
-
-new Date(
-
-fecha+"T12:00:00"
-
-);
-
-let temperaturaDia=
-Number(
-  diario.temperature_2m_max?.[i] ?? diario.temperature_2m_mean?.[i] ?? 0
-);
-
-let lluviaDia=
-
-Number(
-
-diario.precipitation_sum?.[i] ?? 0
-
-);
-
-let probDia=
-
-Number(
-
-diario.precipitation_probability_max?.[i] ?? 0
-
-);
-
-div.innerHTML=`
-
-<b>
-
-${fechaReal.toLocaleDateString(
-
-"es-ES",
-
-{
-
-weekday:"short",
-
-day:"2-digit",
-
-month:"2-digit"
-
-}
-
-)}
-
-</b>
-
-<div class="ico">
-
-${iconoTiempo(
-
-Number(diario.weather_code?.[i]||0)
-
-)}
-
-</div>
-
-<strong>
-
-${Math.round(temperaturaDia)} °C máx.
-
-</strong>
-
-<div>
-
-🌧️ ${lluviaDia.toFixed(1)} mm
-
-</div>
-
-<div>
-
-💧 ${probDia}%
-
-</div>
-
-`;
-
-caja.appendChild(div);
-
-}
-
-);
-
-/* IMPORTANTE: cierre correcto de mostrarPrevision */
-
+  const caja=$("prevision");
+  if(!caja)return;
+  caja.innerHTML="";
+  if(!diario||!Array.isArray(diario.time)||!diario.time.length){
+    caja.innerHTML="<div class='muted'>No hay datos de previsión disponibles ahora.</div>";
+    return;
+  }
+  const hoy=new Date();
+  const hoyClave=hoy.getFullYear()+"-"+String(hoy.getMonth()+1).padStart(2,"0")+"-"+String(hoy.getDate()).padStart(2,"0");
+  const indices=diario.time.map((fecha,i)=>({fecha,i})).filter(x=>x.fecha>=hoyClave).slice(0,7);
+  if(!indices.length){
+    caja.innerHTML="<div class='muted'>No hay días futuros disponibles ahora.</div>";
+    return;
+  }
+  indices.forEach(({fecha,i})=>{
+    const div=document.createElement("div");
+    div.className="day";
+    const fechaReal=new Date(fecha+"T12:00:00");
+    const temperaturaDia=Number(diario.temperature_2m_max?.[i]??diario.temperature_2m_mean?.[i]);
+    const temperaturaMin=Number(diario.temperature_2m_min?.[i]);
+    const lluviaDia=Number(diario.precipitation_sum?.[i]??0);
+    const probDia=Number(diario.precipitation_probability_max?.[i]??0);
+    const codigo=Number(diario.weather_code?.[i]??0);
+    div.innerHTML="<b>"+fechaReal.toLocaleDateString("es-ES",{weekday:"short",day:"2-digit",month:"2-digit"})+"</b>"+
+      "<div class='ico'>"+iconoTiempo(codigo)+"</div>"+
+      "<strong>"+(Number.isFinite(temperaturaDia)?Math.round(temperaturaDia):"--")+" °C máx.</strong>"+
+      "<div>🌡️ "+(Number.isFinite(temperaturaMin)?Math.round(temperaturaMin):"--")+" °C mín.</div>"+
+      "<div>🌧️ "+lluviaDia.toFixed(1)+" mm</div>"+
+      "<div>💧 "+Math.round(probDia)+"%</div>";
+    caja.appendChild(div);
+  });
 }
 
 /* ================= HISTÓRICO ================= */
