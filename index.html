@@ -3679,77 +3679,75 @@ buscador.value="Ubicación actual";
 function usarUbicacion(){
 
 if(!navigator.geolocation){
-
-alert(
-
-"Tu navegador no permite obtener la ubicación."
-
-);
-
-return;
-
+  $("estado").textContent="Este navegador no permite obtener la ubicación.";
+  return;
 }
 
-$("estado").textContent=
-
-"Obteniendo ubicación…";
+$("estado").textContent="📍 Obteniendo ubicación precisa…";
 
 navigator.geolocation.getCurrentPosition(
 
-pos=>{
+async pos=>{
 
-const lat=pos.coords.latitude.toFixed(6);
-const lon=pos.coords.longitude.toFixed(6);
+  const lat=pos.coords.latitude;
+  const lon=pos.coords.longitude;
 
-$("lat").value=lat;
+  $("lat").value=lat.toFixed(6);
+  $("lon").value=lon.toFixed(6);
 
-$("lon").value=lon;
+  if(mapa){
+    mapa.setView([lat,lon],13,{animate:true});
+    if(marcador){
+      marcador.setLatLng([lat,lon]);
+      marcador.bindPopup("📍 Mi ubicación actual").openPopup();
+    }else{
+      marcador=L.marker([lat,lon]).addTo(mapa)
+        .bindPopup("📍 Mi ubicación actual").openPopup();
+    }
+  }
 
-mostrarDireccionUbicacion(lat,lon);
+  $("estado").textContent="📍 Ubicación obtenida. Cargando datos…";
 
-$("estado").textContent="Ubicación obtenida. Cargando datos…";
+  try{
+    await mostrarDireccionUbicacion(lat,lon);
+  }catch(e){
+    console.warn("Dirección no disponible:",e);
+  }
 
-cargarDatos();
+  await cargarDatos();
+  await pintarMapaZonas(lat,lon);
+
+  if(mapa){
+    mapa.setView([lat,lon],13,{animate:true});
+    if(marcador) marcador.setLatLng([lat,lon]);
+  }
+
+  $("estado").textContent="✅ Ubicación actualizada correctamente.";
 
 },
 
 error=>{
 
-let mensaje="No se pudo obtener la ubicación.";
+  let mensaje="No se pudo obtener la ubicación.";
 
-if(error.code===1){
+  if(error.code===1){
+    mensaje="📍 Permiso de ubicación denegado. Actívalo para este sitio y vuelve a pulsar el botón.";
+  }else if(error.code===2){
+    mensaje="📍 No se pudo determinar tu ubicación. Comprueba que el GPS/ubicación esté activado.";
+  }else if(error.code===3){
+    mensaje="📍 La ubicación tardó demasiado. Vuelve a intentarlo.";
+  }
 
-mensaje="Permiso de ubicación denegado. Actívalo para este sitio y vuelve a pulsar el botón.";
-
-}
-
-else if(error.code===2){
-
-mensaje="No se pudo determinar tu ubicación. Comprueba que la ubicación esté activada.";
-
-}
-
-else if(error.code===3){
-
-mensaje="La ubicación tardó demasiado. Vuelve a intentarlo.";
-
-}
-
-$("estado").textContent=mensaje;
+  $("estado").textContent=mensaje;
+  console.warn("Geolocalización:",error);
 
 },
 
 {
-
-enableHighAccuracy:true,
-
-timeout:20000,
-
-maximumAge:0
-
+  enableHighAccuracy:true,
+  timeout:30000,
+  maximumAge:0
 }
-
-);
 
 }
 
