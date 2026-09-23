@@ -4165,6 +4165,7 @@ async function cargarDatos(){
     let lluvia30=sumarLluviaDias(30);
     let humedadSuelo=NaN;
     let sueloProfundo=NaN;
+    let diasSecosHistorico=null;
 
     /* MET Norway no aporta histórico. No mostramos ceros inventados.
        Intentamos recuperar los últimos 30 días desde el archivo histórico
@@ -4211,6 +4212,18 @@ async function cargarDatos(){
             lluvia30=sumarArchivo(30);
             historicoLluviaDisponible=fechas.length>0;
 
+            /* En el modo de respaldo, "días desde la última lluvia"
+               también sale del mismo histórico diario. No usamos el
+               contador horario de MET Norway, porque ese contador solo
+               cubre el bloque que haya devuelto el respaldo. */
+            let diasSin=0;
+            for(let i=fechas.length-1;i>=0;i--){
+              const mm=Number(lluvias[i]);
+              if(Number.isFinite(mm) && mm>=0.5) break;
+              diasSin++;
+            }
+            diasSecosHistorico=diasSin;
+
             /* También recuperamos humedad del suelo desde el archivo histórico.
                El valor mostrado es el promedio de las últimas 24 h disponibles. */
             const soilTimes=Array.isArray(archive?.hourly?.time)?archive.hourly.time:[];
@@ -4248,7 +4261,10 @@ async function cargarDatos(){
       horasDesdeLluvia++;
       if(horasDesdeLluvia>=30*24) break;
     }
-    const diasSecos=Math.floor(horasDesdeLluvia/24);
+    let diasSecos=Math.floor(horasDesdeLluvia/24);
+    if(Number.isFinite(diasSecosHistorico)){
+      diasSecos=diasSecosHistorico;
+    }
 
     const vpdArr=Array.isArray(datos.hourly.vapour_pressure_deficit)
       ?datos.hourly.vapour_pressure_deficit:[];
