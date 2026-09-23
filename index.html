@@ -1994,11 +1994,14 @@ main{
 }
 </style>
 <style id="ajuste-arranque-real">
-/* ===== ARRANQUE A RAS DE PANTALLA · SIN FRANJA SUPERIOR ===== */
+/* ===== ARRANQUE LIMPIO · SIN CAPA DE PORTADA ===== */
 html,body{
   margin:0 !important;
   padding:0 !important;
   scroll-padding-top:0 !important;
+}
+#appSplash{
+  display:none !important;
 }
 main{
   margin:0 auto !important;
@@ -2009,9 +2012,7 @@ main{
 }
 main > .app-nav{margin:0 !important;padding-top:0 !important;}
 #radar{margin:0 !important;padding-top:0 !important;}
-#radar>.card.score{
-  margin-top:0 !important;
-}
+#radar>.card.score{margin-top:0 !important;}
 </style>
 </head>
 
