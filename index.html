@@ -3782,11 +3782,80 @@ async function fetchConLimite(url,options={},timeoutMs=10000){
   }
 }
 
+/* ================= VALORACIÓN PROVISIONAL SEGURA =================
+   El radar nunca debe quedarse en "Preparando…" si una fuente externa
+   tarda demasiado o falla. Esta valoración usa los valores disponibles
+   en los controles y sirve como respaldo visual hasta que llegue la
+   meteorología real.
+*/
+function mostrarValoracionProvisional(){
+  try{
+    const num=(id,def)=>{
+      const el=$(id);
+      const v=Number(el?.value);
+      return Number.isFinite(v)?v:def;
+    };
+    const lluvia=num("rainSlider",60);
+    const temp=num("tempSlider",15);
+    const suelo=num("soilSlider",50);
+    const alt=num("altSlider",800);
+
+    $("rainSlider").value=lluvia;
+    $("tempSlider").value=temp;
+    $("soilSlider").value=suelo;
+    $("altSlider").value=alt;
+    $("rainValue").textContent=Math.round(lluvia);
+    $("tempValue").textContent=Math.round(temp);
+    $("soilValue").textContent=Math.round(suelo);
+    $("altValue").textContent=Math.round(alt);
+
+    const provisional=Math.max(0,Math.min(100,Math.round(
+      calcularPuntuacion(
+        lluvia*0.35,
+        lluvia,
+        lluvia*1.55,
+        temp,
+        temp,
+        suelo,
+        alt,
+        new Date().getMonth()+1,
+        0,
+        0.5,
+        0,
+        suelo,
+        0
+      )
+    )));
+
+    $("score").textContent=provisional;
+    $("nivel").textContent=
+      provisional>=80?"Muy favorable":
+      provisional>=60?"Favorable":
+      provisional>=40?"Posible":"Baja";
+    $("ventana").textContent="Valoración provisional · esperando meteorología";
+    $("ring").style.background=
+      "conic-gradient(#3e8b58 0 "+provisional+"%,#e5e9e3 "+provisional+"% 100%)";
+    return provisional;
+  }catch(e){
+    console.error("Radar Níscalo · valoración provisional:",e);
+    return null;
+  }
+}
+
 /* ================= DATOS METEOROLÓGICOS ================= */
 
 async function cargarDatos(){
 
-  const lat=parseFloat($("lat").value);
+  const lat=parseFloat($("lat").value);    const cargaRadarId=Date.now();
+  window._cargaRadarId=cargaRadarId;
+  const watchdogRadar=setTimeout(()=>{
+    if(window._cargaRadarId===cargaRadarId && $("score")?.textContent==="--"){
+      mostrarValoracionProvisional();
+      $("estado").textContent="⚠️ La meteorología está tardando demasiado. Mostrando valoración provisional…";
+    }
+  },18000);
+
+
   const lon=parseFloat($("lon").value);
 
   if(!Number.isFinite(lat)||!Number.isFinite(lon)){
@@ -4116,69 +4185,10 @@ async function cargarDatos(){
         /* Aunque fallen las tres fuentes meteorológicas, el Radar no se queda
            bloqueado en "Preparando…". Calculamos una valoración provisional
            con valores neutros y dejamos claro que no procede de meteorología en vivo. */
-        try{
-          const num=(id,def)=>{
-            const el=$(id);
-            const v=Number(el?.value);
-            return Number.isFinite(v)?v:def;
-          };
-          const lluvia=num("rainSlider",60);
-          const temp=num("tempSlider",15);
-          const suelo=num("soilSlider",50);
-          const alt=num("altSlider",800);
-          $("rainSlider").value=lluvia;
-          $("tempSlider").value=temp;
-          $("soilSlider").value=suelo;
-          $("altSlider").value=alt;
-          $("rainValue").textContent=Math.round(lluvia);
-          $("tempValue").textContent=Math.round(temp);
-          $("soilValue").textContent=Math.round(suelo);
-          $("altValue").textContent=Math.round(alt);
-
-          const provisional=Math.max(0,Math.min(100,Math.round(
-            calcularPuntuacion(
-              lluvia*0.35,
-              lluvia,
-              lluvia*1.55,
-              temp,
-              temp,
-              suelo,
-              alt,
-              new Date().getMonth()+1,
-              0,
-              0.5,
-              0,
-              suelo,
-              0
-            )
-          )));
-
-          $("score").textContent=provisional;
-          if(provisional>=80){
-            $("nivel").textContent="Muy favorable";
-            $("ventana").textContent="Valoración provisional · meteorología no disponible";
-          }else if(provisional>=60){
-            $("nivel").textContent="Favorable";
-            $("ventana").textContent="Valoración provisional · meteorología no disponible";
-          }else if(provisional>=40){
-            $("nivel").textContent="Posible";
-            $("ventana").textContent="Valoración provisional · meteorología no disponible";
-          }else{
-            $("nivel").textContent="Baja";
-            $("ventana").textContent="Valoración provisional · meteorología no disponible";
-          }
-
-          $("ring").style.background=
-            "conic-gradient(#3e8b58 0 "+provisional+"%,#e5e9e3 "+provisional+"% 100%)";
-
-          $("estado").textContent=
-            "⚠️ Sin conexión meteorológica. El Radar muestra una valoración provisional. "+
-            "Puedes seguir usando mapa, ubicación y funciones locales.";
-        }catch(provisionalError){
-          console.error("Radar Níscalo · valoración provisional:",provisionalError);
-          $("estado").textContent=
-            "⚠️ Meteorología no disponible. El Radar puede seguir usándose.";
-        }
+        mostrarValoracionProvisional();
+        $("estado").textContent=
+          "⚠️ Sin conexión meteorológica. El Radar muestra una valoración provisional. "+
+          "Puedes seguir usando mapa, ubicación y funciones locales.";
         return;
       }
     }
@@ -4530,11 +4540,16 @@ async function cargarDatos(){
   }catch(error){
 
     console.error("Radar Níscalo · procesamiento meteorológico:",error);
+    if($("score")?.textContent==="--") mostrarValoracionProvisional();
 
     $("estado").textContent=
-      "❌ Error procesando los datos: "+
+      "⚠️ Error procesando los datos. Mostrando valoración provisional: "+
       (error?.message||"error desconocido.");
 
+  }finally{
+    if(window._cargaRadarId===cargaRadarId){
+      clearTimeout(watchdogRadar);
+    }
   }
 }
 
