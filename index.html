@@ -1975,7 +1975,7 @@ main{
   padding-top:0 !important;
   position:relative !important;
   top:0 !important;
-  transform:translateY(-34px) !important;
+  transform:none !important;
 }
 .app-nav{
   margin-top:0 !important;
@@ -1985,6 +1985,17 @@ main{
 }
 #radar>.card.score{
   margin-top:0 !important;
+}
+</style>
+<style id="ajuste-arranque-real">
+/* ===== ARRANQUE REAL: ELIMINAR HUECO DEL PRIMER CONTENEDOR ===== */
+main > .app-nav{
+  margin-top:-10px !important;
+}
+@media(max-width:720px){
+  main > .app-nav{
+    margin-top:-10px !important;
+  }
 }
 </style>
 </head>
