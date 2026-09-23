@@ -1535,29 +1535,35 @@ mapa.invalidateSize();
 function iniciarMapa(){
 
 mapa=L.map("map").setView(
+
 [41.60,1.80],
+
 8
+
 );
 
-/* Base fotográfica real: satélite. Sin API key y sin cambiar el resto del Radar. */
-const mapaSatelite=L.tileLayer(
-"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-{
-maxZoom:19,
-attribution:"Tiles © Esri"
-}
-).addTo(mapa);
+L.tileLayer(
 
-L.control.layers(
-{"🛰️ Satélite":mapaSatelite},
-null,
-{collapsed:true,position:"topright"}
+"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+
+{
+
+maxZoom:19,
+
+attribution:"© OpenStreetMap"
+
+}
+
 ).addTo(mapa);
 
 marcador=L.marker(
+
 [41.60,1.80]
+
 )
+
 .addTo(mapa)
+
 .bindPopup("Ubicación consultada");
 
 }
