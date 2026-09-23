@@ -1671,26 +1671,40 @@ body{
 
 /* ===== FONDO DECISIÓN DEL RADAR ===== */
 .decision-radar-card{
-  background:#173d29!important;
+  position:relative;
+  overflow:hidden;
+  background-image:
+    linear-gradient(180deg,rgba(7,30,17,.38),rgba(4,24,13,.68)),
+    url('https://images.unsplash.com/photo-1698869628299-5d0e570142fb?auto=format&fit=crop&fm=jpg&q=88&w=1800&v=4');
+  background-size:cover;
+  background-position:center;
   border-color:#28563d!important;
   color:#fff;
 }
 .decision-radar-card h3{
+  position:relative;
+  z-index:1;
   color:#fff!important;
+  text-shadow:0 2px 7px rgba(0,0,0,.8);
+}
+.decision-radar-card #decisionRadar,
+.decision-radar-card #decisionFactores,
+.decision-radar-card>div{
+  position:relative;
+  z-index:1;
 }
 .decision-radar-card .notice{
-  background:rgba(8,30,19,.55);
+  background:rgba(8,30,19,.56);
   color:#fff;
   border-color:rgba(255,255,255,.18);
 }
 .decision-radar-card .muted{
-  color:rgba(255,255,255,.82)!important;
+  color:rgba(255,255,255,.86)!important;
 }
 .decision-radar-card .badge{
   background:rgba(255,255,255,.12);
   color:#fff;
 }
-
 /* ===== FONDO FRUCTIFICACIÓN ===== */
 .fructificacion-card{
   position:relative;
