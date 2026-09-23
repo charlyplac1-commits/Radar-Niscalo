@@ -3858,6 +3858,7 @@ async function cargarDatos(){
       });
 
       const actual=series[indice];
+      const metAltitud=Number(met?.geometry?.coordinates?.[2]);
       const inst=actual?.data?.instant?.details||{};
       const temp=Number(inst.air_temperature);
       const hum=Number(inst.relative_humidity);
@@ -3940,7 +3941,27 @@ async function cargarDatos(){
         precipitation_sum:dailyFechas.map(f=>diasMap.get(f).suma),
         precipitation_probability_max:dailyFechas.map(f=>diasMap.get(f).prob),
         wind_gusts_10m_max:dailyFechas.map(f=>diasMap.get(f).wind),
-        weather_code:dailyFechas.map(()=>0),
+        weather_code:dailyFechas.map(f=>{
+          const p=series.find(x=>x.time?.slice(0,10)===f);
+          const code=String(
+            p?.data?.next_1_hours?.summary?.symbol_code ??
+            p?.data?.next_6_hours?.summary?.symbol_code ??
+            p?.data?.next_12_hours?.summary?.symbol_code ??
+            ""
+          ).toLowerCase();
+
+          if(code.includes("thunder")) return 95;
+          if(code.includes("snowshowers") || code.includes("heavysnow")) return 85;
+          if(code.includes("snow")) return 73;
+          if(code.includes("sleet")) return 67;
+          if(code.includes("rainshowers") || code.includes("heavyrain")) return 80;
+          if(code.includes("rain") || code.includes("drizzle")) return 61;
+          if(code.includes("fog")) return 45;
+          if(code.includes("partlycloudy")) return 2;
+          if(code.includes("cloudy")) return 3;
+          if(code.includes("fair")) return 1;
+          return 0;
+        }),
         et0_fao_evapotranspiration:[]
       };
 
@@ -3962,8 +3983,13 @@ async function cargarDatos(){
           wind_gusts_10m:[Number.isFinite(viento)?viento:0],
           vapour_pressure_deficit:[null]
         },
-        daily
+        daily,
+        _respaldoLimitado:true
       };
+
+      if(Number.isFinite(metAltitud)){
+        datos._altitudRespaldo=metAltitud;
+      }
 
       window.meteorologiaRespaldo=true;
       window.meteorologiaFuente="MET Norway";
@@ -4084,10 +4110,19 @@ async function cargarDatos(){
       return suma;
     };
 
-    const lluvia3=sumarLluviaHoras(72);
-    const lluvia7=sumarLluviaHoras(7*24);
-    const lluvia14=sumarLluviaHoras(14*24);
-    const lluvia30=sumarLluviaHoras(30*24);
+    let lluvia3=sumarLluviaHoras(72);
+    let lluvia7=sumarLluviaHoras(7*24);
+    let lluvia14=sumarLluviaHoras(14*24);
+    let lluvia30=sumarLluviaHoras(30*24);
+
+    /* MET Norway no aporta histórico de 14/30 días. Usamos el último
+       histórico válido guardado por Open-Meteo cuando existe. */
+    if(datos._respaldoLimitado){
+      lluvia3=Number(localStorage.getItem("radar_lluvia3")||0);
+      lluvia7=Number(localStorage.getItem("radar_lluvia7")||0);
+      lluvia14=Number(localStorage.getItem("radar_lluvia14")||0);
+      lluvia30=Number(localStorage.getItem("radar_lluvia30")||0);
+    }
 
     let horasDesdeLluvia=0;
     for(let i=indiceActual;i>=0;i--){
@@ -4171,19 +4206,23 @@ async function cargarDatos(){
        ALTITUD
        También es secundaria.
        ======================================================= */
-    let altitud=0;
-    try{
-      const elevacion=await fetch(
-        "https://api.open-meteo.com/v1/elevation?latitude="+
-        encodeURIComponent(lat)+"&longitude="+encodeURIComponent(lon),
-        {cache:"no-store"}
-      );
-      if(elevacion.ok){
-        const elevacionDatos=await elevacion.json();
-        altitud=Math.round(elevacionDatos.elevation?.[0]||0);
+    let altitud=Number.isFinite(datos._altitudRespaldo)
+      ?Math.round(datos._altitudRespaldo):0;
+
+    if(!altitud){
+      try{
+        const elevacion=await fetch(
+          "https://api.open-meteo.com/v1/elevation?latitude="+
+          encodeURIComponent(lat)+"&longitude="+encodeURIComponent(lon),
+          {cache:"no-store"}
+        );
+        if(elevacion.ok){
+          const elevacionDatos=await elevacion.json();
+          altitud=Math.round(elevacionDatos.elevation?.[0]||0);
+        }
+      }catch(e){
+        console.warn("Altitud no disponible:",e);
       }
-    }catch(e){
-      console.warn("Altitud no disponible:",e);
     }
 
     /* =======================================================
@@ -4191,12 +4230,13 @@ async function cargarDatos(){
        SECUNDARIA. Esto evita que una fuente externa deje todo
        en blanco.
        ======================================================= */
-    $("lluvia14").textContent=Math.round(lluvia14)+" mm";
+    const hayHistoricoLluvia=Number.isFinite(lluvia14) && lluvia14>0;
+    $("lluvia14").textContent=(datos._respaldoLimitado && !hayHistoricoLluvia) ? "--" : Math.round(lluvia14)+" mm";
     $("lluvia3").textContent=Math.round(lluvia3)+" mm";
     $("lluvia30").textContent=Math.round(lluvia30)+" mm";
     $("diasSecos").textContent=diasSecos+" d";
     $("sueloProfundo").textContent=Number.isFinite(sueloProfundo)?Math.round(sueloProfundo)+"%":"--";
-    $("suelo").textContent=humedadSuelo+"%";
+    $("suelo").textContent=(datos._respaldoLimitado && humedadSuelo===0) ? "--" : humedadSuelo+"%";
     $("temperatura").textContent=Number.isFinite(temperatura)?temperatura.toFixed(1)+" °C":"--";
     $("altitud").textContent=altitud+" m";
     $("humedad").textContent=Number.isFinite(humedad)?Math.round(humedad)+"%":"--";
@@ -4213,6 +4253,15 @@ async function cargarDatos(){
     window.lluvia7Actual=lluvia7;
     window.lluvia14Actual=lluvia14;
     window.lluvia30Actual=lluvia30;
+
+    if(!datos._respaldoLimitado){
+      try{
+        localStorage.setItem("radar_lluvia3",String(lluvia3));
+        localStorage.setItem("radar_lluvia7",String(lluvia7));
+        localStorage.setItem("radar_lluvia14",String(lluvia14));
+        localStorage.setItem("radar_lluvia30",String(lluvia30));
+      }catch(e){}
+    }
     window.lluviaActual=lluvia14;
     window.tempActual=Number.isFinite(temperatura)?temperatura:15;
     window.humedadSueloActual=humedadSuelo;
