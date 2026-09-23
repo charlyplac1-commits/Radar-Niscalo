@@ -524,8 +524,10 @@ button{border-radius:12px}
   --naranja:#e56f32;
   --texto:#17231b;
 }
-html,body{scroll-behavior:auto;scroll-padding-top:0;overflow-anchor:none}
-body{overflow-x:hidden;overflow-anchor:none}
+html,body{scroll-behavior:auto;scroll-padding-top:0;overflow-anchor:none;margin:0!important;padding:0!important}
+html{min-height:100%;overflow-x:hidden}
+body{overflow-x:hidden;overflow-anchor:none;min-height:100vh!important}
+main{margin-top:0!important}
 body{background:var(--crema)}
 .app-header{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
@@ -5481,15 +5483,21 @@ new Date()
   window.addEventListener("load",()=>{irArriba();setTimeout(irArriba,100);setTimeout(irArriba,500);setTimeout(irArriba,1500);},{once:true});
   const hide=()=>{
     if(!s) return;
+    /* Primero fijamos la ventana arriba y después retiramos la portada del
+       DOM. Así el splash no puede convertirse en un ancla de desplazamiento. */
     irArriba();
     s.classList.add("hide");
-    /* Repetimos la orden durante la retirada de la portada para impedir que
-       el navegador restaure el scroll justo cuando cambia la visibilidad. */
-    [50,150,350,800,1200].forEach(ms=>setTimeout(irArriba,ms));
     setTimeout(()=>{
-      s.style.display="none";
-      irArriba();
-    },800);
+      if(s && s.parentNode) s.parentNode.removeChild(s);
+      document.documentElement.scrollTop=0;
+      document.body.scrollTop=0;
+      window.scrollTo(0,0);
+      requestAnimationFrame(()=>{
+        document.documentElement.scrollTop=0;
+        document.body.scrollTop=0;
+        window.scrollTo(0,0);
+      });
+    },700);
   };
 
   /* ================= ARRANQUE DE LA APLICACIÓN =================
