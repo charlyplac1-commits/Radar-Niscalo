@@ -898,6 +898,44 @@ La favorabilidad se calcula automáticamente con meteorología reciente y previs
 
 </p>
 
+<div class="card" id="recorridoCard">
+
+<h3>🧭 Recorrido</h3>
+
+<div class="muted" style="margin-bottom:8px">
+Graba por dónde caminas con el GPS. La ruta queda dibujada sobre el mapa para que puedas volver siguiendo el mismo camino.
+</div>
+
+<div class="metric-strip">
+<div class="metric">
+<div class="big" id="recorridoDistancia">0 m</div>
+<div class="muted">Distancia</div>
+</div>
+<div class="metric">
+<div class="big" id="recorridoTiempo">00:00</div>
+<div class="muted">Tiempo</div>
+</div>
+<div class="metric">
+<div class="big" id="recorridoPuntos">0</div>
+<div class="muted">Puntos GPS</div>
+</div>
+<div class="metric">
+<div class="big" id="recorridoEstado">Parado</div>
+<div class="muted">Estado</div>
+</div>
+</div>
+
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button type="button" id="btnComenzarRecorrido" onclick="comenzarRecorrido()">🧭 Comenzar recorrido</button>
+<button type="button" id="btnPararRecorrido" class="secondary" onclick="pararRecorrido()" style="display:none">⏹️ Parar y guardar</button>
+<button type="button" id="btnCentrarRecorrido" class="secondary" onclick="centrarRecorrido()">📍 Centrar</button>
+<button type="button" id="btnBorrarRecorrido" class="danger" onclick="borrarRecorrido()">🗑️ Borrar ruta</button>
+</div>
+
+<div id="recorridoAviso" class="muted" style="margin-top:8px">
+Pulsa «Comenzar recorrido» cuando entres al bosque. Mantén la ubicación del teléfono activada.
+</div>
+
 </div>
 
 
@@ -1477,6 +1515,309 @@ const $ = id => document.getElementById(id);
 let mapa;
 
 let marcador;
+
+let capasFavorabilidad=[];
+
+/* ================= RECORRIDO GPS ================= */
+let watchIdRecorrido=null;
+let recorridoActivo=false;
+let recorridoPuntos=[];
+let recorridoDistancia=0;
+let recorridoInicio=0;
+let recorridoTimer=null;
+let lineaRecorrido=null;
+let marcadorRecorrido=null;
+let circuloPrecisionRecorrido=null;
+
+function formatearDistanciaRecorrido(metros){
+if(metros<1000) return Math.round(metros)+" m";
+return (metros/1000).toFixed(2)+" km";
+}
+
+function formatearTiempoRecorrido(){
+if(!recorridoInicio) return "00:00";
+const segundos=Math.max(0,Math.floor((Date.now()-recorridoInicio)/1000));
+const h=Math.floor(segundos/3600);
+const m=Math.floor((segundos%3600)/60);
+const s=segundos%60;
+return (h>0 ? String(h).padStart(2,"0")+":" : "")+
+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+
+function actualizarPanelRecorrido(){
+const distancia=$("recorridoDistancia");
+const tiempo=$("recorridoTiempo");
+const puntos=$("recorridoPuntos");
+const estado=$("recorridoEstado");
+if(distancia) distancia.textContent=formatearDistanciaRecorrido(recorridoDistancia);
+if(tiempo) tiempo.textContent=formatearTiempoRecorrido();
+if(puntos) puntos.textContent=recorridoPuntos.length;
+if(estado) estado.textContent=recorridoActivo?"Grabando":"Parado";
+}
+
+function distanciaEntrePuntos(lat1,lon1,lat2,lon2){
+const R=6371000;
+const rad=Math.PI/180;
+const dLat=(lat2-lat1)*rad;
+const dLon=(lon2-lon1)*rad;
+const a=Math.sin(dLat/2)**2+
+Math.cos(lat1*rad)*Math.cos(lat2*rad)*Math.sin(dLon/2)**2;
+return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function dibujarRecorridoGuardado(){
+if(!mapa) return;
+if(lineaRecorrido){
+mapa.removeLayer(lineaRecorrido);
+lineaRecorrido=null;
+}
+if(!recorridoPuntos.length) return;
+lineaRecorrido=L.polyline(
+recorridoPuntos.map(p=>[p.lat,p.lon]),
+{
+color:"#e56f32",
+weight:5,
+opacity:.9,
+lineCap:"round",
+lineJoin:"round"
+}
+).addTo(mapa);
+}
+
+function guardarRecorridoLocal(){
+try{
+localStorage.setItem("radar_niscalo_recorrido",JSON.stringify({
+puntos:recorridoPuntos,
+distancia:recorridoDistancia,
+inicio:recorridoInicio||null,
+fecha:new Date().toISOString()
+}));
+}catch(e){
+console.warn("No se pudo guardar el recorrido:",e);
+}
+}
+
+function cargarRecorridoGuardado(){
+try{
+const guardado=JSON.parse(localStorage.getItem("radar_niscalo_recorrido")||"null");
+if(!guardado||!Array.isArray(guardado.puntos)||!guardado.puntos.length) return;
+recorridoPuntos=guardado.puntos;
+recorridoDistancia=Number(guardado.distancia)||0;
+dibujarRecorridoGuardado();
+actualizarPanelRecorrido();
+const aviso=$("recorridoAviso");
+if(aviso) aviso.textContent="Ruta guardada cargada. Puedes verla en el mapa o borrarla antes de empezar otra.";
+}catch(e){
+console.warn("No se pudo cargar el recorrido guardado:",e);
+}
+}
+
+function actualizarPosicionRecorrido(pos){
+const lat=pos.coords.latitude;
+const lon=pos.coords.longitude;
+const precision=Number(pos.coords.accuracy)||0;
+
+if(!mapa) return;
+
+if(!marcadorRecorrido){
+marcadorRecorrido=L.circleMarker([lat,lon],{
+radius:7,
+color:"#ffffff",
+weight:2,
+fillColor:"#2878e8",
+fillOpacity:1,
+zIndexOffset:1000
+}).addTo(mapa).bindTooltip("Tu posición",{
+permanent:false,
+direction:"top"
+});
+}else{
+marcadorRecorrido.setLatLng([lat,lon]);
+}
+
+if(!circuloPrecisionRecorrido){
+circuloPrecisionRecorrido=L.circle([lat,lon],{
+radius:Math.max(precision,5),
+color:"#2878e8",
+weight:1,
+opacity:.35,
+fillColor:"#2878e8",
+fillOpacity:.08,
+interactive:false
+}).addTo(mapa);
+}else{
+circuloPrecisionRecorrido.setLatLng([lat,lon]);
+circuloPrecisionRecorrido.setRadius(Math.max(precision,5));
+}
+
+if(!recorridoActivo) return;
+
+const ultimo=recorridoPuntos[recorridoPuntos.length-1];
+
+if(ultimo){
+const metros=distanciaEntrePuntos(
+ultimo.lat,ultimo.lon,lat,lon
+);
+if(metros<5) return;
+recorridoDistancia+=metros;
+}
+
+recorridoPuntos.push({
+lat:Number(lat.toFixed(6)),
+lon:Number(lon.toFixed(6)),
+precision:Math.round(precision),
+hora:new Date().toISOString()
+});
+
+if(!lineaRecorrido){
+lineaRecorrido=L.polyline([],{
+color:"#e56f32",
+weight:5,
+opacity:.9,
+lineCap:"round",
+lineJoin:"round"
+}).addTo(mapa);
+}
+
+lineaRecorrido.setLatLngs(
+recorridoPuntos.map(p=>[p.lat,p.lon])
+);
+
+actualizarPanelRecorrido();
+guardarRecorridoLocal();
+}
+
+function errorRecorrido(error){
+let mensaje="No se pudo actualizar el GPS.";
+if(error&&error.code===1) mensaje="Permiso de ubicación denegado. Actívalo para poder grabar el recorrido.";
+if(error&&error.code===2) mensaje="No se pudo determinar tu posición. Muévete a una zona con mejor señal GPS.";
+if(error&&error.code===3) mensaje="El GPS está tardando demasiado. Mantén el teléfono desbloqueado y vuelve a intentarlo.";
+const aviso=$("recorridoAviso");
+if(aviso) aviso.textContent=mensaje;
+}
+
+function comenzarRecorrido(){
+if(!navigator.geolocation){
+alert("Este navegador no permite usar el GPS.");
+return;
+}
+
+if(recorridoActivo) return;
+
+if(recorridoPuntos.length){
+const continuar=confirm(
+"Ya hay una ruta guardada. ¿Quieres borrarla y comenzar un recorrido nuevo?"
+);
+if(!continuar) return;
+borrarRecorrido(false);
+}
+
+recorridoPuntos=[];
+recorridoDistancia=0;
+recorridoInicio=Date.now();
+recorridoActivo=true;
+actualizarPanelRecorrido();
+
+$("btnComenzarRecorrido").style.display="none";
+$("btnPararRecorrido").style.display="inline-block";
+
+const aviso=$("recorridoAviso");
+if(aviso) aviso.textContent="Buscando GPS con precisión alta… camina unos metros para que empiece a dibujar la ruta.";
+
+recorridoTimer=setInterval(actualizarPanelRecorrido,1000);
+
+watchIdRecorrido=navigator.geolocation.watchPosition(
+actualizarPosicionRecorrido,
+errorRecorrido,
+{
+enableHighAccuracy:true,
+timeout:15000,
+maximumAge:1000
+}
+);
+}
+
+function pararRecorrido(){
+if(!recorridoActivo) return;
+
+recorridoActivo=false;
+
+if(watchIdRecorrido!==null){
+navigator.geolocation.clearWatch(watchIdRecorrido);
+watchIdRecorrido=null;
+}
+
+if(recorridoTimer){
+clearInterval(recorridoTimer);
+recorridoTimer=null;
+}
+
+guardarRecorridoLocal();
+actualizarPanelRecorrido();
+
+$("btnComenzarRecorrido").style.display="inline-block";
+$("btnPararRecorrido").style.display="none";
+
+const aviso=$("recorridoAviso");
+if(aviso) aviso.textContent="Recorrido guardado. La línea naranja queda en el mapa para ayudarte a volver por el mismo camino.";
+}
+
+function centrarRecorrido(){
+if(!mapa) return;
+
+if(marcadorRecorrido){
+mapa.setView(marcadorRecorrido.getLatLng(),16,{animate:true});
+return;
+}
+
+if(recorridoPuntos.length){
+const ultimo=recorridoPuntos[recorridoPuntos.length-1];
+mapa.setView([ultimo.lat,ultimo.lon],16,{animate:true});
+return;
+}
+
+const lat=Number($("lat").value);
+const lon=Number($("lon").value);
+if(Number.isFinite(lat)&&Number.isFinite(lon)){
+mapa.setView([lat,lon],15,{animate:true});
+}
+}
+
+function borrarRecorrido(confirmar=true){
+if(confirmar&&!confirm("¿Quieres borrar la ruta guardada?")) return;
+
+if(recorridoActivo){
+recorridoActivo=false;
+if(watchIdRecorrido!==null){
+navigator.geolocation.clearWatch(watchIdRecorrido);
+watchIdRecorrido=null;
+}
+if(recorridoTimer){
+clearInterval(recorridoTimer);
+recorridoTimer=null;
+}
+}
+
+localStorage.removeItem("radar_niscalo_recorrido");
+recorridoPuntos=[];
+recorridoDistancia=0;
+recorridoInicio=0;
+
+if(lineaRecorrido&&mapa){
+mapa.removeLayer(lineaRecorrido);
+lineaRecorrido=null;
+}
+
+actualizarPanelRecorrido();
+
+const boton=$("btnComenzarRecorrido");
+const parar=$("btnPararRecorrido");
+if(boton) boton.style.display="inline-block";
+if(parar) parar.style.display="none";
+
+const aviso=$("recorridoAviso");
+if(aviso) aviso.textContent="Pulsa «Comenzar recorrido» cuando entres al bosque. Mantén la ubicación del teléfono activada.";
+}
 
 let capasFavorabilidad=[];
 let capaCalorRadar=null;
@@ -4404,6 +4745,7 @@ new Date()
     }catch(e){ console.error("Radar Níscalo · "+nombre,e); }
   };
   iniciarSeguro("mapa",()=>iniciarMapa());
+  iniciarSeguro("recorrido",()=>cargarRecorridoGuardado());
   iniciarSeguro("hallazgos",()=>mostrarHallazgos());
   iniciarSeguro("estadísticas",()=>mostrarEstadisticas());
   iniciarSeguro("escaneos",()=>mostrarEscaneos());
