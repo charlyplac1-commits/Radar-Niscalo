@@ -1461,6 +1461,54 @@ body{
   background-attachment:fixed !important;
 }
 
+/* ===== VENTANAS OSCURAS · ESTILO APP ===== */
+@media(min-width:760px){
+  #radar>.card:nth-of-type(n+4),
+  #radar>details.compact{
+    background:
+      linear-gradient(145deg,rgba(30,43,35,.96),rgba(20,31,25,.94)) !important;
+    border:1px solid rgba(145,181,151,.20) !important;
+    color:#edf3ed;
+    box-shadow:
+      0 12px 26px rgba(0,0,0,.30),
+      inset 0 1px 0 rgba(255,255,255,.07) !important;
+  }
+  #radar>.card:nth-of-type(n+4) h3,
+  #radar>details.compact summary{
+    color:#f2f6f2 !important;
+  }
+  #radar>details.compact>summary{
+    background:linear-gradient(135deg,rgba(50,72,57,.72),rgba(27,42,33,.72)) !important;
+  }
+  #radar>.card:nth-of-type(n+4) .muted,
+  #radar>details.compact .muted{
+    color:#b9c7bb !important;
+  }
+}
+@media(max-width:759px){
+  #radar>.card:nth-of-type(n+4),
+  #radar>details.compact{
+    background:
+      linear-gradient(145deg,rgba(29,42,34,.97),rgba(18,29,23,.96)) !important;
+    border:1px solid rgba(145,181,151,.18) !important;
+    color:#edf3ed;
+    box-shadow:
+      0 8px 20px rgba(0,0,0,.28),
+      inset 0 1px 0 rgba(255,255,255,.06) !important;
+  }
+  #radar>.card:nth-of-type(n+4) h3,
+  #radar>details.compact summary{
+    color:#f2f6f2 !important;
+  }
+  #radar>details.compact>summary{
+    background:linear-gradient(135deg,rgba(50,72,57,.68),rgba(27,42,33,.68)) !important;
+  }
+  #radar>.card:nth-of-type(n+4) .muted,
+  #radar>details.compact .muted{
+    color:#b9c7bb !important;
+  }
+}
+
 </style>
 
 <script>
