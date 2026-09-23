@@ -1961,11 +1961,30 @@ main{
 }
 </style>
 <style id="ajuste-superior-final">
-/* ===== BORDE SUPERIOR REAL · SOLO AJUSTE DE ENCUADRE ===== */
-html,body{margin-top:0 !important;padding-top:0 !important;}
-main{margin-top:0 !important;padding-top:0 !important;top:-22px !important;}
-.app-header{margin-top:0 !important;}
-.app-nav{margin-top:0 !important;}
+/* ===== ARRANQUE VISUAL ARRIBA · SOLO ENCUADRE ===== */
+html,body{
+  margin:0 !important;
+  padding:0 !important;
+  scroll-padding-top:0 !important;
+}
+body{
+  min-height:100vh !important;
+}
+main{
+  margin:0 auto !important;
+  padding-top:0 !important;
+  position:relative !important;
+  top:-22px !important;
+}
+.app-nav{
+  margin-top:0 !important;
+}
+#radar{
+  margin-top:0 !important;
+}
+#radar>.card.score{
+  margin-top:0 !important;
+}
 </style>
 </head>
 
