@@ -1898,17 +1898,7 @@ details.compact .notice{
   color:#fff !important;
 }
 </style>
-<style id="radar-proximidad-css">
-.proximity-card{background:linear-gradient(145deg,#eef5ee,#fff);border-color:#d5e3d7}
-.proximity-mapbox{height:430px;margin-top:12px;border-radius:18px;overflow:hidden;border:1px solid #d8e1d9}
-#proximityMap{height:100%;width:100%}
-.proximity-code-row{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
-.proximity-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.proximity-person{padding:11px;border-radius:13px;background:#fff;border:1px solid #dce5dd}
-.proximity-person .big{font-size:16px}
-.proximity-distance{margin:10px 0;padding:13px;border-radius:13px;background:#214b35;color:#fff;font-weight:900;text-align:center}
-@media(max-width:720px){.proximity-mapbox{height:52vh;min-height:300px}.proximity-stats{grid-template-columns:1fr}.proximity-code-row>div:last-child{width:100%}.proximity-code-row button{flex:1}}
-</style></head>
+</head>
 
 <body>
 <script>
@@ -2015,7 +2005,6 @@ window.addEventListener("unhandledrejection",function(e){
 
 
 <button onclick="tab('escanner',this)">📷<span> Escáner</span></button>
-<button onclick="tab('proximidad',this)">📍<span> Proximidad</span></button>
 
 </div>
 
@@ -2456,36 +2445,6 @@ style="overflow:auto;margin-top:12px">
 </div>
 </section>
 
-<!-- ================= RADAR DE PROXIMIDAD ================= -->
-<section id="proximidad" style="display:none">
-<div class="card proximity-card">
-<h2>📍 Radar de proximidad</h2>
-<p class="muted">Comparte tu posición con otra persona en tiempo real. Ambos móviles deben tener abierta esta pantalla.</p>
-<div class="proximity-code-row">
-  <div style="flex:1;min-width:180px">
-    <label>Código de encuentro</label>
-    <input id="proxCode" maxlength="20" placeholder="Ej. NISCALO4821" autocomplete="off">
-  </div>
-  <div style="display:flex;gap:7px;align-items:end;flex-wrap:wrap">
-    <button type="button" onclick="crearProximidad()">🟢 Crear sala</button>
-    <button type="button" class="secondary" onclick="unirProximidad()">🔵 Unirme</button>
-  </div>
-</div>
-<div id="proxEstado" class="notice" style="margin-top:10px">Introduce el mismo código en los dos móviles.</div>
-<div class="proximity-mapbox"><div id="proximityMap"></div></div>
-<div class="proximity-stats">
-  <div class="proximity-person me"><div class="big">🟢 <span id="proxYo">Tú</span></div><div id="proxYoCoord" class="muted">Esperando ubicación…</div></div>
-  <div class="proximity-person other"><div class="big">🔵 <span id="proxOtro">La otra persona</span></div><div id="proxOtroCoord" class="muted">Esperando conexión…</div></div>
-</div>
-<div class="proximity-distance" id="proxDistance">📏 Distancia: —</div>
-<div style="display:flex;gap:8px;flex-wrap:wrap">
-<button type="button" onclick="compartirProximidad()">📤 Compartir código</button>
-<button type="button" class="danger" onclick="salirProximidad()">✕ Salir</button>
-</div>
-<p class="muted" style="margin-top:10px">La posición se comparte solo mientras esta sala está activa. El navegador pedirá permiso de ubicación a cada móvil.</p>
-</div>
-</section>
-
 <!-- ================= ESCÁNER ================= -->
 
 
@@ -2732,7 +2691,6 @@ Radar del Níscalo · Aplicación experimental
 </script>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 
@@ -3085,7 +3043,7 @@ boton.style.background=visionRadarActiva?"#214b35":"#6b7280";
 
 function tab(nombre,boton){
 
-["radar","historico","escanner","proximidad"].forEach(id=>{
+["radar","historico","escanner"].forEach(id=>{
 
 $(id).style.display =
 
@@ -3113,13 +3071,6 @@ mapa.invalidateSize();
 
 },100);
 
-}
-
-if(nombre==="proximidad"){
-  setTimeout(()=>{
-    iniciarMapaProximidad();
-    if(proxMap) proxMap.invalidateSize();
-  },100);
 }
 
 }
@@ -5989,85 +5940,6 @@ function enfocarRadar(){
   if(Number.isFinite(lat)&&Number.isFinite(lon)){
     setTimeout(()=>{ if(mapa) mapa.setView([lat,lon],13,{animate:true}); pintarMapaZonas(lat,lon); },350);
   }
-}
-
-/* ================= RADAR DE PROXIMIDAD ================= */
-let proxPeer=null,proxConn=null,proxWatch=null,proxMap=null,proxMeMarker=null,proxOtherMarker=null,proxMe=null,proxOther=null,proxRole="";
-function proxStatus(t){const e=$("proxEstado");if(e)e.innerHTML=t;}
-function proxCode(){return String($("proxCode")?.value||"").trim().toUpperCase().replace(/[^A-Z0-9_-]/g,"").slice(0,20);}
-function iniciarMapaProximidad(){
-  if(proxMap||typeof L==="undefined")return;
-  proxMap=L.map("proximityMap").setView([41.60,1.80],11);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(proxMap);
-}
-function marcadorProx(tipo,p){
-  if(!proxMap)return null;
-  const icon=L.divIcon({className:"",html:"<div style='width:28px;height:28px;border-radius:50%;background:"+(tipo==="me"?"#2f6b46":"#2877c7")+";border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.35);display:grid;place-items:center;color:#fff;font-size:13px'>"+(tipo==="me"?"●":"●")+"</div>",iconSize:[28,28],iconAnchor:[14,14]});
-  return L.marker(p,{icon}).addTo(proxMap).bindTooltip(tipo==="me"?"Tú":"La otra persona",{permanent:false});
-}
-function actualizarMarcadoresProx(){
-  if(!proxMap)return;
-  if(proxMe){if(!proxMeMarker)proxMeMarker=marcadorProx("me",[proxMe.lat,proxMe.lon]);else proxMeMarker.setLatLng([proxMe.lat,proxMe.lon]);$("proxYoCoord").textContent=proxMe.lat.toFixed(5)+", "+proxMe.lon.toFixed(5);}
-  if(proxOther){if(!proxOtherMarker)proxOtherMarker=marcadorProx("other",[proxOther.lat,proxOther.lon]);else proxOtherMarker.setLatLng([proxOther.lat,proxOther.lon]);$("proxOtroCoord").textContent=proxOther.lat.toFixed(5)+", "+proxOther.lon.toFixed(5);}
-  if(proxMe&&proxOther){
-    const d=haversineProx(proxMe.lat,proxMe.lon,proxOther.lat,proxOther.lon);
-    $("proxDistance").textContent="📏 Distancia: "+(d<1000?Math.round(d)+" m":(d/1000).toFixed(2)+" km");
-    proxMap.fitBounds([[proxMe.lat,proxMe.lon],[proxOther.lat,proxOther.lon]],{padding:[45,45],maxZoom:17});
-  }else if(proxMe) proxMap.setView([proxMe.lat,proxMe.lon],15);
-}
-function haversineProx(a,b,c,d){const R=6371000,rad=Math.PI/180,x=(c-a)*rad,y=(d-b)*rad;const q=Math.sin(x/2)**2+Math.cos(a*rad)*Math.cos(c*rad)*Math.sin(y/2)**2;return 2*R*Math.asin(Math.sqrt(q));}
-function emitirPosicionProx(){
-  if(!navigator.geolocation){proxStatus("Este navegador no permite geolocalización.");return;}
-  navigator.geolocation.getCurrentPosition(pos=>{
-    proxMe={lat:pos.coords.latitude,lon:pos.coords.longitude,accuracy:pos.coords.accuracy};
-    actualizarMarcadoresProx();
-    if(proxConn&&proxConn.open)proxConn.send({type:"position",lat:proxMe.lat,lon:proxMe.lon,accuracy:proxMe.accuracy});
-  },err=>proxStatus("Necesitamos permiso de ubicación para compartir tu posición. ("+err.message+")"),{enableHighAccuracy:true,maximumAge:5000,timeout:15000});
-}
-function empezarSeguimientoProx(){if(proxWatch!==null)navigator.geolocation.clearWatch(proxWatch);proxWatch=navigator.geolocation.watchPosition(pos=>{proxMe={lat:pos.coords.latitude,lon:pos.coords.longitude,accuracy:pos.coords.accuracy};actualizarMarcadoresProx();if(proxConn&&proxConn.open)proxConn.send({type:"position",lat:proxMe.lat,lon:proxMe.lon,accuracy:proxMe.accuracy});},()=>{}, {enableHighAccuracy:true,maximumAge:3000,timeout:15000});}
-function configurarConexionProx(conn){
-  proxConn=conn;
-  conn.on("open",()=>{proxStatus("<b>🟢 Conectados.</b> Ya podéis veros en el mapa.");emitirPosicionProx();if(proxMe)conn.send({type:"position",lat:proxMe.lat,lon:proxMe.lon,accuracy:proxMe.accuracy});});
-  conn.on("data",data=>{if(data?.type==="position"){proxOther={lat:Number(data.lat),lon:Number(data.lon),accuracy:Number(data.accuracy)||0};actualizarMarcadoresProx();}});
-  conn.on("close",()=>{proxOther=null;if(proxOtherMarker){proxMap.removeLayer(proxOtherMarker);proxOtherMarker=null;}$("proxOtroCoord").textContent="Conexión cerrada";$("proxDistance").textContent="📏 Distancia: —";proxStatus("La otra persona se ha desconectado.");});
-  conn.on("error",e=>proxStatus("Error de conexión: "+(e?.message||"comprueba el código.")));
-}
-function prepararPeerProx(id,onReady){
-  if(typeof Peer==="undefined"){proxStatus("No se ha podido cargar el sistema de conexión. Recarga la página.");return;}
-  if(proxPeer){try{proxPeer.destroy();}catch(e){}}
-  proxPeer=new Peer(id,{debug:1});
-  proxPeer.on("open",()=>onReady());
-  proxPeer.on("connection",conn=>{if(proxConn&&proxConn.open)proxConn.close();configurarConexionProx(conn);});
-  proxPeer.on("error",e=>proxStatus("No se pudo abrir la sala. Prueba otro código."));
-}
-function crearProximidad(){
-  const code=proxCode();if(code.length<4){proxStatus("Usa un código de al menos 4 caracteres.");return;}
-  $("proxCode").value=code;proxRole="host";iniciarMapaProximidad();
-  prepararPeerProx("radar-niscalo-"+code,()=>{proxStatus("<b>🟢 Sala creada.</b> Comparte el código <b>"+escapar(code)+"</b> con tu mujer y espera a que se una.");emitirPosicionProx();empezarSeguimientoProx();});
-}
-function unirProximidad(){
-  const code=proxCode();if(code.length<4){proxStatus("Introduce el código que te han enviado.");return;}
-  $("proxCode").value=code;proxRole="guest";iniciarMapaProximidad();
-  if(typeof Peer==="undefined"){proxStatus("No se ha podido cargar el sistema de conexión. Recarga la página.");return;}
-  if(proxPeer){try{proxPeer.destroy();}catch(e){}}
-  proxPeer=new Peer();
-  proxPeer.on("open",()=>{const conn=proxPeer.connect("radar-niscalo-"+code,{reliable:true});configurarConexionProx(conn);proxStatus("🔵 Conectando con la otra persona…");});
-  proxPeer.on("error",()=>proxStatus("No se encuentra esa sala. Comprueba el código."));
-  emitirPosicionProx();empezarSeguimientoProx();
-}
-async function compartirProximidad(){
-  const code=proxCode();if(!code){proxStatus("Primero crea una sala.");return;}
-  const texto="Únete a mi Radar de proximidad de Radar Níscalo. Código: "+code;
-  if(navigator.share){try{await navigator.share({title:"Radar Níscalo · Proximidad",text:texto});return;}catch(e){}}
-  if(navigator.clipboard){try{await navigator.clipboard.writeText(texto);proxStatus("📋 Código copiado para compartirlo.");return;}catch(e){}}
-  proxStatus("Código de la sala: <b>"+escapar(code)+"</b>");
-}
-function salirProximidad(){
-  if(proxWatch!==null&&navigator.geolocation)navigator.geolocation.clearWatch(proxWatch);proxWatch=null;
-  if(proxConn){try{proxConn.close();}catch(e){}} if(proxPeer){try{proxPeer.destroy();}catch(e){}}
-  proxConn=null;proxPeer=null;proxMe=null;proxOther=null;
-  if(proxMap){if(proxMeMarker){proxMap.removeLayer(proxMeMarker);proxMeMarker=null;}if(proxOtherMarker){proxMap.removeLayer(proxOtherMarker);proxOtherMarker=null;}proxMap.remove();}
-  proxMap=null;$("proxYoCoord").textContent="Esperando ubicación…";$("proxOtroCoord").textContent="Esperando conexión…";$("proxDistance").textContent="📏 Distancia: —";proxStatus("Sala cerrada.");
 }
 
 /* ================= INICIO ================= */
