@@ -1994,14 +1994,23 @@ main{
 }
 </style>
 <style id="ajuste-arranque-real">
-/* ===== ARRANQUE LIMPIO · SIN CAPA DE PORTADA ===== */
+/* ===== ARRANQUE LIMPIO · PORTADA SIN ESPACIO DE RESERVA ===== */
 html,body{
   margin:0 !important;
   padding:0 !important;
   scroll-padding-top:0 !important;
 }
 #appSplash{
+  position:fixed !important;
+  inset:0 !important;
+  z-index:999999 !important;
+  display:grid !important;
+}
+#appSplash.hide{
   display:none !important;
+  opacity:0 !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
 }
 main{
   margin:0 auto !important;
