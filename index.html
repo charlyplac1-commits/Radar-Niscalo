@@ -4148,13 +4148,54 @@ async function cargarDatos(){
     let lluvia14=sumarLluviaDias(14);
     let lluvia30=sumarLluviaDias(30);
 
-    /* MET Norway no aporta histórico de 14/30 días. Usamos el último
-       histórico válido guardado por Open-Meteo cuando existe. */
+    /* MET Norway no aporta histórico. No mostramos ceros inventados.
+       Intentamos recuperar los últimos 30 días desde el archivo histórico
+       independiente del endpoint de previsión. Si también falla, queda "--". */
+    let historicoLluviaDisponible=!datos._respaldoLimitado;
+
     if(datos._respaldoLimitado){
-      lluvia3=Number(localStorage.getItem("radar_lluvia3")||0);
-      lluvia7=Number(localStorage.getItem("radar_lluvia7")||0);
-      lluvia14=Number(localStorage.getItem("radar_lluvia14")||0);
-      lluvia30=Number(localStorage.getItem("radar_lluvia30")||0);
+      try{
+        const fin=new Date();
+        const ini=new Date();
+        ini.setDate(fin.getDate()-29);
+        const iso=d=>d.toISOString().slice(0,10);
+        const archiveUrl=
+          "https://archive-api.open-meteo.com/v1/archive"+
+          "?latitude="+encodeURIComponent(lat)+
+          "&longitude="+encodeURIComponent(lon)+
+          "&start_date="+iso(ini)+
+          "&end_date="+iso(fin)+
+          "&timezone=auto"+
+          "&daily=precipitation_sum";
+        const archiveResp=await fetch(archiveUrl,{cache:"no-store"});
+        if(archiveResp.ok){
+          const archive=await archiveResp.json();
+          const fechas=Array.isArray(archive?.daily?.time)?archive.daily.time:[];
+          const lluvias=Array.isArray(archive?.daily?.precipitation_sum)?archive.daily.precipitation_sum:[];
+          if(fechas.length && lluvias.length){
+            const hoyClave=iso(fin);
+            const sumarArchivo=dias=>{
+              const desde=new Date(fin);
+              desde.setDate(desde.getDate()-dias+1);
+              const desdeClave=iso(desde);
+              let suma=0;
+              for(let i=0;i<fechas.length;i++){
+                if(String(fechas[i])>=desdeClave && String(fechas[i])<=hoyClave){
+                  suma+=Number(lluvias[i]||0);
+                }
+              }
+              return suma;
+            };
+            lluvia3=sumarArchivo(3);
+            lluvia7=sumarArchivo(7);
+            lluvia14=sumarArchivo(14);
+            lluvia30=sumarArchivo(30);
+            historicoLluviaDisponible=true;
+          }
+        }
+      }catch(e){
+        console.warn("Histórico de lluvia no disponible:",e);
+      }
     }
 
     let horasDesdeLluvia=0;
@@ -4266,13 +4307,12 @@ async function cargarDatos(){
        SECUNDARIA. Esto evita que una fuente externa deje todo
        en blanco.
        ======================================================= */
-    const hayHistoricoLluvia=Number.isFinite(lluvia14) && lluvia14>0;
-    $("lluvia14").textContent=(datos._respaldoLimitado && !hayHistoricoLluvia) ? "--" : Math.round(lluvia14)+" mm";
-    $("lluvia3").textContent=Math.round(lluvia3)+" mm";
-    $("lluvia30").textContent=Math.round(lluvia30)+" mm";
-    $("diasSecos").textContent=diasSecos+" d";
+    $("lluvia14").textContent=historicoLluviaDisponible ? Math.round(lluvia14)+" mm" : "--";
+    $("lluvia3").textContent=historicoLluviaDisponible ? Math.round(lluvia3)+" mm" : "--";
+    $("lluvia30").textContent=historicoLluviaDisponible ? Math.round(lluvia30)+" mm" : "--";
+    $("diasSecos").textContent=historicoLluviaDisponible ? diasSecos+" d" : "--";
     $("sueloProfundo").textContent=Number.isFinite(sueloProfundo)?Math.round(sueloProfundo)+"%":"--";
-    $("suelo").textContent=(datos._respaldoLimitado && !Number.isFinite(Number(humedadSuelo))) ? "--" : (humedadSuelo>0 ? humedadSuelo+"%" : "--");
+    $("suelo").textContent=Number.isFinite(Number(humedadSuelo)) && humedadSuelo>0 ? humedadSuelo+"%" : "--";
     $("temperatura").textContent=Number.isFinite(temperatura)?temperatura.toFixed(1)+" °C":"--";
     $("altitud").textContent=altitud+" m";
     $("humedad").textContent=Number.isFinite(humedad)?Math.round(humedad)+"%":"--";
@@ -4280,9 +4320,13 @@ async function cargarDatos(){
     $("rafaga").textContent=Number.isFinite(rafaga)?Math.round(rafaga)+" km/h":"--";
     $("lluvia7").textContent=(datos._respaldoLimitado && lluvia7Prevista===0) ? "--" : lluvia7Prevista.toFixed(1)+" mm";
 
-    $("rainSlider").value=Math.min(250,Math.max(0,Math.round(lluvia14)));
+    $("rainSlider").value=historicoLluviaDisponible
+      ? Math.min(250,Math.max(0,Math.round(lluvia14)))
+      : 0;
     $("tempSlider").value=Math.max(2,Math.min(30,Number.isFinite(temperatura)?temperatura:15));
-    $("soilSlider").value=Math.max(1,Math.min(100,humedadSuelo||1));
+    $("soilSlider").value=Number.isFinite(Number(humedadSuelo)) && humedadSuelo>0
+      ? Math.max(1,Math.min(100,humedadSuelo))
+      : 1;
     $("altSlider").value=Math.max(0,Math.min(2500,altitud));
 
     window.lluvia3Actual=lluvia3;
@@ -4290,7 +4334,7 @@ async function cargarDatos(){
     window.lluvia14Actual=lluvia14;
     window.lluvia30Actual=lluvia30;
 
-    if(!datos._respaldoLimitado){
+    if(historicoLluviaDisponible){
       try{
         localStorage.setItem("radar_lluvia3",String(lluvia3));
         localStorage.setItem("radar_lluvia7",String(lluvia7));
@@ -4298,11 +4342,11 @@ async function cargarDatos(){
         localStorage.setItem("radar_lluvia30",String(lluvia30));
       }catch(e){}
     }
-    window.lluviaActual=lluvia14;
+    window.lluviaActual=historicoLluviaDisponible?lluvia14:0;
     window.tempActual=Number.isFinite(temperatura)?temperatura:15;
-    window.humedadSueloActual=humedadSuelo;
-    window.sueloProfundoActual=Number.isFinite(sueloProfundo)?sueloProfundo:humedadSuelo;
-    window.diasDesdeLluvia=diasSecos;
+    window.humedadSueloActual=(Number.isFinite(Number(humedadSuelo))&&humedadSuelo>0)?humedadSuelo:0;
+    window.sueloProfundoActual=Number.isFinite(sueloProfundo)?sueloProfundo:window.humedadSueloActual;
+    window.diasDesdeLluvia=historicoLluviaDisponible?diasSecos:30;
     window.vpdActual=vpd24;
     window.et07Actual=et07;
 
@@ -4344,7 +4388,9 @@ async function cargarDatos(){
 
     $("estado").textContent=
       window.meteorologiaRespaldo
-        ? "⚠️ Meteorología de respaldo actualizada. Consultando hábitat y fuentes adicionales…"
+        ? (historicoLluviaDisponible
+          ? "⚠️ Meteorología de respaldo actualizada. Lluvia histórica recuperada. Consultando hábitat y fuentes adicionales…"
+          : "⚠️ Meteorología de respaldo actualizada. Histórico de lluvia no disponible ahora. Consultando hábitat y fuentes adicionales…")
         : "✅ Datos meteorológicos actualizados. Consultando hábitat y fuentes adicionales…";
 
   }catch(error){
