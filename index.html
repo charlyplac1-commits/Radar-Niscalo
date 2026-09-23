@@ -2022,6 +2022,48 @@ main{
 main > .app-nav{margin:0 !important;padding-top:0 !important;}
 #radar{margin:0 !important;padding-top:0 !important;}
 #radar>.card.score{margin-top:0 !important;}
+<style id="cabecera-unificada-final">
+/* ===== CABECERA UNIFICADA · SIN FRANJA SUPERIOR =====
+   La navegación es también la cabecera de la app.
+   Así evitamos una zona vacía entre la portada y el contenido. */
+html,body{margin:0!important;padding:0!important;}
+main{
+  margin:0 auto!important;
+  padding:0 7px 24px!important;
+  max-width:1100px!important;
+}
+main>.app-nav{
+  margin:0!important;
+  padding:6px!important;
+  min-height:52px;
+  display:flex!important;
+  align-items:center!important;
+  gap:6px!important;
+}
+main>.app-nav:before{
+  content:"🍄 Radar Níscalo";
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  height:40px;
+  padding:0 11px;
+  border-radius:12px;
+  background:linear-gradient(135deg,#173d29,#34734d);
+  color:#fff;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:-.15px;
+  white-space:nowrap;
+  box-shadow:0 2px 8px rgba(23,61,41,.14);
+}
+main>.app-nav button{
+  min-width:0;
+}
+@media(max-width:720px){
+  main{padding:0 7px 18px!important;}
+  main>.app-nav:before{display:none!important;}
+}
+</style>
 </style>
 </head>
 
