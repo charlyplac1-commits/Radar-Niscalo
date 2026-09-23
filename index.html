@@ -3781,7 +3781,7 @@ async function cargarDatos(){
     "&past_days=30"+
     "&forecast_days=7"+
     "&current=temperature_2m,relative_humidity_2m,wind_gusts_10m"+
-    "&hourly=temperature_2m,relative_humidity_2m,precipitation,precipitation_probability,wind_gusts_10m,vapour_pressure_deficit"+
+    "&hourly=temperature_2m,relative_humidity_2m,precipitation,precipitation_probability,wind_gusts_10m,vapour_pressure_deficit,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm"+
     "&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code,et0_fao_evapotranspiration";
 
   for(let intento=1;intento<=2;intento++){
@@ -4161,42 +4161,33 @@ async function cargarDatos(){
 
     /* =======================================================
        HUMEDAD DEL SUELO
-       Es secundaria. Si Open-Meteo no la entrega, no bloquea
-       el resto de la meteorología.
+       Se obtiene de la misma respuesta meteorológica principal.
+       Así evitamos una segunda llamada a Open-Meteo que podía
+       alcanzar el límite diario y dejar el valor en 0.
+       Open-Meteo entrega la humedad volumétrica del suelo en
+       m³/m³ para 0–7 cm y 7–28 cm. 
        ======================================================= */
     let humedadSuelo=0;
     let sueloProfundo=NaN;
 
     try{
-      const soilUrl=
-        "https://api.open-meteo.com/v1/forecast"+
-        "?latitude="+encodeURIComponent(lat)+
-        "&longitude="+encodeURIComponent(lon)+
-        "&timezone=auto"+
-        "&past_days=30"+
-        "&forecast_days=7"+
-        "&hourly=soil_moisture_0_to_7cm,soil_moisture_7_to_28cm";
+      const soilSuperficial=Array.isArray(datos.hourly?.soil_moisture_0_to_7cm)
+        ?datos.hourly.soil_moisture_0_to_7cm:[];
+      const soilProfundoArr=Array.isArray(datos.hourly?.soil_moisture_7_to_28cm)
+        ?datos.hourly.soil_moisture_7_to_28cm:[];
 
-      const soilResp=await fetch(soilUrl,{cache:"no-store"});
-      if(soilResp.ok){
-        const soil=await soilResp.json();
-        const soilTimes=Array.isArray(soil.hourly?.time)?soil.hourly.time:[];
-        let soilIndex=soilTimes.findIndex(t=>t>=soil.current?.time);
-        if(soilIndex<0) soilIndex=soilTimes.length-1;
+      const superficial=Number(soilSuperficial[indiceActual]);
+      if(Number.isFinite(superficial)){
+        humedadSuelo=Math.round(superficial*100);
+      }
 
-        const superficial=Number(soil.hourly?.soil_moisture_0_to_7cm?.[soilIndex]);
-        if(Number.isFinite(superficial)){
-          humedadSuelo=Math.round(superficial*100);
-        }
-
-        const profundo=[];
-        for(let i=Math.max(0,soilIndex-23);i<=soilIndex;i++){
-          const v=Number(soil.hourly?.soil_moisture_7_to_28cm?.[i]);
-          if(Number.isFinite(v)) profundo.push(v*100);
-        }
-        if(profundo.length){
-          sueloProfundo=profundo.reduce((a,b)=>a+b,0)/profundo.length;
-        }
+      const profundo=[];
+      for(let i=Math.max(0,indiceActual-23);i<=indiceActual;i++){
+        const v=Number(soilProfundoArr[i]);
+        if(Number.isFinite(v)) profundo.push(v*100);
+      }
+      if(profundo.length){
+        sueloProfundo=profundo.reduce((a,b)=>a+b,0)/profundo.length;
       }
     }catch(e){
       console.warn("Humedad del suelo no disponible:",e);
@@ -4236,13 +4227,13 @@ async function cargarDatos(){
     $("lluvia30").textContent=Math.round(lluvia30)+" mm";
     $("diasSecos").textContent=diasSecos+" d";
     $("sueloProfundo").textContent=Number.isFinite(sueloProfundo)?Math.round(sueloProfundo)+"%":"--";
-    $("suelo").textContent=(datos._respaldoLimitado && humedadSuelo===0) ? "--" : humedadSuelo+"%";
+    $("suelo").textContent=(datos._respaldoLimitado && !Number.isFinite(Number(humedadSuelo))) ? "--" : (humedadSuelo>0 ? humedadSuelo+"%" : "--");
     $("temperatura").textContent=Number.isFinite(temperatura)?temperatura.toFixed(1)+" °C":"--";
     $("altitud").textContent=altitud+" m";
     $("humedad").textContent=Number.isFinite(humedad)?Math.round(humedad)+"%":"--";
     $("probLluvia").textContent=Math.round(probabilidad)+"%";
     $("rafaga").textContent=Number.isFinite(rafaga)?Math.round(rafaga)+" km/h":"--";
-    $("lluvia7").textContent=lluvia7Prevista.toFixed(1)+" mm";
+    $("lluvia7").textContent=(datos._respaldoLimitado && lluvia7Prevista===0) ? "--" : lluvia7Prevista.toFixed(1)+" mm";
 
     $("rainSlider").value=Math.min(250,Math.max(0,Math.round(lluvia14)));
     $("tempSlider").value=Math.max(2,Math.min(30,Number.isFinite(temperatura)?temperatura:15));
@@ -4376,18 +4367,9 @@ String(hoyLocal.getDate()).padStart(2,"0")
 
 const indices=diario.time
 .map((fecha,i)=>({fecha,i}))
-.sort((a,b)=>{
-const aEsHoy=a.fecha===hoyClave;
-const bEsHoy=b.fecha===hoyClave;
-if(aEsHoy&&!bEsHoy) return -1;
-if(bEsHoy&&!aEsHoy) return 1;
-
-const aPasado=a.fecha<hoyClave;
-const bPasado=b.fecha<hoyClave;
-if(aPasado&&bPasado) return b.fecha.localeCompare(a.fecha);
-if(!aPasado&&!bPasado) return a.fecha.localeCompare(b.fecha);
-return aPasado ? -1 : 1;
-});
+.filter(x=>x.fecha>=hoyClave)
+.sort((a,b)=>a.fecha.localeCompare(b.fecha))
+.slice(0,7);
 
 indices.forEach(({fecha,i},posicion)=>{
 
@@ -5257,3 +5239,4 @@ new Date()
 </script>
 </body>
 </html>
+
