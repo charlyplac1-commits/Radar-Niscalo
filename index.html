@@ -524,10 +524,6 @@ button{border-radius:12px}
   --naranja:#e56f32;
   --texto:#17231b;
 }
-html,body{scroll-behavior:auto;scroll-padding-top:0;overflow-anchor:none;margin:0!important;padding:0!important}
-html{min-height:100%;overflow-x:hidden}
-body{overflow-x:hidden;overflow-anchor:none;min-height:100vh!important}
-main{margin-top:0!important}
 body{background:var(--crema)}
 .app-header{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
@@ -1464,15 +1460,6 @@ body{
     linear-gradient(145deg,#0d1511 0%,#18231b 52%,#0b120e 100%) !important;
   background-attachment:fixed !important;
 }
-
-/* ===== FONDO FINAL · NEGRO ===== */
-body{
-  background:#050706 !important;
-  background-image:linear-gradient(180deg,#050706 0%,#080b09 55%,#030504 100%) !important;
-  background-attachment:fixed !important;
-  color:#eef3ee;
-}
-main{background:transparent !important;}
 
 /* ===== VENTANAS OSCURAS · ESTILO APP ===== */
 @media(min-width:760px){
@@ -5476,37 +5463,10 @@ new Date()
 
 (function(){
   const s=document.getElementById("appSplash");
-  /* La app SIEMPRE debe abrir en el inicio, aunque Safari/Chrome haya
-     restaurado una posición anterior o haya conservado un ancla de URL. */
-  try{history.scrollRestoration="manual";}catch(e){}
-  const irArriba=()=>{
-    try{window.scrollTo({top:0,left:0,behavior:"auto"});}catch(e){window.scrollTo(0,0);}
-    document.documentElement.scrollTop=0;
-    document.body.scrollTop=0;
-  };
-  irArriba();
-  /* Evita que el navegador desplace la página cuando mapa, imágenes o
-     meteorología terminan de cargar y cambian la altura del contenido. */
-  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",irArriba,{once:true});
-  window.addEventListener("pageshow",irArriba);
-  window.addEventListener("load",()=>{irArriba();setTimeout(irArriba,100);setTimeout(irArriba,500);setTimeout(irArriba,1500);},{once:true});
   const hide=()=>{
     if(!s) return;
-    /* Primero fijamos la ventana arriba y después retiramos la portada del
-       DOM. Así el splash no puede convertirse en un ancla de desplazamiento. */
-    irArriba();
     s.classList.add("hide");
-    setTimeout(()=>{
-      if(s && s.parentNode) s.parentNode.removeChild(s);
-      document.documentElement.scrollTop=0;
-      document.body.scrollTop=0;
-      window.scrollTo(0,0);
-      requestAnimationFrame(()=>{
-        document.documentElement.scrollTop=0;
-        document.body.scrollTop=0;
-        window.scrollTo(0,0);
-      });
-    },700);
+    setTimeout(()=>{s.style.display="none"},800);
   };
 
   /* ================= ARRANQUE DE LA APLICACIÓN =================
