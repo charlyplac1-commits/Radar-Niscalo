@@ -1730,10 +1730,10 @@ let centroLat=lat+y*paso;
 let centroLon=lon+x*paso;
 
 let color=
-score>=80?"#ff3b1f":
-score>=60?"#ff8a00":
-score>=40?"#ffd23f":
-"#3b82f6";
+score>=80?"#d62828":
+score>=60?"#e67e22":
+score>=40?"#d4b200":
+"#2878b8";
 
 let nivel=
 score>=80?"Muy favorable":
@@ -1741,11 +1741,20 @@ score>=60?"Favorable":
 score>=40?"Posible":
 "Baja";
 
+/*
+  NUEVA VISIÓN DEL RADAR
+  No usamos cuadrícula ni mapa de calor convencional.
+  Cada punto real genera una "isla de hábitat" suave y semitransparente.
+  Las islas se solapan para formar zonas naturales de favorabilidad.
+*/
+const intensidad=Math.max(0.12,Math.min(0.72,0.18+(score/100)*0.54));
+const radioZona=2600;
+
 let popupHtml=
-"<b>🍄 Favorabilidad: "+score+"/100</b>"+
-"<br>🍄 "+nivel+
+"<b>🍄 Zona de favorabilidad: "+score+"/100</b>"+
+"<br><b>"+nivel+"</b>"+
 "<hr style='margin:7px 0'>"+
-"🌧️ Últimos 7 días: "+Math.round(lluvia7)+" mm"+
+"🌧️ Últimos 7 días: "+Math.round(lluvia7Pasada)+" mm"+
 "<br>🌧️ Últimos 14 días: "+Math.round(lluvia14)+" mm"+
 "<br>🌧️ Últimos 30 días: "+Math.round(lluvia30)+" mm"+
 "<br>🌡️ Temp. actual: "+tempActual.toFixed(1)+" °C"+
@@ -1756,69 +1765,39 @@ let popupHtml=
 
 puntosRadar.push({lat:centroLat,lon:centroLon,score});
 
-let puntoRadar=L.circleMarker([centroLat,centroLon],{
-radius:8,
-opacity:0,
-fillOpacity:0,
-interactive:true
+/* Zona principal: forma redondeada, sin cuadrícula. */
+let zona=L.circle([centroLat,centroLon],{
+  radius:radioZona,
+  color:color,
+  weight:1,
+  opacity:0.22,
+  fillColor:color,
+  fillOpacity:intensidad,
+  interactive:true
 }).addTo(mapa);
-puntoRadar.bindPopup(popupHtml);
-capasFavorabilidad.push(puntoRadar);
+zona.bindPopup(popupHtml);
+capasFavorabilidad.push(zona);
+
+/* Núcleo de la zona: ayuda a localizar las zonas realmente calientes. */
+if(score>=60){
+  let nucleo=L.circle([centroLat,centroLon],{
+    radius:Math.max(450,700+(score-60)*18),
+    color:color,
+    weight:1,
+    opacity:0.38,
+    fillColor:color,
+    fillOpacity:Math.min(0.42,intensidad+0.08),
+    interactive:false
+  }).addTo(mapa);
+  capasFavorabilidad.push(nucleo);
 }
-// Construimos una superficie térmica continua a partir de los 25 puntos reales.
-const puntosInterpolados=[];
-for(let gy=0;gy<=20;gy++){
-  const fy=gy/20*4-2;
-  for(let gx=0;gx<=20;gx++){
-    const fx=gx/20*4-2;
-    let suma=0,peso=0;
-    puntosRadar.forEach(p=>{
-      const py=(p.lat-lat)/paso,px=(p.lon-lon)/paso;
-      const dist2=(fx-px)*(fx-px)+(fy-py)*(fy-py);
-      const w=1/Math.pow(0.55+dist2,1.15);
-      suma+=p.score*w;peso+=w;
-    });
-    const valor=peso?suma/peso:0;
-    puntosInterpolados.push([
-      lat+fy*paso,
-      lon+fx*paso,
-      Math.max(.05,Math.min(1,valor/100))
-    ]);
-  }
 }
-if(puntosRadar.length){
-  /* Superficie continua: usamos más puntos interpolados y una capa más ancha
-     para que siga siendo visible incluso con el mapa alejado. */
-  const puntosInterpolados=[];
-  for(let gy=0;gy<=32;gy++){
-    const fy=gy/32*4-2;
-    for(let gx=0;gx<=32;gx++){
-      const fx=gx/32*4-2;
-      let suma=0,peso=0;
-      puntosRadar.forEach(p=>{
-        const py=(p.lat-lat)/paso,px=(p.lon-lon)/paso;
-        const dist2=(fx-px)*(fx-px)+(fy-py)*(fy-py);
-        const w=1/Math.pow(0.35+dist2,1.05);
-        suma+=p.score*w;peso+=w;
-      });
-      const valor=peso?suma/peso:0;
-      puntosInterpolados.push([lat+fy*paso,lon+fx*paso,Math.max(.02,Math.min(1,valor/100))]);
-    }
-  }
-  if(typeof L.heatLayer==="function"){
-    capaCalorRadar=L.heatLayer(puntosInterpolados,{
-      radius:70,blur:72,maxZoom:14,minOpacity:.28,max:.98,
-      gradient:{
-        0.02:"#07133d",0.18:"#1239a6",0.34:"#008fe8",
-        0.50:"#00cfa5",0.64:"#8ee22b",0.76:"#ffe000",
-        0.88:"#ff7900",1:"#ff170d"
-      }
-    });
-    if(visionRadarActiva)capaCalorRadar.addTo(mapa);
-  }else{
-    console.warn("Leaflet.heat no está disponible; no se puede pintar la superficie radar.");
-  }
-}
+
+/*
+  Ya no necesitamos una cuadrícula térmica.
+  El diseño se basa en las 25 mediciones meteorológicas reales y sus
+  zonas de influencia, evitando el aspecto de "mapa de calor" genérico.
+*/
 }catch(error){
 console.error("Mapa de favorabilidad:",error);
 }
