@@ -4777,9 +4777,29 @@ return;
 
 }
 
-diario.time.forEach(
+const hoyLocal=new Date();
+const hoyClave=[
+hoyLocal.getFullYear(),
+String(hoyLocal.getMonth()+1).padStart(2,"0"),
+String(hoyLocal.getDate()).padStart(2,"0")
+].join("-");
 
-(fecha,i)=>{
+const indices=diario.time
+.map((fecha,i)=>({fecha,i}))
+.sort((a,b)=>{
+const aEsHoy=a.fecha===hoyClave;
+const bEsHoy=b.fecha===hoyClave;
+if(aEsHoy&&!bEsHoy) return -1;
+if(bEsHoy&&!aEsHoy) return 1;
+
+const aPasado=a.fecha<hoyClave;
+const bPasado=b.fecha<hoyClave;
+if(aPasado&&bPasado) return b.fecha.localeCompare(a.fecha);
+if(!aPasado&&!bPasado) return a.fecha.localeCompare(b.fecha);
+return aPasado ? -1 : 1;
+});
+
+indices.forEach(({fecha,i})=>{
 
 let div=
 
