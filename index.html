@@ -1716,6 +1716,40 @@ details .muted,
 #ubicacionCard button{box-shadow:0 5px 14px rgba(0,0,0,.22)}
 #ubicacionCard #resultadosZona{color:#17231b}
 </style>
+<style id="fondo-rebollones-datos">
+/* ===== DATOS ACTUALES · FONDO REAL DE REBOLLONES ===== */
+#datosActualesCard{
+  position:relative;
+  overflow:hidden;
+  color:#fff;
+  border:1px solid rgba(255,255,255,.14);
+  background:
+    linear-gradient(180deg,rgba(8,22,12,.48),rgba(8,18,11,.86)),
+    url("https://www.calatayudnoticias.com/images/AGRICULTURA/rebollones.jpg")
+    center/cover no-repeat;
+  box-shadow:0 10px 28px rgba(0,0,0,.25);
+}
+#datosActualesCard > *{position:relative;z-index:1}
+#datosActualesCard > summary{
+  color:#fff;
+  text-shadow:0 2px 8px rgba(0,0,0,.75);
+}
+#datosActualesCard > summary:after{color:#fff}
+#datosActualesCard .metric{
+  background:rgba(7,20,12,.62);
+  border-color:rgba(255,255,255,.14);
+  color:#fff;
+  box-shadow:0 4px 12px rgba(0,0,0,.16);
+}
+#datosActualesCard .metric .muted{
+  color:#dce9df !important;
+  text-shadow:0 1px 5px rgba(0,0,0,.7);
+}
+#datosActualesCard .metric .big{
+  color:#fff;
+  text-shadow:0 2px 8px rgba(0,0,0,.55);
+}
+</style>
 </head>
 
 <body>
@@ -2013,7 +2047,7 @@ style="margin-top:8px">
 
 </div>
 
-<details class="compact" open>
+<details class="compact" open id="datosActualesCard">
 <summary>🌦️ Datos actuales</summary>
 <div class="inside">
 <div class="metric-strip">
