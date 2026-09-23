@@ -873,6 +873,36 @@ Selecciona una ubicación
 
 <div class="card">
 
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+<h3 style="margin:0">🗺️ Mapa de favorabilidad</h3>
+<button type="button" id="btnVisionRadar" onclick="alternarVisionRadar()" style="padding:8px 12px;border-radius:12px;border:1px solid rgba(33,75,53,.2);background:#214b35;color:#fff;font-weight:700">👁️ Visión Radar: ON</button>
+</div>
+
+<div class="mapbox">
+
+<div id="map"></div>
+
+</div>
+
+<div class="muted" style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap">
+<span>🔴🔥 80–100 Muy favorable</span>
+<span>🟠 60–79 Favorable</span>
+<span>🟡 40–59 Posible</span>
+<span>🔵 0–39 Baja</span>
+</div>
+<div class="muted" style="margin-top:6px">La visión Radar sustituye la cuadrícula por una capa térmica difuminada sobre el mapa real.</div>
+
+<p class="muted">
+
+La favorabilidad se calcula automáticamente con meteorología reciente y prevista, humedad del suelo, temperatura, altitud y evidencia pública reciente. Las observaciones personales de «Mis hallazgos» son privadas y no modifican el radar.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
 <h3>📍 Ubicación</h3>
 <label>🔎 Buscar zona, municipio o lugar</label>
 <div style="position:relative">
@@ -1083,35 +1113,6 @@ value="900">
 <div class="muted" style="margin-top:8px">No depende de que los usuarios del Radar introduzcan sus hallazgos. Se consultan fuentes públicas disponibles y se usan como una señal adicional, sin publicar puntos privados.</div>
 </div></details>
 
-
-<div class="card">
-
-<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
-<h3 style="margin:0">🗺️ Mapa de favorabilidad</h3>
-<button type="button" id="btnVisionRadar" onclick="alternarVisionRadar()" style="padding:8px 12px;border-radius:12px;border:1px solid rgba(33,75,53,.2);background:#214b35;color:#fff;font-weight:700">👁️ Visión Radar: ON</button>
-</div>
-
-<div class="mapbox">
-
-<div id="map"></div>
-
-</div>
-
-<div class="muted" style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap">
-<span>🔴🔥 80–100 Muy favorable</span>
-<span>🟠 60–79 Favorable</span>
-<span>🟡 40–59 Posible</span>
-<span>🔵 0–39 Baja</span>
-</div>
-<div class="muted" style="margin-top:6px">La visión Radar sustituye la cuadrícula por una capa térmica difuminada sobre el mapa real.</div>
-
-<p class="muted">
-
-La favorabilidad se calcula automáticamente con meteorología reciente y prevista, humedad del suelo, temperatura, altitud y evidencia pública reciente. Las observaciones personales de «Mis hallazgos» son privadas y no modifican el radar.
-
-</p>
-
-</div>
 
 <details class="compact"><summary>🌧️ Radar meteorológico</summary><div class="inside">
 
