@@ -3817,95 +3817,254 @@ async function cargarDatos(){
 
   if(!datos){
     /* =======================================================
-       RESPALDO METEOROLÓGICO
-       Si Open-Meteo no responde desde el navegador, usamos
-       wttr.in para que la aplicación siga mostrando al menos
-       temperatura, humedad, lluvia y viento. La respuesta de
-       wttr.in puede venir con o sin el contenedor "data".
+       RESPALDO 1 · MET NORWAY
+       Open-Meteo puede devolver 429 por límite diario. MET
+       Norway ofrece previsión global sin clave y hasta 9 días.
        ======================================================= */
     try{
-      const respaldoUrl=
-        "https://wttr.in/"+encodeURIComponent(lat)+","+encodeURIComponent(lon)+
-        "?format=j1&lang=es";
+      const mlat=Number(lat.toFixed(4));
+      const mlon=Number(lon.toFixed(4));
+      const metUrl=
+        "https://api.met.no/weatherapi/locationforecast/2.0/compact"+
+        "?lat="+encodeURIComponent(mlat)+
+        "&lon="+encodeURIComponent(mlon);
 
-      const respaldoResp=await fetch(respaldoUrl,{cache:"no-store"});
-      const respaldoTexto=await respaldoResp.text();
+      const metResp=await fetch(metUrl,{cache:"no-store"});
+      const metTexto=await metResp.text();
 
-      if(!respaldoResp.ok){
-        throw new Error("Respaldo meteorológico HTTP "+respaldoResp.status);
+      if(!metResp.ok){
+        throw new Error("MET Norway HTTP "+metResp.status);
       }
 
-      const respaldoJson=JSON.parse(respaldoTexto);
-      const respaldo=respaldoJson?.data||respaldoJson;
-      const actual=respaldo?.current_condition?.[0];
-      const dias=Array.isArray(respaldo?.weather)?respaldo.weather:[];
+      const met=JSON.parse(metTexto);
+      const series=Array.isArray(met?.properties?.timeseries)
+        ?met.properties.timeseries:[];
 
-      if(!actual){
-        throw new Error("El respaldo meteorológico devolvió una respuesta incompleta.");
+      if(!series.length){
+        throw new Error("MET Norway devolvió una respuesta sin previsión.");
       }
 
-      const ahora=new Date().toISOString();
-      const temp=Number(actual.temp_C);
-      const hum=Number(actual.humidity);
-      const viento=Number(actual.windspeedKmph);
-      const lluviaAhora=Number(actual.precipMM||0);
+      const ahoraTs=Date.now();
+      let indice=0;
+      let mejor=Infinity;
 
+      series.forEach((p,i)=>{
+        const t=Date.parse(p.time);
+        const d=Math.abs(t-ahoraTs);
+        if(Number.isFinite(d)&&d<mejor){
+          mejor=d;
+          indice=i;
+        }
+      });
+
+      const actual=series[indice];
+      const inst=actual?.data?.instant?.details||{};
+      const temp=Number(inst.air_temperature);
+      const hum=Number(inst.relative_humidity);
+      const viento=Number(inst.wind_speed);
+      const precipActual=Number(
+        actual?.data?.next_1_hours?.details?.precipitation_amount ??
+        actual?.data?.next_6_hours?.details?.precipitation_amount ??
+        0
+      );
+
+      if(!Number.isFinite(temp)){
+        throw new Error("MET Norway no devolvió temperatura.");
+      }
+
+      const diasMap=new Map();
+
+      series.forEach(p=>{
+        const fecha=p.time?.slice(0,10);
+        if(!fecha)return;
+
+        const d=p.data||{};
+        const di=d.instant?.details||{};
+        const six=d.next_6_hours?.details||{};
+        const one=d.next_1_hours?.details||{};
+
+        if(!diasMap.has(fecha)){
+          diasMap.set(fecha,{
+            max:-Infinity,
+            min:Infinity,
+            suma:0,
+            prob:0,
+            wind:0,
+            count:0
+          });
+        }
+
+        const dia=diasMap.get(fecha);
+        const t=Number(di.air_temperature);
+        if(Number.isFinite(t)){
+          dia.max=Math.max(dia.max,t);
+          dia.min=Math.min(dia.min,t);
+        }
+
+        const lluvia=Number(
+          one.precipitation_amount ??
+          six.precipitation_amount ??
+          0
+        );
+        if(Number.isFinite(lluvia))dia.suma+=Math.max(0,lluvia);
+
+        const prob=Number(
+          one.probability_of_precipitation ??
+          six.probability_of_precipitation ??
+          0
+        );
+        if(Number.isFinite(prob))dia.prob=Math.max(dia.prob,prob);
+
+        const w=Number(di.wind_speed);
+        if(Number.isFinite(w))dia.wind=Math.max(dia.wind,w);
+
+        dia.count++;
+      });
+
+      const dailyFechas=[...diasMap.keys()].sort().slice(0,9);
       const daily={
-        time:dias.map(d=>d.date).filter(Boolean),
-        temperature_2m_max:dias.map(d=>Number(d.maxtempC)),
-        temperature_2m_min:dias.map(d=>Number(d.mintempC)),
-        temperature_2m_mean:dias.map(d=>Number(d.avgtempC)),
-        precipitation_sum:dias.map(d=>{
-          const horas=Array.isArray(d.hourly)?d.hourly:[];
-          return horas.reduce((s,h)=>s+Number(h.precipMM||0),0);
+        time:dailyFechas,
+        temperature_2m_max:dailyFechas.map(f=>{
+          const d=diasMap.get(f);
+          return Number.isFinite(d.max)?d.max:null;
         }),
-        precipitation_probability_max:dias.map(d=>{
-          const horas=Array.isArray(d.hourly)?d.hourly:[];
-          return horas.reduce((m,h)=>Math.max(m,Number(h.chanceofrain||0)),0);
+        temperature_2m_min:dailyFechas.map(f=>{
+          const d=diasMap.get(f);
+          return Number.isFinite(d.min)?d.min:null;
         }),
-        wind_gusts_10m_max:dias.map(d=>{
-          const horas=Array.isArray(d.hourly)?d.hourly:[];
-          return horas.reduce((m,h)=>Math.max(m,Number(h.windspeedKmph||0)),0);
+        temperature_2m_mean:dailyFechas.map(f=>{
+          const d=diasMap.get(f);
+          if(!Number.isFinite(d.max)||!Number.isFinite(d.min))return null;
+          return (d.max+d.min)/2;
         }),
-        weather_code:dias.map(d=>Number(d.hourly?.[0]?.weatherCode||0)),
+        precipitation_sum:dailyFechas.map(f=>diasMap.get(f).suma),
+        precipitation_probability_max:dailyFechas.map(f=>diasMap.get(f).prob),
+        wind_gusts_10m_max:dailyFechas.map(f=>diasMap.get(f).wind),
+        weather_code:dailyFechas.map(()=>0),
         et0_fao_evapotranspiration:[]
       };
 
+      const isoActual=actual.time||new Date().toISOString();
+
       datos={
         current:{
-          time:ahora,
+          time:isoActual,
           temperature_2m:temp,
           relative_humidity_2m:hum,
-          wind_gusts_10m:viento
+          wind_gusts_10m:Number.isFinite(viento)?viento:0
         },
         hourly:{
-          time:[ahora],
+          time:[isoActual],
           temperature_2m:[temp],
           relative_humidity_2m:[hum],
-          precipitation:[lluviaAhora],
-          precipitation_probability:[Number(actual.chanceofrain||0)],
-          wind_gusts_10m:[viento],
+          precipitation:[Number.isFinite(precipActual)?precipActual:0],
+          precipitation_probability:[0],
+          wind_gusts_10m:[Number.isFinite(viento)?viento:0],
           vapour_pressure_deficit:[null]
         },
         daily
       };
 
       window.meteorologiaRespaldo=true;
-      console.warn("Radar Níscalo · usando wttr.in como respaldo.",errorMeteorologia);
-      $("estado").textContent="⚠️ Open-Meteo no responde. Mostrando datos meteorológicos de respaldo…";
-
-    }catch(respaldoError){
-      console.error("Radar Níscalo · Open-Meteo:",errorMeteorologia);
-      console.error("Radar Níscalo · respaldo:",respaldoError);
+      window.meteorologiaFuente="MET Norway";
+      console.warn("Radar Níscalo · usando MET Norway como respaldo.",errorMeteorologia);
       $("estado").textContent=
-        "❌ Fallo meteorológico. Open-Meteo: "+
-        (errorMeteorologia?.message||"sin respuesta")+"\\n"+
-        " · Respaldo: "+
-        (respaldoError?.message||"sin respuesta");
-      return;
+        "⚠️ Open-Meteo ha alcanzado su límite. Mostrando meteorología de respaldo…";
+
+    }catch(metError){
+
+      /* =====================================================
+         RESPALDO 2 · WTTR.IN
+         ===================================================== */
+      try{
+        const respaldoUrl=
+          "https://wttr.in/"+
+          encodeURIComponent(lat)+","+encodeURIComponent(lon)+
+          "?format=j1";
+
+        const respaldoResp=await fetch(respaldoUrl,{cache:"no-store"});
+        const respaldoTexto=await respaldoResp.text();
+
+        if(!respaldoResp.ok){
+          throw new Error("wttr.in HTTP "+respaldoResp.status);
+        }
+
+        const respaldoJson=JSON.parse(respaldoTexto);
+        const actual=respaldoJson?.current_condition?.[0];
+        const dias=Array.isArray(respaldoJson?.weather)
+          ?respaldoJson.weather:[];
+
+        if(!actual){
+          throw new Error("wttr.in devolvió una respuesta incompleta.");
+        }
+
+        const temp=Number(actual.temp_C);
+        const hum=Number(actual.humidity);
+        const viento=Number(actual.windspeedKmph);
+        const lluviaAhora=Number(actual.precipMM||0);
+
+        const daily={
+          time:dias.map(d=>d.date).filter(Boolean),
+          temperature_2m_max:dias.map(d=>Number(d.maxtempC)),
+          temperature_2m_min:dias.map(d=>Number(d.mintempC)),
+          temperature_2m_mean:dias.map(d=>Number(d.avgtempC)),
+          precipitation_sum:dias.map(d=>{
+            const horas=Array.isArray(d.hourly)?d.hourly:[];
+            return horas.reduce((s,h)=>s+Number(h.precipMM||0),0);
+          }),
+          precipitation_probability_max:dias.map(d=>{
+            const horas=Array.isArray(d.hourly)?d.hourly:[];
+            return horas.reduce((m,h)=>Math.max(m,Number(h.chanceofrain||0)),0);
+          }),
+          wind_gusts_10m_max:dias.map(d=>{
+            const horas=Array.isArray(d.hourly)?d.hourly:[];
+            return horas.reduce((m,h)=>Math.max(m,Number(h.windspeedKmph||0)),0);
+          }),
+          weather_code:dias.map(d=>Number(d.hourly?.[0]?.weatherCode||0)),
+          et0_fao_evapotranspiration:[]
+        };
+
+        const ahora=new Date().toISOString();
+
+        datos={
+          current:{
+            time:ahora,
+            temperature_2m:temp,
+            relative_humidity_2m:hum,
+            wind_gusts_10m:viento
+          },
+          hourly:{
+            time:[ahora],
+            temperature_2m:[temp],
+            relative_humidity_2m:[hum],
+            precipitation:[lluviaAhora],
+            precipitation_probability:[Number(actual.chanceofrain||0)],
+            wind_gusts_10m:[viento],
+            vapour_pressure_deficit:[null]
+          },
+          daily
+        };
+
+        window.meteorologiaRespaldo=true;
+        window.meteorologiaFuente="wttr.in";
+        console.warn("Radar Níscalo · usando wttr.in como segundo respaldo.",metError);
+        $("estado").textContent=
+          "⚠️ Meteorología de respaldo activada.";
+
+      }catch(respaldoError){
+        console.error("Radar Níscalo · Open-Meteo:",errorMeteorologia);
+        console.error("Radar Níscalo · MET Norway:",metError);
+        console.error("Radar Níscalo · wttr.in:",respaldoError);
+
+        $("estado").textContent=
+          "❌ No hay servicio meteorológico disponible ahora. "+
+          "Open-Meteo: "+(errorMeteorologia?.message||"error")+
+          " · MET Norway: "+(metError?.message||"error")+
+          " · wttr.in: "+(respaldoError?.message||"error");
+        return;
+      }
     }
   }
-
   try{
 
     /* =======================================================
