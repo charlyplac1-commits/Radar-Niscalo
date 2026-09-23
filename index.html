@@ -19,7 +19,9 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-radar-niscalo.svg?v=4">
 <link rel="apple-touch-icon-precomposed" sizes="180x180" href="icon-radar-niscalo.svg?v=4">
 
-<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.11.0/dist/maplibre-gl.css">
+<link rel="stylesheet"
+
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
 <style>
 
@@ -1101,7 +1103,7 @@ value="900">
 <span>🟡 40–59 Posible</span>
 <span>🔵 0–39 Baja</span>
 </div>
-<div class="muted" style="margin-top:6px">La visión Radar muestra manchas orgánicas de favorabilidad sobre un relieve 3D del terreno.</div>
+<div class="muted" style="margin-top:6px">La visión Radar sustituye la cuadrícula por una capa térmica difuminada sobre el mapa real.</div>
 
 <p class="muted">
 
@@ -1463,8 +1465,9 @@ Radar del Níscalo · Aplicación experimental
 })();
 </script>
 
-<script src="https://unpkg.com/maplibre-gl@6.11.0/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 
 <script>
 
@@ -1480,11 +1483,9 @@ let visionRadarActiva=true;
 
 function alternarVisionRadar(){
 visionRadarActiva=!visionRadarActiva;
-if(mapa && mapa.getLayer && mapa.getLayer("radar-zonas-fill")){
-  mapa.setLayoutProperty("radar-zonas-fill","visibility",visionRadarActiva?"visible":"none");
-  if(mapa.getLayer("radar-zonas-core")){
-    mapa.setLayoutProperty("radar-zonas-core","visibility",visionRadarActiva?"visible":"none");
-  }
+if(capaCalorRadar){
+  if(visionRadarActiva) capaCalorRadar.addTo(mapa);
+  else mapa.removeLayer(capaCalorRadar);
 }
 let boton=$("btnVisionRadar");
 if(boton){
@@ -1533,105 +1534,51 @@ mapa.invalidateSize();
 
 function iniciarMapa(){
 
-if(mapa) return;
+mapa=L.map("map").setView(
 
-mapa=new maplibregl.Map({
-  container:"map",
-  style:"https://tiles.openfreemap.org/styles/bright",
-  center:[1.80,41.60],
-  zoom:8,
-  pitch:52,
-  bearing:-12,
-  maxPitch:75,
-  maxZoom:19,
-  attributionControl:true
-});
+[41.60,1.80],
 
-mapa.addControl(new maplibregl.NavigationControl({
-  visualizePitch:true,
-  showZoom:true,
-  showCompass:true
-}),"top-right");
+8
 
-mapa.invalidateSize=()=>mapa.resize();
+);
 
-mapa.on("load",()=>{
-  try{
-    mapa.addSource("terrainSource",{
-      type:"raster-dem",
-      url:"https://tiles.mapterhorn.com/tilejson.json",
-      tileSize:256
-    });
-    mapa.addLayer({
-      id:"radar-hillshade",
-      type:"hillshade",
-      source:"terrainSource",
-      paint:{
-        "hillshade-exaggeration":0.45,
-        "hillshade-shadow-color":"#3b3025",
-        "hillshade-highlight-color":"#fffdf4"
-      }
-    });
-    mapa.setTerrain({source:"terrainSource",exaggeration:1.15});
-  }catch(e){
-    console.warn("Relieve 3D no disponible:",e);
-  }
-});
+L.tileLayer(
 
-marcador={
-  _marker:new maplibregl.Marker({color:"#d62828",scale:.9})
-    .setLngLat([1.80,41.60])
-    .addTo(mapa),
-  _popup:null,
-  setLatLng(coords){
-    this._marker.setLngLat([coords[1],coords[0]]);
-    return this;
-  },
-  bindPopup(html){
-    this._popup=new maplibregl.Popup({offset:24,maxWidth:"310px"}).setHTML(html);
-    this._marker.setPopup(this._popup);
-    return this;
-  }
-};
+"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
 
-marcador.bindPopup("Ubicación consultada");
+{
+
+maxZoom:19,
+
+attribution:"© OpenStreetMap"
+
 }
 
-function crearManchaRadar(lat,lon,radioLat,radioLon,semilla,irregularidad=1){
-const puntos=[];
-const total=10;
-for(let k=0;k<total;k++){
-  const angulo=(Math.PI*2*k)/total;
-  const variacion=0.82+(((semilla*37+k*17)%29)/100);
-  const ondulacion=1+Math.sin(k*1.7+semilla)*0.08*irregularidad;
-  puntos.push([
-    lon+Math.cos(angulo)*radioLon*variacion*ondulacion,
-    lat+Math.sin(angulo)*radioLat*variacion*ondulacion
-  ]);
-}
-puntos.push(puntos[0]);
-return [puntos];
+).addTo(mapa);
+
+marcador=L.marker(
+
+[41.60,1.80]
+
+)
+
+.addTo(mapa)
+
+.bindPopup("Ubicación consultada");
+
 }
 
 async function pintarMapaZonas(lat,lon){
-
 if(!mapa) return;
-
-if(!mapa.isStyleLoaded()){
-  mapa.once("load",()=>pintarMapaZonas(lat,lon));
-  return;
-}
-
-["radar-zonas-fill","radar-zonas-outline","radar-zonas-core"].forEach(id=>{
-  if(mapa.getLayer(id)) mapa.removeLayer(id);
-});
-["radar-zonas-source","radar-zonas-core-source"].forEach(id=>{
-  if(mapa.getSource(id)) mapa.removeSource(id);
-});
-
+capasFavorabilidad.forEach(capa=>mapa.removeLayer(capa));
 capasFavorabilidad=[];
-capaCalorRadar=null;
+if(capaCalorRadar){mapa.removeLayer(capaCalorRadar);capaCalorRadar=null;}
 
+/*
+  Mapa local: 5x5 celdas.
+  Cada celda mide aproximadamente 4 km de lado.
+  Calculamos condiciones independientes para cada punto.
+*/
 const paso=0.04;
 const columnas=5;
 let latitudes=[];
@@ -1662,17 +1609,16 @@ if(!Array.isArray(datos)) datos=[datos];
 let elev=await fetch(
 "https://api.open-meteo.com/v1/elevation?latitude="+
 latitudes.join(",")+
-"&longitude="+longitudes.join(",")
+"&longitude="+
+longitudes.join(",")
 );
+
 if(!elev.ok) throw new Error("Error en altitudes");
 
 let elevData=await elev.json();
 let elevaciones=Array.isArray(elevData.elevation)
 ?elevData.elevation
 :[elevData.elevation];
-
-const features=[];
-const cores=[];
 
 for(let i=0;i<datos.length;i++){
 let d=datos[i];
@@ -1699,6 +1645,7 @@ let sueloReciente=[];
 for(let j=inicio30;j<=indiceActual;j++){
 let lluvia=Number(precipitacion[j]||0);
 lluvia30+=lluvia;
+
 if(j>=inicio14) lluvia14+=lluvia;
 if(j>=inicio7){
 lluvia7Pasada+=lluvia;
@@ -1731,31 +1678,50 @@ let hurl=
 let hr=await fetch(hurl);
 let hd=await hr.json();
 let ht=String(hd.features?.[0]?.attributes?.tipus||"").toLowerCase();
+
 if(/pi roig|pinus sylvestris/.test(ht)){
-  habitatScore=1.00; habitatTexto="Pinar de pi roig (Pinus sylvestris)";
+  habitatScore=1.00;
+  habitatTexto="Pinar de pi roig (Pinus sylvestris)";
 }else if(/pinassa|pinus nigra/.test(ht)){
-  habitatScore=0.95; habitatTexto="Pinar de pinassa (Pinus nigra)";
+  habitatScore=0.95;
+  habitatTexto="Pinar de pinassa (Pinus nigra)";
 }else if(/pi negre|pinus uncinata/.test(ht)){
-  habitatScore=0.90; habitatTexto="Pinar de pi negre (Pinus uncinata)";
+  habitatScore=0.90;
+  habitatTexto="Pinar de pi negre (Pinus uncinata)";
 }else if(/pi blanc|pinus halepensis/.test(ht)){
-  habitatScore=0.80; habitatTexto="Pinar de pi blanc (Pinus halepensis)";
+  habitatScore=0.80;
+  habitatTexto="Pinar de pi blanc (Pinus halepensis)";
 }else if(/pi pinyer|pinus pinea/.test(ht)){
-  habitatScore=0.75; habitatTexto="Pinar de pi pinyer (Pinus pinea)";
+  habitatScore=0.75;
+  habitatTexto="Pinar de pi pinyer (Pinus pinea)";
 }else if(/pi|pinar|conífer|bosque|bosc|forest|arbrat/.test(ht)){
   habitatScore=/pi|pinar/.test(ht)?0.88:0.75;
   habitatTexto="Pinar o bosque de coníferas compatible";
 }else if(/matorral|matollar|arbust/.test(ht)){
-  habitatScore=0.35; habitatTexto="Matorral / vegetación arbustiva";
+  habitatScore=0.35;
+  habitatTexto="Matorral / vegetación arbustiva";
 }else if(/cultiu|agr|conreu|agrícola|agricola|urb|edific|industrial|carretera|vial|urban|aigua|riu|llac|embass/.test(ht)){
-  habitatScore=0.05; habitatTexto="Cobertura no forestal";
+  habitatScore=0.05;
+  habitatTexto="Cobertura no forestal";
 }else if(ht){
-  habitatScore=0.20; habitatTexto=ht;
+  habitatScore=0.20;
+  habitatTexto=ht;
 }
 }catch(e){}
-
 let score=calcularPuntuacion(
-lluvia7Pasada,lluvia14,lluvia30,tempActual,tempMedia7,suelo,alt,
-new Date().getMonth()+1,0,habitatScore,0,50,0
+lluvia7Pasada,
+lluvia14,
+lluvia30,
+tempActual,
+tempMedia7,
+suelo,
+alt,
+new Date().getMonth()+1,
+0,
+habitatScore,
+0,
+50,
+0
 );
 
 let y=Math.floor(i/columnas)-2;
@@ -1764,10 +1730,10 @@ let centroLat=lat+y*paso;
 let centroLon=lon+x*paso;
 
 let color=
-score>=80?"#d62828":
-score>=60?"#e67e22":
-score>=40?"#d4b200":
-"#2878b8";
+score>=80?"#ff3b1f":
+score>=60?"#ff8a00":
+score>=40?"#ffd23f":
+"#3b82f6";
 
 let nivel=
 score>=80?"Muy favorable":
@@ -1775,13 +1741,11 @@ score>=60?"Favorable":
 score>=40?"Posible":
 "Baja";
 
-const intensidad=Math.max(0.10,Math.min(0.68,0.12+(score/100)*0.56));
-
 let popupHtml=
-"<b>🍄 Zona de favorabilidad: "+score+"/100</b>"+
-"<br><b>"+nivel+"</b>"+
+"<b>🍄 Favorabilidad: "+score+"/100</b>"+
+"<br>🍄 "+nivel+
 "<hr style='margin:7px 0'>"+
-"🌧️ Últimos 7 días: "+Math.round(lluvia7Pasada)+" mm"+
+"🌧️ Últimos 7 días: "+Math.round(lluvia7)+" mm"+
 "<br>🌧️ Últimos 14 días: "+Math.round(lluvia14)+" mm"+
 "<br>🌧️ Últimos 30 días: "+Math.round(lluvia30)+" mm"+
 "<br>🌡️ Temp. actual: "+tempActual.toFixed(1)+" °C"+
@@ -1792,101 +1756,69 @@ let popupHtml=
 
 puntosRadar.push({lat:centroLat,lon:centroLon,score});
 
-const semilla=i+Math.round(score*1.7);
-features.push({
-  type:"Feature",
-  properties:{score,nivel,color,intensidad,popup:popupHtml},
-  geometry:{
-    type:"Polygon",
-    coordinates:crearManchaRadar(
-      centroLat,centroLon,
-      0.028+(score/100)*0.004,
-      0.033+(score/100)*0.005,
-      semilla,1
-    )
+let puntoRadar=L.circleMarker([centroLat,centroLon],{
+radius:8,
+opacity:0,
+fillOpacity:0,
+interactive:true
+}).addTo(mapa);
+puntoRadar.bindPopup(popupHtml);
+capasFavorabilidad.push(puntoRadar);
+}
+// Construimos una superficie térmica continua a partir de los 25 puntos reales.
+const puntosInterpolados=[];
+for(let gy=0;gy<=20;gy++){
+  const fy=gy/20*4-2;
+  for(let gx=0;gx<=20;gx++){
+    const fx=gx/20*4-2;
+    let suma=0,peso=0;
+    puntosRadar.forEach(p=>{
+      const py=(p.lat-lat)/paso,px=(p.lon-lon)/paso;
+      const dist2=(fx-px)*(fx-px)+(fy-py)*(fy-py);
+      const w=1/Math.pow(0.55+dist2,1.15);
+      suma+=p.score*w;peso+=w;
+    });
+    const valor=peso?suma/peso:0;
+    puntosInterpolados.push([
+      lat+fy*paso,
+      lon+fx*paso,
+      Math.max(.05,Math.min(1,valor/100))
+    ]);
   }
-});
-
-if(score>=60){
-  cores.push({
-    type:"Feature",
-    properties:{score,color,intensidad:Math.min(0.38,intensidad+0.10)},
-    geometry:{
-      type:"Polygon",
-      coordinates:crearManchaRadar(
-        centroLat,centroLon,
-        0.010+(score-60)*0.00008,
-        0.012+(score-60)*0.00009,
-        semilla+7,1.2
-      )
+}
+if(puntosRadar.length){
+  /* Superficie continua: usamos más puntos interpolados y una capa más ancha
+     para que siga siendo visible incluso con el mapa alejado. */
+  const puntosInterpolados=[];
+  for(let gy=0;gy<=32;gy++){
+    const fy=gy/32*4-2;
+    for(let gx=0;gx<=32;gx++){
+      const fx=gx/32*4-2;
+      let suma=0,peso=0;
+      puntosRadar.forEach(p=>{
+        const py=(p.lat-lat)/paso,px=(p.lon-lon)/paso;
+        const dist2=(fx-px)*(fx-px)+(fy-py)*(fy-py);
+        const w=1/Math.pow(0.35+dist2,1.05);
+        suma+=p.score*w;peso+=w;
+      });
+      const valor=peso?suma/peso:0;
+      puntosInterpolados.push([lat+fy*paso,lon+fx*paso,Math.max(.02,Math.min(1,valor/100))]);
     }
-  });
-}
-}
-
-mapa.addSource("radar-zonas-source",{
-  type:"geojson",
-  data:{type:"FeatureCollection",features:features}
-});
-
-mapa.addLayer({
-  id:"radar-zonas-fill",
-  type:"fill",
-  source:"radar-zonas-source",
-  paint:{
-    "fill-color":["get","color"],
-    "fill-opacity":["get","intensidad"]
   }
-});
-
-mapa.addLayer({
-  id:"radar-zonas-outline",
-  type:"line",
-  source:"radar-zonas-source",
-  paint:{
-    "line-color":["get","color"],
-    "line-width":1.1,
-    "line-opacity":0.28
+  if(typeof L.heatLayer==="function"){
+    capaCalorRadar=L.heatLayer(puntosInterpolados,{
+      radius:70,blur:72,maxZoom:14,minOpacity:.28,max:.98,
+      gradient:{
+        0.02:"#07133d",0.18:"#1239a6",0.34:"#008fe8",
+        0.50:"#00cfa5",0.64:"#8ee22b",0.76:"#ffe000",
+        0.88:"#ff7900",1:"#ff170d"
+      }
+    });
+    if(visionRadarActiva)capaCalorRadar.addTo(mapa);
+  }else{
+    console.warn("Leaflet.heat no está disponible; no se puede pintar la superficie radar.");
   }
-});
-
-if(cores.length){
-  mapa.addSource("radar-zonas-core-source",{
-    type:"geojson",
-    data:{type:"FeatureCollection",features:cores}
-  });
-  mapa.addLayer({
-    id:"radar-zonas-core",
-    type:"fill",
-    source:"radar-zonas-core-source",
-    paint:{
-      "fill-color":["get","color"],
-      "fill-opacity":["get","intensidad"]
-    }
-  });
 }
-
-mapa.off("click","radar-zonas-fill");
-mapa.off("mouseenter","radar-zonas-fill");
-mapa.off("mouseleave","radar-zonas-fill");
-
-mapa.on("click","radar-zonas-fill",e=>{
-  const f=e.features&&e.features[0];
-  if(!f) return;
-  new maplibregl.Popup({offset:12,maxWidth:"310px"})
-    .setLngLat(e.lngLat)
-    .setHTML(f.properties.popup||"Zona de favorabilidad")
-    .addTo(mapa);
-});
-
-mapa.on("mouseenter","radar-zonas-fill",()=>{mapa.getCanvas().style.cursor="pointer";});
-mapa.on("mouseleave","radar-zonas-fill",()=>{mapa.getCanvas().style.cursor="";});
-
-if(!visionRadarActiva){
-  mapa.setLayoutProperty("radar-zonas-fill","visibility","none");
-  if(mapa.getLayer("radar-zonas-core")) mapa.setLayoutProperty("radar-zonas-core","visibility","none");
-}
-
 }catch(error){
 console.error("Mapa de favorabilidad:",error);
 }
@@ -1922,19 +1854,10 @@ caja.innerHTML='<div style="padding:10px">No se pudo buscar la zona. Comprueba l
 
 function moverMapa(lat,lon){
 
-if(!mapa || !marcador) return;
+if(!mapa || !marcador){
 
-marcador
-.setLatLng([lat,lon])
-.bindPopup("📍 Ubicación consultada");
+return;
 
-mapa.easeTo({
-  center:[lon,lat],
-  zoom:11,
-  pitch:52,
-  bearing:-12,
-  duration:900
-});
 }
 
 marcador
@@ -4445,7 +4368,7 @@ function enfocarRadar(){
   const mapEl=document.getElementById("map");
   if(mapEl) mapEl.scrollIntoView({behavior:"smooth",block:"center"});
   if(Number.isFinite(lat)&&Number.isFinite(lon)){
-    setTimeout(()=>{ if(mapa) mapa.easeTo({center:[lon,lat],zoom:13,duration:900}); pintarMapaZonas(lat,lon); },350);
+    setTimeout(()=>{ if(mapa) mapa.setView([lat,lon],13,{animate:true}); pintarMapaZonas(lat,lon); },350);
   }
 }
 
