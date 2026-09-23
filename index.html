@@ -1675,7 +1675,7 @@ body{
   overflow:hidden;
   background-image:
     linear-gradient(180deg,rgba(7,30,17,.38),rgba(4,24,13,.68)),
-    url('https://images.unsplash.com/photo-1498925008800-019c7d59d903?auto=format&fit=crop&fm=jpg&q=82&w=1800&v=6') !important;
+    url('https://images.unsplash.com/photo-1698869628299-5d0e570142fb?auto=format&fit=crop&fm=jpg&q=88&w=1800&v=4');
   background-size:cover;
   background-position:center;
   border-color:#28563d!important;
@@ -1705,16 +1705,6 @@ body{
   background:rgba(255,255,255,.12);
   color:#fff;
 }
-/* ===== CORRECCIÓN FONDO DECISIÓN DEL RADAR ===== */
-#motorDecisionCard.decision-radar-card{
-  background-color:#173d29!important;
-  background-image:
-    linear-gradient(180deg,rgba(7,30,17,.38),rgba(4,24,13,.68)),
-    url('https://images.unsplash.com/photo-1498925008800-019c7d59d903?auto=format&fit=crop&fm=jpg&q=82&w=1800&v=6') !important;
-  background-size:cover!important;
-  background-position:center!important;
-}
-
 /* ===== FONDO FRUCTIFICACIÓN ===== */
 .fructificacion-card{
   position:relative;
@@ -3654,192 +3644,387 @@ maximumAge:0
 
 async function cargarDatos(){
 
-  const lat=parseFloat($("lat")?.value);
-  const lon=parseFloat($("lon")?.value);
+let lat=
 
-  if(!Number.isFinite(lat)||!Number.isFinite(lon)){
-    $("estado").textContent="Introduce una ubicación válida.";
-    return;
-  }
+parseFloat($("lat").value);
 
-  $("estado").textContent="Calculando datos meteorológicos…";
+let lon=
 
-  const fetchJSON=async(url,ms=10000)=>{
-    const controller=new AbortController();
-    const timer=setTimeout(()=>controller.abort(),ms);
-    try{
-      const r=await fetch(url,{cache:"no-store",signal:controller.signal});
-      if(!r.ok) throw new Error("HTTP "+r.status);
-      return await r.json();
-    }finally{
-      clearTimeout(timer);
-    }
-  };
+parseFloat($("lon").value);
 
-  const base="latitude="+encodeURIComponent(lat)+"&longitude="+encodeURIComponent(lon)+"&timezone=auto";
-  let datos=null;
-  let errorPrincipal=null;
+if(
 
-  const urls=[
-    "https://api.open-meteo.com/v1/forecast?"+base+
-    "&past_days=14&forecast_days=7"+
-    "&current=temperature_2m,relative_humidity_2m,wind_gusts_10m,soil_moisture_0_to_7cm"+
-    "&hourly=precipitation,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm,vapour_pressure_deficit"+
-    "&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code,et0_fao_evapotranspiration",
-    "https://api.open-meteo.com/v1/ecmwf?"+base+
-    "&forecast_days=7"+
-    "&current=temperature_2m,relative_humidity_2m,wind_gusts_10m,soil_moisture_0_to_7cm"+
-    "&hourly=precipitation,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm,vapour_pressure_deficit"+
-    "&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code,et0_fao_evapotranspiration"
-  ];
+!Number.isFinite(lat) ||
 
-  for(const url of urls){
-    try{
-      datos=await fetchJSON(url,10000);
-      if(datos?.current&&datos?.daily){
-        break;
-      }
-    }catch(e){
-      errorPrincipal=e;
-    }
-  }
+!Number.isFinite(lon)
 
-  if(!datos){
-    console.error("Radar Níscalo · meteorología:",errorPrincipal);
-    $("estado").textContent="No se pudieron cargar los datos meteorológicos.";
-    return;
-  }
+){
 
-  try{
+alert(
 
-    /* DATOS ACTUALES */
-    const temperatura=Number(datos.current?.temperature_2m);
-    const humedad=Number(datos.current?.relative_humidity_2m);
-    const rafaga=Number(datos.current?.wind_gusts_10m);
-    const humedadSueloRaw=Number(datos.current?.soil_moisture_0_to_7cm);
-    const humedadSuelo=Number.isFinite(humedadSueloRaw)?Math.round(humedadSueloRaw*100):0;
+"Introduce una ubicación válida."
 
-    /* LLUVIA RECIENTE */
-    const tiempos=datos.hourly?.time||[];
-    const precipitacion=datos.hourly?.precipitation||[];
-    let indiceActual=tiempos.findIndex(t=>t>=datos.current?.time);
-    if(indiceActual<0) indiceActual=precipitacion.length-1;
+);
 
-    const sumarLluviaHoras=(horas)=>{
-      const ini=Math.max(0,indiceActual-horas+1);
-      let s=0;
-      for(let i=ini;i<=indiceActual;i++) s+=Number(precipitacion[i]||0);
-      return s;
-    };
+return;
 
-    const lluvia3=sumarLluviaHoras(72);
-    const lluvia7=sumarLluviaHoras(7*24);
-    const lluvia14=sumarLluviaHoras(14*24);
+}
 
-    let horasDesdeLluvia=0;
-    for(let i=indiceActual;i>=0;i--){
-      if(Number(precipitacion[i]||0)>=0.5) break;
-      horasDesdeLluvia++;
-      if(horasDesdeLluvia>=14*24) break;
-    }
-    const diasSecos=Math.floor(horasDesdeLluvia/24);
+$("estado").textContent=
 
-    const profundo=datos.hourly?.soil_moisture_7_to_28cm||[];
-    const muestras=[];
-    for(let i=Math.max(0,indiceActual-23);i<=indiceActual;i++){
-      const v=Number(profundo[i]);
-      if(Number.isFinite(v)) muestras.push(v*100);
-    }
-    const sueloProfundo=muestras.length?muestras.reduce((a,b)=>a+b,0)/muestras.length:NaN;
+"Cargando datos meteorológicos…";
 
-    const vpd=datos.hourly?.vapour_pressure_deficit||[];
-    const vpdM=[];
-    for(let i=Math.max(0,indiceActual-23);i<=indiceActual;i++){
-      const v=Number(vpd[i]);
-      if(Number.isFinite(v)) vpdM.push(v);
-    }
-    const vpd24=vpdM.length?vpdM.reduce((a,b)=>a+b,0)/vpdM.length:0;
+try{
 
-    const et07=(datos.daily?.et0_fao_evapotranspiration||[])
-      .slice(0,7).reduce((a,b)=>a+Number(b||0),0);
+let url=
 
-    /* PREVISIÓN */
-    const lluvia7Prevista=(datos.daily?.precipitation_sum||[])
-      .slice(0,7).reduce((a,b)=>a+Number(b||0),0);
-    const probabilidades=(datos.daily?.precipitation_probability_max||[])
-      .slice(0,7).map(v=>Number(v||0));
-    const probabilidad=probabilidades.length?Math.max(...probabilidades):0;
+`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&timezone=auto&past_days=30&forecast_days=7&current=temperature_2m,relative_humidity_2m,wind_gusts_10m,soil_moisture_0_to_7cm&hourly=temperature_2m,relative_humidity_2m,precipitation,precipitation_probability,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm,wind_gusts_10m,vapour_pressure_deficit&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code,et0_fao_evapotranspiration`;
 
-    $("lluvia14").textContent=Math.round(lluvia14)+" mm";
-    $("lluvia3").textContent=Math.round(lluvia3)+" mm";
-    $("lluvia30").textContent=Math.round(lluvia14)+" mm";
-    $("diasSecos").textContent=diasSecos+" d";
-    $("sueloProfundo").textContent=Number.isFinite(sueloProfundo)?Math.round(sueloProfundo)+"%":"--";
-    $("suelo").textContent=humedadSuelo+"%";
-    $("temperatura").textContent=Number.isFinite(temperatura)?temperatura.toFixed(1)+" °C":"--";
-    $("humedad").textContent=Number.isFinite(humedad)?Math.round(humedad)+"%":"--";
-    $("probLluvia").textContent=Math.round(probabilidad)+"%";
-    $("rafaga").textContent=Number.isFinite(rafaga)?Math.round(rafaga)+" km/h":"--";
-    $("lluvia7").textContent=lluvia7Prevista.toFixed(1)+" mm";
+let respuesta=
 
-    if($("rainSlider")) $("rainSlider").value=Math.min(250,Math.max(0,Math.round(lluvia14)));
-    if($("tempSlider")&&Number.isFinite(temperatura)) $("tempSlider").value=Math.max(2,Math.min(30,temperatura));
-    if($("soilSlider")) $("soilSlider").value=Math.max(1,Math.min(100,humedadSuelo));
+await fetch(url);
 
-    window.lluvia3Actual=lluvia3;
-    window.lluvia7Actual=lluvia7;
-    window.lluvia14Actual=lluvia14;
-    window.lluvia30Actual=lluvia14;
-    window.lluviaActual=lluvia14;
-    window.tempActual=Number.isFinite(temperatura)?temperatura:15;
-    window.humedadSueloActual=humedadSuelo;
-    window.sueloProfundoActual=Number.isFinite(sueloProfundo)?sueloProfundo:humedadSuelo;
-    window.diasDesdeLluvia=diasSecos;
-    window.vpdActual=vpd24;
-    window.et07Actual=et07;
+if(!respuesta.ok)
 
-    actualizarDinamicaFructificacion();
-    pintarFavorabilidad();
-    mostrarPrevision(datos.daily);
+throw new Error("Error Open-Meteo");
 
-    moverMapa(lat,lon);
-    pintarMapaZonas(lat,lon);
+let datos=
 
-    $("ubicacionTexto").textContent=`Lat ${lat.toFixed(4)} · Lon ${lon.toFixed(4)}`;
+await respuesta.json();
 
-    if($("windy")){
-      $("windy").src=`https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&width=650&height=450&zoom=8&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=default&metricTemp=default&metricRain=default&metricSnow=default&metricCloud=default`;
-    }
+/* ALTITUD
+   La altitud es un dato auxiliar: si este servicio falla,
+   NO debe impedir que aparezcan los datos meteorológicos.
+*/
 
-    /* La meteorología principal ya queda pintada. El resto de fuentes son auxiliares
-       y nunca deben bloquear ni borrar los datos anteriores. */
-    try{
-      const elev=await fetchJSON("https://api.open-meteo.com/v1/elevation?latitude="+encodeURIComponent(lat)+"&longitude="+encodeURIComponent(lon),7000);
-      const alt=Math.round(elev?.elevation?.[0]||0);
-      $("altitud").textContent=alt+" m";
-      if($("altSlider")) $("altSlider").value=Math.max(0,Math.min(2500,alt));
-    }catch(e){
-      $("altitud").textContent="--";
-    }
+let altitud=0;
 
-    $("estado").textContent="Datos meteorológicos actualizados.";
+try{
 
-    /* Fuentes complementarias: si alguna falla, la meteorología no se toca. */
-    try{consultarHabitat(lat,lon);}catch(e){}
-    try{consultarTerreno(lat,lon);}catch(e){}
-    try{consultarSueloGeologia(lat,lon);}catch(e){}
-    window.ultimaLat=lat; window.ultimaLon=lon;
-    try{consultarEstructuraArbolado(lat,lon);}catch(e){}
-    try{consultarEstructuraAvanzada(lat,lon);}catch(e){}
-    try{consultarNDVI(lat,lon);}catch(e){}
-    try{cargarEvidenciaPublica(lat,lon);}catch(e){}
-    try{cargarHistorialBiologico(lat,lon);}catch(e){}
-    try{construirModeloHistorico(lat,lon);}catch(e){}
+let elevacion=await fetch(
+`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`
+);
 
-  }catch(error){
-    console.error("Radar Níscalo · pintar meteorología:",error);
-    $("estado").textContent="Meteorología recibida, pero no se pudo pintar algún dato.";
-  }
+if(elevacion.ok){
+
+let elevacionDatos=await elevacion.json();
+
+altitud=Math.round(
+elevacionDatos.elevation?.[0] || 0
+);
+
+}
+
+}catch(e){
+
+console.warn("Altitud no disponible:",e);
+
+}
+
+/* DINÁMICA DE LLUVIA Y HUMEDAD */
+
+let tiempos=datos.hourly.time;
+let precipitacion=datos.hourly.precipitation||[];
+let indiceActual=tiempos.findIndex(t=>t>=datos.current.time);
+if(indiceActual<0) indiceActual=tiempos.length-1;
+
+const sumarLluviaHoras=(horas)=>{
+  const ini=Math.max(0,indiceActual-horas+1);
+  let s=0;
+  for(let i=ini;i<=indiceActual;i++) s+=Number(precipitacion[i]||0);
+  return s;
+};
+
+let lluvia3=sumarLluviaHoras(72);
+let lluvia7=sumarLluviaHoras(7*24);
+let lluvia14=sumarLluviaHoras(14*24);
+let lluvia30=sumarLluviaHoras(30*24);
+
+let horasDesdeLluvia=0;
+for(let i=indiceActual;i>=0;i--){
+  if(Number(precipitacion[i]||0)>=0.5) break;
+  horasDesdeLluvia++;
+  if(horasDesdeLluvia>=30*24) break;
+}
+let diasSecos=Math.floor(horasDesdeLluvia/24);
+
+let sueloProfundoArr=(datos.hourly.soil_moisture_7_to_28cm||[]);
+let sueloProfundoMuestras=[];
+for(let i=Math.max(0,indiceActual-24+1);i<=indiceActual;i++){
+  const v=Number(sueloProfundoArr[i]);
+  if(Number.isFinite(v)) sueloProfundoMuestras.push(v*100);
+}
+let sueloProfundo=sueloProfundoMuestras.length
+  ? sueloProfundoMuestras.reduce((a,b)=>a+b,0)/sueloProfundoMuestras.length
+  : NaN;
+
+let vpdArr=datos.hourly.vapour_pressure_deficit||[];
+let vpdMuestras=[];
+for(let i=Math.max(0,indiceActual-24+1);i<=indiceActual;i++){
+  const v=Number(vpdArr[i]);
+  if(Number.isFinite(v)) vpdMuestras.push(v);
+}
+let vpd24=vpdMuestras.length
+  ? vpdMuestras.reduce((a,b)=>a+b,0)/vpdMuestras.length
+  : NaN;
+
+let et07=(datos.daily.et0_fao_evapotranspiration||[]).slice(0,7).reduce((a,b)=>a+Number(b||0),0);
+
+/* SUELO */
+
+let humedadSueloRaw=Number(datos.current?.soil_moisture_0_to_7cm);
+
+let humedadSuelo=Number.isFinite(humedadSueloRaw)
+
+?
+
+Math.round(humedadSueloRaw*100)
+
+:0;
+
+
+/* ACTUAL */
+
+let temperatura=
+
+Number(
+
+datos.current.temperature_2m
+
+);
+
+let humedad=
+
+Number(
+
+datos.current.relative_humidity_2m
+
+);
+
+let rafaga=
+
+Number(
+
+datos.current.wind_gusts_10m
+
+);
+
+/* PRÓXIMOS 7 DÍAS */
+
+let lluvia7Prevista=
+
+datos.daily
+
+.precipitation_sum
+
+.slice(0,7)
+
+.reduce(
+
+(a,b)=>a+Number(b||0),
+
+0
+
+);
+
+let probabilidades=
+
+datos.daily
+
+.precipitation_probability_max
+
+.slice(0,7)
+
+.map(v=>Number(v||0));
+
+let probabilidad=
+
+probabilidades.length
+
+?
+
+Math.max(...probabilidades)
+
+:0;
+
+/* MOSTRAR */
+
+$("lluvia14").textContent=Math.round(lluvia14)+" mm";
+$("lluvia3").textContent=Math.round(lluvia3)+" mm";
+$("lluvia30").textContent=Math.round(lluvia30)+" mm";
+$("diasSecos").textContent=diasSecos+" d";
+$("sueloProfundo").textContent=Number.isFinite(sueloProfundo)?Math.round(sueloProfundo)+"%":"--";
+
+$("suelo").textContent=
+
+humedadSuelo+"%";
+
+$("temperatura").textContent=
+
+temperatura.toFixed(1)+" °C";
+
+$("altitud").textContent=
+
+altitud+" m";
+
+$("humedad").textContent=
+
+humedad+"%";
+
+$("probLluvia").textContent=
+
+probabilidad+"%";
+
+$("rafaga").textContent=
+
+Math.round(rafaga)+" km/h";
+
+$("lluvia7").textContent=
+
+lluvia7Prevista.toFixed(1)+" mm";
+
+/* CONTROLES */
+
+$("rainSlider").value=
+
+Math.min(
+
+250,
+
+Math.max(
+
+0,
+
+Math.round(lluvia14)
+
+)
+
+);
+
+$("tempSlider").value=
+
+Math.max(
+
+2,
+
+Math.min(
+
+30,
+
+temperatura
+
+)
+
+);
+
+$("soilSlider").value=
+
+Math.max(
+
+1,
+
+Math.min(
+
+100,
+
+humedadSuelo
+
+)
+
+);
+
+$("altSlider").value=
+
+Math.max(
+
+0,
+
+Math.min(
+
+2500,
+
+altitud
+
+)
+
+);
+
+window.lluvia3Actual=lluvia3;
+window.lluvia7Actual=lluvia7;
+window.lluvia14Actual=lluvia14;
+window.lluvia30Actual=lluvia30;
+window.lluviaActual=lluvia14;
+window.tempActual=temperatura;
+window.humedadSueloActual=humedadSuelo;
+window.sueloProfundoActual=Number.isFinite(sueloProfundo)?sueloProfundo:humedadSuelo;
+window.diasDesdeLluvia=diasSecos;
+window.vpdActual=Number.isFinite(vpd24)?vpd24:0;
+window.et07Actual=et07;
+
+actualizarDinamicaFructificacion();
+pintarFavorabilidad();
+
+/* PREVISIÓN */
+
+mostrarPrevision(
+
+datos.daily
+
+);
+
+/* MAPA */
+
+moverMapa(
+
+lat,
+
+lon
+
+);
+
+pintarMapaZonas(lat,lon);
+
+/* HÁBITAT FORESTAL */
+consultarHabitat(lat,lon);
+/* TERRENO: MDT oficial ICGC */
+consultarTerreno(lat,lon);
+consultarSueloGeologia(lat,lon);
+window.ultimaLat=lat; window.ultimaLon=lon;
+consultarEstructuraArbolado(lat,lon);
+consultarEstructuraAvanzada(lat,lon);
+consultarNDVI(lat,lon);
+
+/* EVIDENCIA PÚBLICA */
+cargarEvidenciaPublica(lat,lon);
+cargarHistorialBiologico(lat,lon);
+construirModeloHistorico(lat,lon);
+
+/* WINDY */
+
+$("windy").src=
+
+`https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&width=650&height=450&zoom=8&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=default&metricTemp=default&metricRain=default&metricSnow=default&metricCloud=default`;
+
+$("ubicacionTexto").textContent=
+
+`Lat ${lat.toFixed(4)} · Lon ${lon.toFixed(4)}`;
+
+$("estado").textContent=
+
+"Datos meteorológicos actualizados. Consultando hábitat y fuentes adicionales…";
+
+}
+
+catch(error){
+
+console.error(error);
+
+$("estado").textContent=
+
+"No se pudieron cargar los datos meteorológicos. Comprueba la conexión.";
+
+}
+
 }
 
 /* ================= HÁBITAT FORESTAL AUTOMÁTICO ================= */
