@@ -945,6 +945,81 @@ header.app-header .brand,header.app-header .header-status{position:relative;z-in
   }
 }
 
+
+/* ===== BOTONES PREMIUM · RADAR NÍSCALO ===== */
+button:not(.app-nav button){
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(23,61,41,.10);
+  border-radius:13px;
+  background:linear-gradient(135deg,#214b35,#34784e);
+  color:#fff;
+  box-shadow:
+    0 5px 14px rgba(23,61,41,.16),
+    inset 0 1px 0 rgba(255,255,255,.16);
+  font-weight:850;
+  letter-spacing:.1px;
+  transition:
+    transform .16s cubic-bezier(.2,.8,.2,1),
+    box-shadow .2s ease,
+    filter .2s ease,
+    border-color .2s ease;
+}
+button:not(.app-nav button):before{
+  content:"";
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:-65%;
+  width:42%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);
+  transform:skewX(-18deg);
+  transition:left .55s ease;
+  pointer-events:none;
+}
+button:not(.app-nav button):hover{
+  transform:translateY(-1px);
+  box-shadow:
+    0 8px 20px rgba(23,61,41,.20),
+    inset 0 1px 0 rgba(255,255,255,.18);
+  filter:saturate(1.04);
+}
+button:not(.app-nav button):hover:before{left:125%}
+button:not(.app-nav button):active{
+  transform:translateY(1px) scale(.985);
+  box-shadow:
+    0 3px 8px rgba(23,61,41,.14),
+    inset 0 1px 2px rgba(0,0,0,.10);
+}
+button:not(.app-nav button).secondary{
+  background:linear-gradient(135deg,#eef2ee,#dfe8e0);
+  color:#173d29;
+  border-color:rgba(47,107,70,.14);
+  box-shadow:
+    0 4px 12px rgba(23,61,41,.10),
+    inset 0 1px 0 rgba(255,255,255,.9);
+}
+button:not(.app-nav button).secondary:hover{
+  background:linear-gradient(135deg,#f5f8f5,#e4eee5);
+}
+button:not(.app-nav button).danger{
+  background:linear-gradient(135deg,#9b3d35,#b95346);
+  border-color:rgba(120,35,28,.18);
+  box-shadow:
+    0 5px 14px rgba(125,47,39,.18),
+    inset 0 1px 0 rgba(255,255,255,.14);
+}
+button:not(.app-nav button):focus-visible{
+  outline:3px solid rgba(229,163,75,.38);
+  outline-offset:2px;
+}
+@media(max-width:720px){
+  button:not(.app-nav button){
+    min-height:44px;
+    border-radius:14px;
+  }
+}
+
 </style>
 
 <script>
