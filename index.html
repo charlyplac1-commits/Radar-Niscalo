@@ -1784,7 +1784,12 @@ body{
 #previsionCard h3{color:#fff;text-shadow:0 2px 5px rgba(0,0,0,.8)}
 @keyframes fotoMeteo{from{transform:scale(1.04) translateX(-1%)}to{transform:scale(1.10) translateX(1%)}}
 @keyframes lluviaCaer{from{background-position:0 -120px}to{background-position:38px 120px}}
-@media(max-width:720px){#previsionCard{min-height:155px}}</style>
+@media(max-width:720px){#previsionCard{min-height:155px}}/* ===== AJUSTE INICIO · ELIMINAR LA PEQUEÑA FRANJA VERDE SUPERIOR ===== */
+@media(max-width:759px){
+  main{padding-top:0 !important;}
+}
+
+</style>
 
 <script>
 if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});if("caches" in window){caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("radar-niscalo-")).map(k=>caches.delete(k)))).catch(()=>{});}}
