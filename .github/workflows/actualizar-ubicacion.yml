@@ -19,13 +19,19 @@ jobs:
           from pathlib import Path
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
-          old='''    "&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code,et0_fao_evapotranspiration";'''
-          new='''    "&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code,et0_fao_evapotranspiration"+\n    "&cacheBust="+Date.now();'''
+          old='    "&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code,et0_fao_evapotranspiration";'
+          new='    "&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,weather_code,et0_fao_evapotranspiration"+\\n    "&cacheBust="+Date.now();'
           if old not in s:
               raise SystemExit('No se encontró la URL meteorológica esperada')
           s=s.replace(old,new,1)
-          old2='''    try{ moverMapa(lat,lon); }catch(e){console.warn("Mapa:",e);}\n    try{ pintarMapaZonas(lat,lon); }catch(e){console.warn("Zonas:",e);}'
-          new2='''    try{ moverMapa(lat,lon); }catch(e){console.warn("Mapa:",e);}\n    try{\n      const windy=$("windy");\n      if(windy){\n        windy.src="https://embed.windy.com/embed2.html?lat="+encodeURIComponent(lat)+"&lon="+encodeURIComponent(lon)+"&detailLat="+encodeURIComponent(lat)+"&detailLon="+encodeURIComponent(lon)+"&width=650&height=450&zoom=7&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=default&metricTemp=default&metricRain=default&metricSnow=default&metricCloud=default";\n      }\n    }catch(e){console.warn("Windy:",e);}\n    try{ pintarMapaZonas(lat,lon); }catch(e){console.warn("Zonas:",e);}'
+          old2='    try{ moverMapa(lat,lon); }catch(e){console.warn("Mapa:",e);}'+'\\n'+'    try{ pintarMapaZonas(lat,lon); }catch(e){console.warn("Zonas:",e);}'
+          new2='    try{ moverMapa(lat,lon); }catch(e){console.warn("Mapa:",e);}'+'\\n'+'''    try{
+      const windy=$("windy");
+      if(windy){
+        windy.src="https://embed.windy.com/embed2.html?lat="+encodeURIComponent(lat)+"&lon="+encodeURIComponent(lon)+"&detailLat="+encodeURIComponent(lat)+"&detailLon="+encodeURIComponent(lon)+"&width=650&height=450&zoom=7&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=default&metricTemp=default&metricRain=default&metricSnow=default&metricCloud=default";
+      }
+    }catch(e){console.warn("Windy:",e);}
+'''+'    try{ pintarMapaZonas(lat,lon); }catch(e){console.warn("Zonas:",e);}'
           if old2 not in s:
               raise SystemExit('No se encontró el punto de actualización del mapa')
           s=s.replace(old2,new2,1)
