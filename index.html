@@ -3620,8 +3620,12 @@ resultado=Math.max(0,Math.min(100,Math.round(
  + ((Number(window.densidadArbolScore||0.5)-0.5)*3)
  + ((Number(window.ndviScore||0.5)-0.5)*2)
 )));
-resultado=actualizarModeloHistorico(resultado,evidencia);
-resultado=aplicarModeloHistorico(resultado);
+if(typeof actualizarModeloHistorico==="function"){
+  resultado=actualizarModeloHistorico(resultado,evidencia);
+}
+if(typeof aplicarModeloHistorico==="function"){
+  resultado=aplicarModeloHistorico(resultado);
+}
 const ventana=calcularVentanaFructificacion();
 registrarValidacion(resultado,evidencia);
 actualizarValidacion();
