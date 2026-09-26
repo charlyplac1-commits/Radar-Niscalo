@@ -1,5 +1,4 @@
-/* Radar Níscalo — Service Worker sin caché de la interfaz.
-   La aplicación es estática y debe cargar siempre la versión publicada de GitHub Pages. */
+/* Radar Níscalo — Service Worker sin caché de la interfaz. */
 const CACHE_NAME="radar-niscalo-disabled-v1";
 
 self.addEventListener("install",event=>{
@@ -19,7 +18,20 @@ self.addEventListener("fetch",event=>{
   const url=new URL(event.request.url);
   if(url.origin!==self.location.origin) return;
 
-  event.respondWith(
-    fetch(event.request,{cache:"no-store"}).catch(()=>caches.match(event.request))
-  );
+  event.respondWith((async()=>{
+    try{
+      const response=await fetch(event.request,{cache:"no-store"});
+      const tipo=response.headers.get("content-type")||"";
+      if(event.request.mode==="navigate" || tipo.includes("text/html")){
+        const html=await response.text();
+        if(html.includes("</body>") && !html.includes("route-gps-fix.js")){
+          const mod=html.replace("</body>",'<script src="route-gps-fix.js?v=1"></script></body>');
+          return new Response(mod,{status:response.status,statusText:response.statusText,headers:response.headers});
+        }
+      }
+      return response;
+    }catch(e){
+      return caches.match(event.request);
+    }
+  })());
 });
