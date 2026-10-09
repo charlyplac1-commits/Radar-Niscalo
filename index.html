@@ -3332,6 +3332,7 @@ marcador=L.marker(
 
 async function pintarMapaZonas(lat,lon){
 if(!mapa) return;
+const idRadarMapa=window._cargaRadarId;
 capasFavorabilidad.forEach(capa=>mapa.removeLayer(capa));
 capasFavorabilidad=[];
 if(capaCalorRadar){mapa.removeLayer(capaCalorRadar);capaCalorRadar=null;}
@@ -3364,6 +3365,7 @@ let consulta=
 
 let respuesta=await fetch(consulta);
 if(!respuesta.ok) throw new Error("Error en datos de zonas");
+if(idRadarMapa!==window._cargaRadarId || Number($("lat").value)!==Number(lat) || Number($("lon").value)!==Number(lon)) return;
 
 let datos=await respuesta.json();
 if(!Array.isArray(datos)) datos=[datos];
@@ -3376,6 +3378,7 @@ longitudes.join(",")
 );
 
 if(!elev.ok) throw new Error("Error en altitudes");
+if(idRadarMapa!==window._cargaRadarId || Number($("lat").value)!==Number(lat) || Number($("lon").value)!==Number(lon)) return;
 
 let elevData=await elev.json();
 let elevaciones=Array.isArray(elevData.elevation)
@@ -3507,7 +3510,7 @@ let popupHtml=
 "<b>🍄 Favorabilidad: "+score+"/100</b>"+
 "<br>🍄 "+nivel+
 "<hr style='margin:7px 0'>"+
-"🌧️ Últimos 7 días: "+Math.round(lluvia7)+" mm"+
+"🌧️ Últimos 7 días: "+Math.round(lluvia7Pasada)+" mm"+
 "<br>🌧️ Últimos 14 días: "+Math.round(lluvia14)+" mm"+
 "<br>🌧️ Últimos 30 días: "+Math.round(lluvia30)+" mm"+
 "<br>🌡️ Temp. actual: "+tempActual.toFixed(1)+" °C"+
