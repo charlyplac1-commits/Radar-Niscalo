@@ -2923,11 +2923,8 @@ marcadoresPuntosRecorrido.forEach(m=>{try{mapa.removeLayer(m);}catch(e){}});
 marcadoresPuntosRecorrido=[];
 if(lineaRecorrido){try{mapa.removeLayer(lineaRecorrido);}catch(e){}lineaRecorrido=null;}
 }
-function dibujarRecorridoGuardado(){
-if(!mapa)return;
-limpiarMarcadoresPuntosRecorrido();
-if(!recorridoPuntos.length)return;
-recorridoPuntos.forEach((p,i)=>{
+function anadirMarcadorPuntoRecorrido(p,i){
+if(!mapa||!p)return;
 const vuelta=Number.isInteger(recorridoVueltaDesde)&&i>=recorridoVueltaDesde;
 const color=vuelta?"#ef4444":"#2583f4";
 const marker=L.circleMarker([p.lat,p.lon],{
@@ -2937,7 +2934,11 @@ opacity:.98,interactive:true
 }).addTo(mapa);
 marker.bindTooltip((vuelta?"Vuelta":"Ida")+" · punto "+(i+1),{direction:"top",opacity:.9});
 marcadoresPuntosRecorrido.push(marker);
-});
+}
+function dibujarRecorridoGuardado(){
+if(!mapa)return;
+limpiarMarcadoresPuntosRecorrido();
+recorridoPuntos.forEach((p,i)=>anadirMarcadorPuntoRecorrido(p,i));
 }
 
 function guardarRecorridoLocal(){
@@ -3038,7 +3039,7 @@ precision:Math.round(precision),
 hora:new Date().toISOString()
 });
 
-dibujarRecorridoGuardado();
+anadirMarcadorPuntoRecorrido(recorridoPuntos[recorridoPuntos.length-1],recorridoPuntos.length-1);
 
 actualizarPanelRecorrido();
 guardarRecorridoLocal();
@@ -4762,6 +4763,7 @@ async function cargarDatos(){
        ======================================================= */
     $("lluvia14").textContent=historicoLluviaDisponible ? Math.round(lluvia14)+" mm" : "--";
     $("lluvia3").textContent=historicoLluviaDisponible ? Math.round(lluvia3)+" mm" : "--";
+    if(window._cargaRadarId!==cargaRadarId || Number($("lat").value)!==lat || Number($("lon").value)!==lon) return;
     $("lluvia30").textContent=historicoLluviaDisponible ? Math.round(lluvia30)+" mm" : "--";
     $("diasSecos").textContent=historicoLluviaDisponible ? diasSecos+" d" : "--";
     $("sueloProfundo").textContent=Number.isFinite(sueloProfundo)?Math.round(sueloProfundo)+"%":"--";
@@ -5799,6 +5801,7 @@ async function abrirCamara(nuevoEscaneo=true){
   try{
     if(nuevoEscaneo){scannerFotoN=0;scannerFotosData=[];$("resultadoEscaner").innerHTML="";}
     if(c)c.style.display="none";
+    if(!nuevoEscaneo && $("resultadoEscaner"))$("resultadoEscaner").innerHTML="";
     await abrirStreamScanner(v,"environment");
     v.style.display="block";$("camaraPlaceholder").style.display="none";$("guiaCamara").style.display="block";
     $("btnAbrirCamara").style.display="none";$("btnFotoCamara").style.display="";
