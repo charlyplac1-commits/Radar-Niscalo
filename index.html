@@ -3233,12 +3233,38 @@ function formatearDuracionGuardada(ms){const s=Math.round(Number(ms||0)/1000),h=
 async function mostrarBibliotecaRecorridos(){const b=$("listaRecorridosGuardados");if(!b)return;const l=await obtenerRecorridosBiblioteca();if(!l.length){b.innerHTML='<span class="muted" style="color:#bfd0c3">Todavía no hay recorridos guardados.</span>';return}b.innerHTML=l.map(r=>{const id=JSON.stringify(r.id),f=r.fechaFin?new Date(r.fechaFin).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"Sin fecha";return '<div class="recorrido-guardado"><b>🧭 '+escapar(r.nombre||"Recorrido")+'</b><div class="recorrido-meta">📅 '+f+' · 📏 '+formatearDistanciaRecorrido(r.distancia||0)+' · ⏱️ '+formatearDuracionGuardada(r.duracionMs)+' · 📍 '+(r.puntos?.length||0)+' puntos</div><div class="recorrido-acciones"><button type="button" class="ruta-ver" onclick="abrirRecorridoBiblioteca('+id+')">🗺️ Ver</button><button type="button" class="ruta-ver" onclick="reproducirRecorridoBiblioteca('+id+')">▶️ Reproducir</button><button type="button" class="ruta-volver" onclick="seguirRecorridoBiblioteca('+id+')">🧭 Volver</button><button type="button" class="ruta-exportar" onclick="exportarRecorridoGPX('+id+')">📤 GPX</button><button type="button" class="ruta-borrar" onclick="borrarRecorridoBiblioteca('+id+')">🗑️</button></div></div>'}).join("")}
 async function cargarRecorridoBiblioteca(id){const l=await obtenerRecorridosBiblioteca(),r=l.find(x=>String(x.id)===String(id));return r&&r.puntos?.length>1?r:null}
 function dibujarRutaBiblioteca(r){if(!mapa||!r)return;if(lineaRecorrido)mapa.removeLayer(lineaRecorrido);lineaRecorrido=L.polyline(r.puntos.map(p=>[+p.lat,+p.lon]),{color:"#e68a35",weight:5,opacity:.92,lineCap:"round",lineJoin:"round"}).addTo(mapa);mapa.fitBounds(lineaRecorrido.getBounds(),{padding:[30,30],maxZoom:16});const a=$("recorridoAviso");if(a)a.textContent="Ruta «"+(r.nombre||"sin nombre")+"» cargada."}
-async function abrirRecorridoBiblioteca(id){detenerReproduccionRecorrido();detenerSeguirRecorrido();const r=await cargarRecorridoBiblioteca(id);if(!r)return;recorridoPuntos=r.puntos;recorridoDistancia=+r.distancia||0;recorridoInicio=0;dibujarRutaBiblioteca(r);actualizarPanelRecorrido()} async function reproducirUltimoRecorridoBiblioteca(){
+async function abrirRecorridoBiblioteca(id){detenerReproduccionRecorrido();detenerSeguirRecorrido();const r=await cargarRecorridoBiblioteca(id);if(!r)return;recorridoPuntos=r.puntos;recorridoDistancia=+r.distancia||0;recorridoInicio=0;dibujarRutaBiblioteca(r);actualizarPanelRecorrido()} async function buscarRecorridosAntiguosEnEsteNavegador(){
+const hallados=[];
+const firmaPuntos=p=>Array.isArray(p)&&p.length>1&&p.every(x=>x&&Number.isFinite(Number(x.lat??x.latitude??x[0]))&&Number.isFinite(Number(x.lon??x.lng??x.longitude??x[1])));
+const normalizar=(o,origen)=>{
+if(!o||typeof o!=="object")return;
+for(const k of ["puntos","points","ruta","route","track","tracks","coordenadas","coordinates","path","recorrido","positions"]){
+const a=o[k];
+if(firmaPuntos(a)){
+const puntos=a.map(p=>({lat:Number(p.lat??p.latitude??p[0]),lon:Number(p.lon??p.lng??p.longitude??p[1]),accuracy:Number(p.accuracy||p.precision)||0,timestamp:Number(p.timestamp||p.time||p.hora)||Date.now()}));
+if(!hallados.some(r=>r.puntos.length===puntos.length&&Math.abs(r.puntos[0].lat-puntos[0].lat)<.00001&&Math.abs(r.puntos[0].lon-puntos[0].lon)<.00001&&Math.abs(r.puntos.at(-1).lat-puntos.at(-1).lat)<.00001&&Math.abs(r.puntos.at(-1).lon-puntos.at(-1).lon)<.00001))hallados.push({id:"recuperado-"+hallados.length,nombre:o.nombre||o.name||"Recorrido recuperado ("+origen+")",fechaInicio:o.fechaInicio||o.inicio||null,fechaFin:o.fechaFin||o.fecha||new Date().toISOString(),distancia:Number(o.distancia||o.distance)||0,puntos,version:1,origenRecuperacion:origen});
+return;
+}
+}
+if(Array.isArray(o)){for(const x of o)normalizar(x,origen);return}
+for(const [k,v] of Object.entries(o)){if(v&&typeof v==="object")normalizar(v,origen)}
+};
+try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k)try{normalizar(JSON.parse(localStorage.getItem(k)),"almacenamiento local: "+k)}catch(e){}}}catch(e){}
+try{if(indexedDB&&typeof indexedDB.databases==="function"){const dbs=await indexedDB.databases();for(const info of dbs){if(!info.name||info.name===DB_RECORRIDOS)continue;try{const db=await new Promise((ok,no)=>{const q=indexedDB.open(info.name);q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error);q.onblocked=()=>no(new Error("base bloqueada"))});for(const store of Array.from(db.objectStoreNames)){try{const rows=await new Promise((ok,no)=>{const tx=db.transaction(store,"readonly"),q=tx.objectStore(store).getAll();q.onsuccess=()=>ok(q.result||[]);q.onerror=()=>no(q.error)});normalizar(rows,"base antigua: "+info.name+"/"+store)}catch(e){}}db.close()}catch(e){}}}}catch(e){}
+return hallados;
+}
+async function reproducirUltimoRecorridoBiblioteca(){
 const t=$("recorridoPlaybackTexto");
 if(t)t.textContent="Buscando un recorrido guardado…";
 try{
 let lista=await obtenerRecorridosBiblioteca();
 let r=lista.find(x=>Array.isArray(x.puntos)&&x.puntos.length>1);
+if(!r){
+try{
+const antiguas=await buscarRecorridosAntiguosEnEsteNavegador();
+if(antiguas.length){const candidata=antiguas.sort((a,b)=>String(b.fechaFin||"").localeCompare(String(a.fechaFin||"")))[0];if(candidata&&candidata.puntos.length>1){r=candidata;await guardarRecorridoBiblioteca(r);if(t)t.textContent="He encontrado una ruta en los datos antiguos del navegador. Intentando recuperarla…";}}
+}catch(e){console.warn("Búsqueda en almacenamientos antiguos",e)}
+}
 if(!r){
 try{
 const local=JSON.parse(localStorage.getItem("radar_niscalo_recorrido")||"null");
@@ -3251,7 +3277,7 @@ if(puntos.length>1){r={id:"recuperado-local",nombre:"Recorrido recuperado",dista
 if(!r){if(t)t.textContent="No encuentro la ruta en la biblioteca ni en el recorrido local del teléfono. No borres los datos del navegador; intentaremos recuperarla.";return}
 if(!mapa){if(t)t.textContent="El mapa aún no está listo. Entra en Radar y vuelve a pulsar reproducir.";return}
 if(t)t.textContent="Iniciando reproducción…";
-if(r.id==="recuperado-local")await reproducirObjetoRecorrido(r);else await reproducirRecorridoBiblioteca(r.id);
+if(String(r.id).startsWith("recuperado-"))await reproducirObjetoRecorrido(r);else await reproducirRecorridoBiblioteca(r.id);
 if(!reproduccionRecorridoTimer&&t&&/Iniciando|encontrado/.test(t.textContent))t.textContent="La ruta se ha localizado, pero no ha podido arrancar la animación.";
 }catch(e){console.error("Error al reproducir el recorrido:",e);if(t)t.textContent="No se ha podido reproducir. Prueba a abrir la ruta con «Ver» y vuelve a intentarlo."}
 }
