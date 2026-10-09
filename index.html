@@ -2964,6 +2964,7 @@ await guardarRecorridoBiblioteca({
   duracionMs:recorridoInicio?Math.max(0,ahora.getTime()-recorridoInicio):0,
   distancia:Number(recorridoDistancia)||0,
   puntos:recorridoPuntos.map(p=>({lat:Number(p.lat),lon:Number(p.lon),accuracy:Number(p.accuracy||p.precision)||0,timestamp:Number(p.timestamp||Date.parse(p.hora))||Date.now()})),
+  vueltaDesde:recorridoVueltaDesde,
   version:1
 });
 }catch(e){
@@ -3230,7 +3231,31 @@ async function obtenerRecorridosBiblioteca(){try{const d=await abrirDBRecorridos
 function formatearDuracionGuardada(ms){const s=Math.round(Number(ms||0)/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h?String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(x).padStart(2,"0"):String(m).padStart(2,"0")+":"+String(x).padStart(2,"0")}
 async function mostrarBibliotecaRecorridos(){const b=$("listaRecorridosGuardados");if(!b)return;const l=await obtenerRecorridosBiblioteca();if(!l.length){b.innerHTML='<span class="muted" style="color:#bfd0c3">Todavía no hay recorridos guardados.</span>';return}b.innerHTML=l.map(r=>{const id=JSON.stringify(r.id),f=r.fechaFin?new Date(r.fechaFin).toLocaleString("es-ES",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"Sin fecha";return '<div class="recorrido-guardado"><b>🧭 '+escapar(r.nombre||"Recorrido")+'</b><div class="recorrido-meta">📅 '+f+' · 📏 '+formatearDistanciaRecorrido(r.distancia||0)+' · ⏱️ '+formatearDuracionGuardada(r.duracionMs)+' · 📍 '+(r.puntos?.length||0)+' puntos</div><div class="recorrido-acciones"><button type="button" class="ruta-ver" onclick="abrirRecorridoBiblioteca('+id+')">🗺️ Ver</button><button type="button" class="ruta-ver" onclick="reproducirRecorridoBiblioteca('+id+')">▶️ Reproducir</button><button type="button" class="ruta-volver" onclick="seguirRecorridoBiblioteca('+id+')">🧭 Volver</button><button type="button" class="ruta-exportar" onclick="exportarRecorridoGPX('+id+')">📤 GPX</button><button type="button" class="ruta-borrar" onclick="borrarRecorridoBiblioteca('+id+')">🗑️</button></div></div>'}).join("")}
 async function cargarRecorridoBiblioteca(id){const l=await obtenerRecorridosBiblioteca(),r=l.find(x=>String(x.id)===String(id));return r&&r.puntos?.length>1?r:null}
-function dibujarRutaBiblioteca(r){if(!mapa||!r)return;if(lineaRecorrido)mapa.removeLayer(lineaRecorrido);lineaRecorrido=L.polyline(r.puntos.map(p=>[+p.lat,+p.lon]),{color:"#e68a35",weight:5,opacity:.92,lineCap:"round",lineJoin:"round"}).addTo(mapa);mapa.fitBounds(lineaRecorrido.getBounds(),{padding:[30,30],maxZoom:16});const a=$("recorridoAviso");if(a)a.textContent="Ruta «"+(r.nombre||"sin nombre")+"» cargada."}
+function dibujarRutaBiblioteca(r){
+ if(!mapa||!r||!Array.isArray(r.puntos)||!r.puntos.length)return;
+ limpiarMarcadoresPuntosRecorrido();
+ const puntosValidos=r.puntos.filter(p=>Number.isFinite(+p.lat)&&Number.isFinite(+p.lon));
+ if(!puntosValidos.length)return;
+ const vueltaDesde=Number.isInteger(r.vueltaDesde)?r.vueltaDesde:null;
+ const bounds=[];
+ puntosValidos.forEach((p,i)=>{
+   const esVuelta=vueltaDesde!==null&&i>=vueltaDesde;
+   const inicio=i===0,fin=i===puntosValidos.length-1;
+   const marker=L.circleMarker([+p.lat,+p.lon],{
+     radius:inicio||fin?6:3.8,
+     color:"#ffffff",weight:1.4,
+     fillColor:esVuelta?"#ef4444":"#2583f4",
+     fillOpacity:.96,opacity:.98,interactive:true
+   }).addTo(mapa);
+   marker.bindTooltip((esVuelta?"Vuelta":"Ida")+" · punto "+(i+1),{direction:"top",opacity:.9});
+   marcadoresPuntosRecorrido.push(marker);
+   bounds.push([+p.lat,+p.lon]);
+ });
+ if(bounds.length===1)mapa.setView(bounds[0],16,{animate:true});
+ else mapa.fitBounds(L.latLngBounds(bounds),{padding:[30,30],maxZoom:16});
+ const a=$("recorridoAviso");
+ if(a)a.textContent="Ruta «"+(r.nombre||"sin nombre")+"» cargada con puntos, sin línea. Ida en azul y vuelta en rojo.";
+}
 async function abrirRecorridoBiblioteca(id){detenerReproduccionRecorrido();detenerSeguirRecorrido();const r=await cargarRecorridoBiblioteca(id);if(!r)return;recorridoPuntos=r.puntos;recorridoDistancia=+r.distancia||0;recorridoInicio=0;dibujarRutaBiblioteca(r);actualizarPanelRecorrido()}
 async function reproducirRecorridoBiblioteca(id){detenerReproduccionRecorrido();detenerSeguirRecorrido();const r=await cargarRecorridoBiblioteca(id);if(!r||!mapa)return;dibujarRutaBiblioteca(r);const p=r.puntos,m=L.circleMarker([p[0].lat,p[0].lon],{radius:8,color:"#fff",weight:2,fillColor:"#e6a253",fillOpacity:1}).addTo(mapa),panel=$("recorridoReproduccion"),txt=$("recorridoPlaybackTexto"),fill=$("recorridoPlaybackFill"),dur=Math.max(8000,Math.min(45000,p.length*350)),ini=performance.now();if(panel)panel.classList.add("activo");reproduccionRecorridoTimer=setInterval(()=>{const t=Math.min(1,(performance.now()-ini)/dur),x=t*(p.length-1),a=Math.floor(x),b=Math.min(p.length-1,a+1),f=x-a,lat=+p[a].lat+(+p[b].lat-+p[a].lat)*f,lon=+p[a].lon+(+p[b].lon-+p[a].lon)*f;m.setLatLng([lat,lon]);if(txt)txt.textContent=(r.nombre||"Recorrido")+" · "+Math.round(t*100)+"%";if(fill)fill.style.width=Math.round(t*100)+"%";if(t>=1){clearInterval(reproduccionRecorridoTimer);reproduccionRecorridoTimer=null;setTimeout(()=>mapa&&mapa.hasLayer(m)&&mapa.removeLayer(m),700)}},40)}
 function detenerReproduccionRecorrido(){if(reproduccionRecorridoTimer){clearInterval(reproduccionRecorridoTimer);reproduccionRecorridoTimer=null}const p=$("recorridoReproduccion");if(p)p.classList.remove("activo")}
