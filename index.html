@@ -2234,6 +2234,7 @@ Graba por dónde caminas para poder volver al punto de inicio siguiendo el mismo
 <div style="display:flex;gap:8px;flex-wrap:wrap">
 <button type="button" id="btnComenzarRecorrido" onclick="comenzarRecorrido()">🧭 Comenzar recorrido</button>
 <button type="button" id="btnPararRecorrido" class="secondary" onclick="pararRecorrido()" style="display:none">⏹️ Parar y guardar</button>
+<button type="button" id="btnMarcarVuelta" class="secondary" onclick="marcarInicioVuelta()">🔴 Marcar inicio de vuelta</button>
 <button type="button" id="btnCentrarRecorrido" class="secondary" onclick="centrarRecorrido()">📍 Centrar</button>
 <button type="button" id="btnBorrarRecorrido" class="danger" onclick="borrarRecorrido()">🗑️ Borrar ruta</button>
 </div>
@@ -2661,8 +2662,9 @@ style="overflow:auto;margin-top:12px">
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
     <button id="btnAbrirCamara" onclick="abrirCamara()">📷 Abrir cámara</button>
-    <button id="btnFotoCamara" onclick="hacerFoto()" style="display:none">📸 Analizar foto 1/3</button>
-    <button id="btnRepetirCamara" class="secondary" onclick="repetirFoto()" style="display:none">🔄 Repetir</button>
+    <button id="btnFotoCamara" onclick="hacerFoto()" style="display:none">📸 Capturar vista 1/3</button>
+    <button id="btnSiguienteCamara" class="secondary" onclick="siguienteFoto()" style="display:none">📷 Siguiente vista</button>
+    <button id="btnRepetirCamara" class="secondary" onclick="repetirFoto()" style="display:none">🔄 Repetir esta vista</button>
     <button id="btnCerrarCamara" class="danger" onclick="cerrarCamara()" style="display:none">✕ Cerrar</button>
   </div>
   <div id="resultadoEscaner" style="margin-top:12px"></div>
@@ -2874,6 +2876,8 @@ let recorridoDistancia=0;
 let recorridoInicio=0;
 let recorridoTimer=null;
 let lineaRecorrido=null;
+let marcadoresPuntosRecorrido=[];
+let recorridoVueltaDesde=null;
 let marcadorRecorrido=null;
 let circuloPrecisionRecorrido=null;
 
@@ -2913,29 +2917,33 @@ Math.cos(lat1*rad)*Math.cos(lat2*rad)*Math.sin(dLon/2)**2;
 return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
+function limpiarMarcadoresPuntosRecorrido(){
+if(!mapa)return;
+marcadoresPuntosRecorrido.forEach(m=>{try{mapa.removeLayer(m);}catch(e){}});
+marcadoresPuntosRecorrido=[];
+if(lineaRecorrido){try{mapa.removeLayer(lineaRecorrido);}catch(e){}lineaRecorrido=null;}
+}
 function dibujarRecorridoGuardado(){
-if(!mapa) return;
-if(lineaRecorrido){
-mapa.removeLayer(lineaRecorrido);
-lineaRecorrido=null;
-}
-if(!recorridoPuntos.length) return;
-lineaRecorrido=L.polyline(
-recorridoPuntos.map(p=>[p.lat,p.lon]),
-{
-color:"#e56f32",
-weight:5,
-opacity:.9,
-lineCap:"round",
-lineJoin:"round"
-}
-).addTo(mapa);
+if(!mapa)return;
+limpiarMarcadoresPuntosRecorrido();
+if(!recorridoPuntos.length)return;
+recorridoPuntos.forEach((p,i)=>{
+const vuelta=Number.isInteger(recorridoVueltaDesde)&&i>=recorridoVueltaDesde;
+const color=vuelta?"#ef4444":"#2583f4";
+const marker=L.circleMarker([p.lat,p.lon],{
+radius:i===0||i===recorridoPuntos.length-1?6:3.8,
+color:"#ffffff",weight:1.4,fillColor:color,fillOpacity:.96,
+opacity:.98,interactive:true
+}).addTo(mapa);
+marker.bindTooltip((vuelta?"Vuelta":"Ida")+" · punto "+(i+1),{direction:"top",opacity:.9});
+marcadoresPuntosRecorrido.push(marker);
+});
 }
 
 function guardarRecorridoLocal(){
 try{
 const ahora=new Date();
-localStorage.setItem("radar_niscalo_recorrido",JSON.stringify({puntos:recorridoPuntos,distancia:recorridoDistancia,inicio:recorridoInicio||null,fecha:ahora.toISOString()}));
+localStorage.setItem("radar_niscalo_recorrido",JSON.stringify({puntos:recorridoPuntos,distancia:recorridoDistancia,inicio:recorridoInicio||null,vueltaDesde:recorridoVueltaDesde,fecha:ahora.toISOString()}));
 }catch(e){console.warn("No se pudo guardar el recorrido:",e);}
 }
 
@@ -2963,6 +2971,7 @@ const guardado=JSON.parse(localStorage.getItem("radar_niscalo_recorrido")||"null
 if(!guardado||!Array.isArray(guardado.puntos)||!guardado.puntos.length) return;
 recorridoPuntos=guardado.puntos;
 recorridoDistancia=Number(guardado.distancia)||0;
+recorridoVueltaDesde=Number.isInteger(guardado.vueltaDesde)?guardado.vueltaDesde:null;
 dibujarRecorridoGuardado();
 actualizarPanelRecorrido();
 const aviso=$("recorridoAviso");
@@ -3029,19 +3038,7 @@ precision:Math.round(precision),
 hora:new Date().toISOString()
 });
 
-if(!lineaRecorrido){
-lineaRecorrido=L.polyline([],{
-color:"#e56f32",
-weight:5,
-opacity:.9,
-lineCap:"round",
-lineJoin:"round"
-}).addTo(mapa);
-}
-
-lineaRecorrido.setLatLngs(
-recorridoPuntos.map(p=>[p.lat,p.lon])
-);
+dibujarRecorridoGuardado();
 
 actualizarPanelRecorrido();
 guardarRecorridoLocal();
@@ -3097,6 +3094,23 @@ maximumAge:1000
 );
 }
 
+function marcarInicioVuelta(){
+if(!recorridoActivo && recorridoPuntos.length<2){
+const aviso=$("recorridoAviso");
+if(aviso)aviso.textContent="Empieza a grabar el recorrido y pulsa «Marcar inicio de vuelta» cuando quieras regresar.";
+return;
+}
+if(recorridoPuntos.length<2){
+const aviso=$("recorridoAviso");
+if(aviso)aviso.textContent="Necesitas al menos dos puntos GPS antes de marcar la vuelta.";
+return;
+}
+recorridoVueltaDesde=recorridoPuntos.length-1;
+guardarRecorridoLocal();
+dibujarRecorridoGuardado();
+const aviso=$("recorridoAviso");
+if(aviso)aviso.textContent="🔴 Vuelta marcada. Los puntos nuevos aparecerán en rojo; los de ida quedan en azul.";
+}
 function pararRecorrido(){
 if(!recorridoActivo) return;
 
@@ -3120,7 +3134,7 @@ $("btnComenzarRecorrido").style.display="inline-block";
 $("btnPararRecorrido").style.display="none";
 
 const aviso=$("recorridoAviso");
-if(aviso) aviso.textContent="Recorrido guardado. La línea naranja queda en el mapa para ayudarte a volver por el mismo camino.";
+if(aviso) aviso.textContent="Recorrido guardado. Ida en azul y vuelta en rojo; los puntos GPS quedan marcados para seguir el camino de regreso.";
 }
 
 function centrarRecorrido(){
@@ -3163,11 +3177,8 @@ localStorage.removeItem("radar_niscalo_recorrido");
 recorridoPuntos=[];
 recorridoDistancia=0;
 recorridoInicio=0;
-
-if(lineaRecorrido&&mapa){
-mapa.removeLayer(lineaRecorrido);
-lineaRecorrido=null;
-}
+recorridoVueltaDesde=null;
+limpiarMarcadoresPuntosRecorrido();
 
 actualizarPanelRecorrido();
 
@@ -3507,18 +3518,26 @@ let popupHtml=
 
 puntosRadar.push({lat:centroLat,lon:centroLon,score});
 
-let puntoRadar=L.circleMarker([centroLat,centroLon],{
-radius:8,
-opacity:0,
-fillOpacity:0,
+const mitad=paso/2;
+let puntoRadar=L.polygon([
+[centroLat-mitad,centroLon-mitad],
+[centroLat-mitad,centroLon+mitad],
+[centroLat+mitad,centroLon+mitad],
+[centroLat+mitad,centroLon-mitad]
+],{
+color:color,
+weight:1,
+opacity:.52,
+fillColor:color,
+fillOpacity:.34,
+lineJoin:"round",
 interactive:true
 }).addTo(mapa);
 puntoRadar.bindPopup(popupHtml);
 capasFavorabilidad.push(puntoRadar);
 }
-// La favorabilidad sigue calculándose en los 25 puntos reales,
-// pero no se dibuja como superficie térmica sobre la fotografía aérea.
-// Los puntos permanecen disponibles para consultar sus datos al tocarlos.
+// Las 25 celdas quedan visibles y cada una permite consultar sus datos.
+// La capa se reconstruye en cada cambio de ubicación para evitar datos antiguos.
 }catch(error){
 console.error("Mapa de favorabilidad:",error);
 }
@@ -3823,6 +3842,7 @@ if(cajaConf && conf){
 }
 
 $("score").textContent=resultado;
+window.scoreActual=resultado;
 
 if(resultado>=80){
 $("nivel").textContent="Muy favorable";
@@ -4125,8 +4145,10 @@ function mostrarValoracionProvisional(){
 
 async function cargarDatos(){
 
-  const lat=parseFloat($("lat").value);    const cargaRadarId=Date.now();
+  const lat=parseFloat($("lat").value);
+  const cargaRadarId=(Number(window._cargaRadarId)||0)+1;
   window._cargaRadarId=cargaRadarId;
+  window._ubicacionRadarActiva={lat:lat,lon:parseFloat($("lon").value),id:cargaRadarId};
   const watchdogRadar=setTimeout(()=>{
     if(window._cargaRadarId===cargaRadarId && $("score")?.textContent==="--"){
       mostrarValoracionProvisional();
@@ -4465,6 +4487,7 @@ async function cargarDatos(){
         /* Aunque fallen las tres fuentes meteorológicas, el Radar no se queda
            bloqueado en "Preparando…". Calculamos una valoración provisional
            con valores neutros y dejamos claro que no procede de meteorología en vivo. */
+        if(window._cargaRadarId!==cargaRadarId) return;
         mostrarValoracionProvisional();
         $("estado").textContent=
           "⚠️ Sin conexión meteorológica. El Radar muestra una valoración provisional. "+
@@ -4473,6 +4496,9 @@ async function cargarDatos(){
       }
     }
   }
+  if(window._cargaRadarId!==cargaRadarId) return;
+  if(Number($("lat").value)!==lat || Number($("lon").value)!==lon) return;
+
   try{
 
     /* =======================================================
@@ -5765,18 +5791,23 @@ function cambiarModoScanner(modo,boton){
   }
 }
 
-async function abrirCamara(){
-  const v=$("videoCamara");
+async function abrirCamara(nuevoEscaneo=true){
+  const v=$("videoCamara"),c=$("fotoCamara");
   try{
+    if(nuevoEscaneo){scannerFotoN=0;scannerFotosData=[];$("resultadoEscaner").innerHTML="";}
+    if(c)c.style.display="none";
     await abrirStreamScanner(v,"environment");
     v.style.display="block";$("camaraPlaceholder").style.display="none";$("guiaCamara").style.display="block";
     $("btnAbrirCamara").style.display="none";$("btnFotoCamara").style.display="";
+    $("btnSiguienteCamara").style.display="none";$("btnRepetirCamara").style.display="none";
     $("btnCerrarCamara").style.display="";
-    scannerFotoN=0;scannerFotosData=[];
-    $("btnFotoCamara").textContent="📸 Analizar foto 1/3";
-    $("resultadoEscaner").innerHTML="";
-    estadoCamara("<b>🟢 Cámara abierta.</b> Haz tres fotografías: bosque, suelo y una vista cercana.");
+    $("btnFotoCamara").textContent="📸 Capturar vista "+(scannerFotoN+1)+"/3";
+    estadoCamara("<b>🟢 Cámara lista.</b> Vista "+(scannerFotoN+1)+" de 3: "+(["bosque","suelo","vista cercana"][scannerFotoN]||"detalle")+".");
   }catch(e){console.error(e);estadoCamara("⚠️ "+errorCamara(e));}
+}
+function siguienteFoto(){
+  if(scannerFotoN>=3)return;
+  abrirCamara(false);
 }
 
 function hacerFoto(){
@@ -5795,27 +5826,35 @@ function hacerFoto(){
   scannerFotosData.push({senal:señal,fecha:new Date().toISOString()});
   scannerFotoN++;
   $("fotoCamara").style.display="block";
-  $("fotoCamara").style.maxHeight="520px";
+  $("fotoCamara").style.width="100%";
+  $("fotoCamara").style.maxHeight="360px";
+  $("fotoCamara").style.objectFit="contain";
   $("videoCamara").style.display="none";
   $("guiaCamara").style.display="none";
+  $("btnFotoCamara").style.display="none";
+  $("btnAbrirCamara").style.display="none";
+  $("btnRepetirCamara").style.display="";
   if(scannerFotoN<3){
-    $("btnFotoCamara").style.display="none";$("btnRepetirCamara").style.display="";
-    estadoCamara("📸 Vista "+scannerFotoN+"/3 capturada. Pulsa «Repetir» si quieres rehacerla o vuelve a abrir la cámara para la siguiente.");
-    $("resultadoEscaner").innerHTML="<b>Vista "+scannerFotoN+"/3:</b> señal visual "+señal+"/100.";
+    $("btnSiguienteCamara").style.display="";
+    $("btnSiguienteCamara").textContent="📷 Siguiente vista "+(scannerFotoN+1)+"/3";
+    estadoCamara("✅ Vista "+scannerFotoN+"/3 guardada. Puedes repetirla o continuar con la siguiente.");
+    $("resultadoEscaner").innerHTML="<div class='notice'><b>Vista "+scannerFotoN+"/3 capturada</b><br>Señal visual orientativa: "+señal+"/100. No es una identificación de especie.</div>";
   }else{
     const total=Math.round(scannerFotosData.reduce((s,x)=>s+x.senal,0)/scannerFotosData.length);
-    $("btnFotoCamara").style.display="none";$("btnRepetirCamara").style.display="none";
+    $("btnSiguienteCamara").style.display="none";
+    $("btnRepetirCamara").style.display="none";
     $("btnCerrarCamara").style.display="";
-    $("resultadoEscaner").innerHTML="<b>🍄 Escaneo completado: "+total+"/100</b><br><span class='muted'>Resultado experimental basado en las tres vistas. No constituye identificación de especie.</span>";
+    $("resultadoEscaner").innerHTML="<div class='notice'><b>🍄 Escaneo completado: "+total+"/100</b><br><span class='muted'>Valoración experimental de las tres vistas. No confirma que haya rebollones ni identifica una especie con seguridad.</span></div>";
     guardarEscaneoLocal(total,scannerFotosData.length);
   }
   pararStreamScanner();v.srcObject=null;
 }
 
 async function repetirFoto(){
-  if(scannerFotoN<1){abrirCamara();return;}
-  scannerFotosData.pop();scannerFotoN=Math.max(0,scannerFotoN-1);
-  await abrirCamara();
+  if(scannerFotoN<1){await abrirCamara(true);return;}
+  scannerFotosData.pop();
+  scannerFotoN=Math.max(0,scannerFotoN-1);
+  await abrirCamara(false);
   estadoCamara("🔄 Repite la vista "+(scannerFotoN+1)+"/3.");
 }
 
@@ -5827,7 +5866,10 @@ function cerrarCamara(){
   if($("camaraPlaceholder"))$("camaraPlaceholder").style.display="block";
   if($("btnAbrirCamara"))$("btnAbrirCamara").style.display="";
   if($("btnFotoCamara"))$("btnFotoCamara").style.display="none";
+  if($("btnSiguienteCamara"))$("btnSiguienteCamara").style.display="none";
   if($("btnRepetirCamara"))$("btnRepetirCamara").style.display="none";
+  scannerFotoN=0;scannerFotosData=[];
+  if($("resultadoEscaner"))$("resultadoEscaner").innerHTML="";
   if($("btnCerrarCamara"))$("btnCerrarCamara").style.display="none";
   estadoCamara("Pulsa «Abrir cámara» para empezar.");
 }
