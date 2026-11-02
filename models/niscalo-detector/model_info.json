@@ -17,7 +17,7 @@
       0.225
     ]
   },
-  "validation_accuracy": 1.0,
+  "validation_accuracy": 0.9231,
   "model": "MobileNetV3-Small",
   "purpose": "experimental visual candidate detector; not species confirmation"
 }
